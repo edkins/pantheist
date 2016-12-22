@@ -30,7 +30,7 @@ public class NavigateToHomeRule implements TestRule
 			@Override
 			public void evaluate() throws Throwable
 			{
-				session.webDriver().navigate().to(session.pantheistUrl());
+				session.webDriver().navigate().to(session.managementUrl());
 				base.evaluate();
 			}
 		};

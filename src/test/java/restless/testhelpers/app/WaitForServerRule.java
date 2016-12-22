@@ -48,7 +48,7 @@ public class WaitForServerRule implements TestRule
 		{
 			try
 			{
-				session.pantheistUrl().getContent();
+				session.managementUrl().getContent();
 				return;
 			}
 			catch (final IOException e)

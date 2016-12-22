@@ -76,7 +76,7 @@ public class MainRule implements TestRule
 		}
 		else
 		{
-			return RestlessActionsApi.from(session.pantheistUrl(), session.objectMapper());
+			return RestlessActionsApi.from(session.managementUrl(), session.objectMapper());
 		}
 	}
 

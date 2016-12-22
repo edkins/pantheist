@@ -59,7 +59,7 @@ public final class TestSessionImpl implements TestSession
 	}
 
 	@Override
-	public URL pantheistUrl()
+	public URL managementUrl()
 	{
 		try
 		{
