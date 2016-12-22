@@ -8,7 +8,13 @@ import javax.ws.rs.core.Response;
 public final class SomethingResourceImpl implements SomethingResource
 {
 	@GET
-	@Path("/foo")
+	public Response root()
+	{
+		return Response.ok("need a home page I suppose").build();
+	}
+
+	@GET
+	@Path("foo")
 	public Response foo()
 	{
 		return Response.ok("hello").build();

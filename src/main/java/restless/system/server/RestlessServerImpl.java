@@ -15,8 +15,8 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import com.google.common.base.Throwables;
 
 import restless.api.something.resource.SomethingResource;
+import restless.common.util.MutableOptional;
 import restless.system.config.RestlessConfig;
-import restless.util.MutableOptional;
 
 final class RestlessServerImpl implements RestlessServer
 {

@@ -1,4 +1,4 @@
-package restless.util;
+package restless.common.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
