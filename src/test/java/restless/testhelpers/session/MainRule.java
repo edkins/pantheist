@@ -7,8 +7,8 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
-import restless.testhelpers.actions.api.RestlessActionsApi;
-import restless.testhelpers.actions.interf.RestlessActions;
+import restless.client.api.ManagementClient;
+import restless.client.impl.ManagementClientImpl;
 import restless.testhelpers.app.AppRule;
 import restless.testhelpers.app.TempDirRule;
 import restless.testhelpers.app.WaitForServerRule;
@@ -68,7 +68,7 @@ public class MainRule implements TestRule
 		return new MainRule(session);
 	}
 
-	public RestlessActions actions()
+	public ManagementClient actions()
 	{
 		if (session.useSelenium())
 		{
@@ -76,7 +76,7 @@ public class MainRule implements TestRule
 		}
 		else
 		{
-			return RestlessActionsApi.from(session.managementUrl(), session.objectMapper());
+			return ManagementClientImpl.from(session.managementUrl(), session.objectMapper());
 		}
 	}
 

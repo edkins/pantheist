@@ -7,12 +7,12 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import restless.testhelpers.actions.interf.RestlessActions;
+import restless.client.api.ManagementPath;
 import restless.testhelpers.selenium.ApiRule;
 import restless.testhelpers.selenium.Interaction;
 import restless.testhelpers.session.MainRule;
 
-public class DummyTest
+public class FilesystemTest
 {
 	@ClassRule
 	public static final ApiRule apiRule = Interaction.api();
@@ -20,17 +20,20 @@ public class DummyTest
 	@Rule
 	public final MainRule sessionRule = MainRule.forNewTest(apiRule);
 
-	private RestlessActions act;
+	private ManagementPath manage;
 
 	@Before
 	public void setup()
 	{
-		act = sessionRule.actions();
+		manage = sessionRule.actions().manage();
 	}
 
 	@Test
-	public void access_dummyApi() throws Exception
+	public void filesystemFile_canReadItBack_throughManagementApi() throws Exception
 	{
-		assertEquals("hello", act.foo());
+		manage.segment("my-binding").config().bindToFilesystem("my-fs-binding");
+		manage.segment("my-binding").segment("my-file").data().putString("Contents of file");
+
+		assertEquals("Contents of file", manage.segment("my-binding").segment("my-file").data().getString());
 	}
 }
