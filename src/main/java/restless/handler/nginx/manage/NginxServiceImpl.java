@@ -12,6 +12,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import restless.common.util.MutableOptional;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
 import restless.handler.nginx.model.NginxConfig;
@@ -26,7 +27,7 @@ final class NginxServiceImpl implements NginxService
 	private final FilesystemStore filesystemStore;
 
 	// State
-	private boolean running;
+	MutableOptional<Process> runningProcess;
 
 	@Inject
 	NginxServiceImpl(final RestlessConfig config,
@@ -36,7 +37,7 @@ final class NginxServiceImpl implements NginxService
 		this.config = checkNotNull(config);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.filesystemStore = checkNotNull(filesystemStore);
-		this.running = false;
+		this.runningProcess = MutableOptional.empty();
 	}
 
 	@Override
@@ -45,7 +46,7 @@ final class NginxServiceImpl implements NginxService
 		try
 		{
 			FileUtils.writeStringToFile(nginxConf(), nginx.toString(), StandardCharsets.UTF_8);
-			if (running)
+			if (runningProcess.isPresent())
 			{
 				final Process process = new ProcessBuilder(config.nginxExecutable(), "-c",
 						nginxConf().getAbsolutePath(), "-s", "hup").start();
@@ -58,8 +59,9 @@ final class NginxServiceImpl implements NginxService
 			}
 			else
 			{
-				running = true;
-				new ProcessBuilder(config.nginxExecutable(), "-c", nginxConf().getAbsolutePath()).start();
+				final Process process = new ProcessBuilder(config.nginxExecutable(), "-c",
+						nginxConf().getAbsolutePath()).start();
+				runningProcess.add(process);
 				LOGGER.info("nginx started on port {}", config.mainPort());
 			}
 		}
@@ -77,16 +79,27 @@ final class NginxServiceImpl implements NginxService
 	@Override
 	public void stop()
 	{
-		if (running)
+		if (runningProcess.isPresent())
 		{
 			try
 			{
+				// Tell it to quit
 				final Process process = new ProcessBuilder(config.nginxExecutable(),
 						"-c", nginxConf().getAbsolutePath(),
 						"-s", "quit").start();
 				process.waitFor();
-				running = false;
-				LOGGER.info("nginx stopped");
+
+				// Wait for it to quit
+				final int exitCode = runningProcess.get().waitFor();
+				if (exitCode == 0)
+				{
+					LOGGER.info("nginx stopped");
+				}
+				else
+				{
+					LOGGER.warn("nginx stopped with exit code " + exitCode);
+				}
+				runningProcess.clear();
 			}
 			catch (final IOException | InterruptedException e)
 			{
