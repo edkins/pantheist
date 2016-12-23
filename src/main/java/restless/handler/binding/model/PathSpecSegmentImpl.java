@@ -41,6 +41,8 @@ final class PathSpecSegmentImpl implements PathSpecSegment
 		switch (type) {
 		case literal:
 			return "+" + value;
+		case star:
+			return "*";
 		default:
 			return "???" + type + ":" + value;
 		}
@@ -65,16 +67,49 @@ final class PathSpecSegmentImpl implements PathSpecSegment
 	}
 
 	@Override
-	public boolean contains(final PathSpecSegment other)
+	public boolean literal()
 	{
-		if (type.equals(PathSpecSegmentType.literal) && other.type().equals(PathSpecSegmentType.literal))
+		return type.equals(PathSpecSegmentType.literal);
+	}
+
+	@Override
+	public boolean matches(final PathSpecSegment segment)
+	{
+		if (!segment.literal())
 		{
-			return value.equals(other.value());
+			throw new IllegalArgumentException("Can only match against literal paths");
 		}
-		else
-		{
-			// We'll handle the other cases when they appear.
-			return false;
+		switch (type) {
+		case literal:
+			return value.equals(segment.value());
+		case star:
+			return true;
+		default:
+			throw new UnsupportedOperationException("Unknown path segment type " + type);
+		}
+	}
+
+	@Override
+	public boolean fixedNumber()
+	{
+		switch (type) {
+		case literal:
+		case star:
+			return true;
+		default:
+			throw new UnsupportedOperationException("Unknown path segment type " + type);
+		}
+	}
+
+	@Override
+	public String nameHint()
+	{
+		switch (type) {
+		case literal:
+			return value.replaceAll("[^a-zA-Z]", "_");
+		case star:
+		default:
+			return "X";
 		}
 	}
 

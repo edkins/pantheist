@@ -14,6 +14,7 @@ import restless.client.api.ManagementClientException;
 import restless.client.api.ManagementResourceNotFoundException;
 import restless.client.api.ManagementUnexpectedResponseException;
 import restless.client.api.ManagementUnsupportedException;
+import restless.client.api.ResponseType;
 import restless.common.util.DummyException;
 import restless.common.util.OtherPreconditions;
 
@@ -38,6 +39,12 @@ final class TargetWrapper
 	{
 		final Response response = target.request(MediaType.TEXT_PLAIN).get();
 		return expectContent(response);
+	}
+
+	public ResponseType getTextPlainResponseType()
+	{
+		final Response response = target.request(MediaType.TEXT_PLAIN).get();
+		return responseType(response);
 	}
 
 	public void putTextPlain(final String text)
@@ -120,5 +127,23 @@ final class TargetWrapper
 			sb.append("[no entity]");
 		}
 		throw new ManagementUnexpectedResponseException(sb.toString());
+	}
+
+	private ResponseType responseType(final Response response)
+	{
+		switch (response.getStatus()) {
+		case 200:
+			return ResponseType.OK;
+		case 204:
+			return ResponseType.NO_CONTENT;
+		case 404:
+			return ResponseType.NOT_FOUND;
+		case 501: // not implemented
+			return ResponseType.NOT_IMPLEMENTED;
+		case 400: // bad request
+		case 405: // method not allowed
+		default:
+			return ResponseType.UNEXPECTED;
+		}
 	}
 }

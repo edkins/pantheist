@@ -24,6 +24,14 @@ public class MutableOptional<T>
 		this.value = Optional.of(newValue);
 	}
 
+	public void add(final Optional<T> newValue)
+	{
+		if (newValue.isPresent())
+		{
+			add(newValue.get());
+		}
+	}
+
 	public void add(final MutableOptional<T> other)
 	{
 		checkNotNull(other);
@@ -61,5 +69,4 @@ public class MutableOptional<T>
 	{
 		return value;
 	}
-
 }

@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableList;
 
 import restless.common.util.Make;
 import restless.common.util.OtherPreconditions;
-import restless.handler.binding.model.PathSpec;
 import restless.handler.binding.model.PathSpecSegment;
 import restless.handler.binding.model.PathSpecSegmentType;
 
@@ -128,10 +127,10 @@ final class FsPathImpl implements FsPath
 	}
 
 	@Override
-	public FsPath plusRelativePathSpec(final PathSpec relativePathSpec)
+	public FsPath withPathSegments(final List<PathSpecSegment> segments)
 	{
 		FsPath result = this;
-		for (final PathSpecSegment seg : relativePathSpec.segments())
+		for (final PathSpecSegment seg : segments)
 		{
 			if (seg.type().equals(PathSpecSegmentType.literal))
 			{

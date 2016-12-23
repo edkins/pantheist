@@ -3,6 +3,7 @@ package restless.client.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import restless.client.api.ManagementData;
+import restless.client.api.ResponseType;
 
 final class ManagementDataImpl implements ManagementData
 {
@@ -23,6 +24,12 @@ final class ManagementDataImpl implements ManagementData
 	public void putString(final String data)
 	{
 		target.putTextPlain(data);
+	}
+
+	@Override
+	public ResponseType getResponseType()
+	{
+		return target.getTextPlainResponseType();
 	}
 
 }

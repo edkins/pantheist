@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.api.management.backend.ManagementBackend;
 import restless.api.management.model.ConfigRequest;
+import restless.handler.binding.backend.PossibleData;
 
 /**
  * Handles the following management functions:
@@ -32,6 +33,8 @@ import restless.api.management.model.ConfigRequest;
  * The paths match any sequence of +foo/+bar/+baz
  *
  * i.e. each segment starts with a "+" and there can be any number of them.
+ *
+ * or they can start with a *.
  *
  * They are written out here as a horrible regex.
  */
@@ -62,7 +65,7 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles the .config management function
 	 */
 	@PUT
-	@Path("{path:(\\+[^/]+\\/)*}.config")
+	@Path("{path:([^./][^/]*[/])*}.config")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response putConfig(@PathParam("path") final String path, final String configJson) throws IOException
 	{
@@ -86,7 +89,7 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles the .data management function (PUT)
 	 */
 	@PUT
-	@Path("{path:(\\+[^/]+\\/)*}.data")
+	@Path("{path:([^./][^/]*[/])*}.data")
 	@Consumes(MediaType.TEXT_PLAIN)
 	public Response putData(@PathParam("path") final String path, final String data)
 	{
@@ -108,7 +111,7 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles the .data management function (GET)
 	 */
 	@GET
-	@Path("{path:(\\+[^/]+\\/)*}.data")
+	@Path("{path:([^./][^/]*[/])*}.data")
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response getData(@PathParam("path") final String path)
 	{
@@ -116,9 +119,9 @@ public final class ManagementResourceImpl implements ManagementResource
 
 		try
 		{
-			final String data = backend.getData(backend.pathSpec(path));
+			final PossibleData data = backend.getData(backend.pathSpec(path));
 
-			return Response.ok(data).build();
+			return possibleDataResponse(data);
 		}
 		catch (final RuntimeException ex)
 		{
@@ -130,5 +133,18 @@ public final class ManagementResourceImpl implements ManagementResource
 	{
 		LOGGER.catching(ex);
 		throw ex;
+	}
+
+	private Response possibleDataResponse(final PossibleData data)
+	{
+		if (data.isPresent())
+		{
+			return Response.ok(data.get()).build();
+		}
+		else
+		{
+			LOGGER.info("Returning status " + data.httpStatus());
+			return Response.status(data.httpStatus()).build();
+		}
 	}
 }

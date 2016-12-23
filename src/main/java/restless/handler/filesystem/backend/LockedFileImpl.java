@@ -54,7 +54,7 @@ final class LockedFileImpl implements LockedFile
 	}
 
 	@Override
-	public boolean fileExits()
+	public boolean fileExists()
 	{
 		final File file = file();
 		if (file.isFile())
@@ -105,6 +105,20 @@ final class LockedFileImpl implements LockedFile
 			{
 				throw new FsIoException("Directory was not created at " + path);
 			}
+		}
+	}
+
+	@Override
+	public boolean attemptNewDirectory()
+	{
+		final File file = file();
+		if (file.exists())
+		{
+			return false;
+		}
+		else
+		{
+			return file.mkdir();
 		}
 	}
 

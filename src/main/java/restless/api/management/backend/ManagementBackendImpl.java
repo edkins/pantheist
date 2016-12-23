@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 
 import restless.api.management.model.ConfigRequest;
 import restless.handler.binding.backend.BindingStore;
+import restless.handler.binding.backend.PossibleData;
 import restless.handler.binding.model.BindingModelFactory;
 import restless.handler.binding.model.PathSpec;
 import restless.handler.binding.model.PathSpecSegment;
@@ -43,6 +44,10 @@ final class ManagementBackendImpl implements ManagementBackend
 		{
 			return bindingFactory.pathSpecSegment(PathSpecSegmentType.literal, seg.substring(1));
 		}
+		else if (seg.equals("*"))
+		{
+			return bindingFactory.pathSpecSegment(PathSpecSegmentType.star, "*");
+		}
 		else
 		{
 			throw new UnsupportedOperationException("Currently only literal path segments supported");
@@ -52,7 +57,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	@Override
 	public void putConfig(final PathSpec path, final ConfigRequest config)
 	{
-		bindingStore.bind(path, config.handler(), config.handlerPath());
+		bindingStore.bind(path, config.handler());
 	}
 
 	@Override
@@ -62,7 +67,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	}
 
 	@Override
-	public String getData(final PathSpec path)
+	public PossibleData getData(final PathSpec path)
 	{
 		return bindingStore.lookup(path).getString();
 	}

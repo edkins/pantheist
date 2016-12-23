@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -26,6 +27,13 @@ public class Make
 	public static <T> ImmutableList<T> list(final List<T> xs, final T x)
 	{
 		return ImmutableList.<T>builder().addAll(xs).add(x).build();
+	}
+
+	public static <T> ImmutableList<T> listWithout(final List<T> xs, final Predicate<T> dropPredicate)
+	{
+		checkNotNull(xs);
+		checkNotNull(dropPredicate);
+		return ImmutableList.copyOf(xs.stream().filter(x -> !dropPredicate.test(x)).collect(Collectors.toList()));
 	}
 
 	public static <T> ImmutableList<T> listWithSingleItemRemoved(final List<T> xs, final T dropX)

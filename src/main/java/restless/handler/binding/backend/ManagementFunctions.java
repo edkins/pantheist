@@ -2,7 +2,7 @@ package restless.handler.binding.backend;
 
 public interface ManagementFunctions
 {
-	String getString();
+	PossibleData getString();
 
 	void putString(String data);
 }

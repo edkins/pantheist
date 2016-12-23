@@ -24,6 +24,12 @@ final class ManagementPathImpl implements ManagementPath
 	}
 
 	@Override
+	public ManagementPath star()
+	{
+		return new ManagementPathImpl(target.withSegment("*"));
+	}
+
+	@Override
 	public ManagementData data()
 	{
 		return new ManagementDataImpl(target.withSegment(".data"));
@@ -34,4 +40,5 @@ final class ManagementPathImpl implements ManagementPath
 	{
 		return new ManagementConfigImpl(target.withSegment(".config"));
 	}
+
 }

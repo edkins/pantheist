@@ -5,7 +5,7 @@ import restless.handler.binding.model.PathSpec;
 
 public interface BindingStore
 {
-	void bind(PathSpec pathSpec, HandlerType handlerType, String handlerPath);
+	void bind(PathSpec pathSpec, HandlerType handlerType);
 
 	ManagementFunctions lookup(PathSpec pathSpec);
 

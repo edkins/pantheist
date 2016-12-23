@@ -8,7 +8,7 @@ final class EmptyManagementFunctionsImpl implements ManagementFunctions
 	}
 
 	@Override
-	public String getString()
+	public PossibleData getString()
 	{
 		throw new UnsupportedOperationException();
 	}

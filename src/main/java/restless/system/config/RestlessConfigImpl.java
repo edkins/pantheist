@@ -43,16 +43,4 @@ public class RestlessConfigImpl implements RestlessConfig
 		}
 	}
 
-	@Override
-	public String fsFilesystemPath()
-	{
-		return propertyFactory.getStringProperty("RESTLESS_FS_FILESYSTEM_PATH", "restless-filesystem").get();
-	}
-
-	@Override
-	public String fsBindingPath()
-	{
-		return propertyFactory.getStringProperty("RESTLESS_FS_BINDING_PATH", "restless-binding").get();
-	}
-
 }

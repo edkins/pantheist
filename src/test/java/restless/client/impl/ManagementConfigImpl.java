@@ -17,11 +17,10 @@ final class ManagementConfigImpl implements ManagementConfig
 	}
 
 	@Override
-	public void bindToFilesystem(final String dataPath)
+	public void bindToFilesystem()
 	{
 		final Map<String, Object> map = new HashMap<>();
 		map.put("handler", "filesystem");
-		map.put("handlerPath", dataPath);
 		target.putObjectAsJson(map);
 	}
 

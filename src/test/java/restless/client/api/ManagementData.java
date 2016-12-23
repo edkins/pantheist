@@ -13,6 +13,12 @@ public interface ManagementData
 	String getString();
 
 	/**
+	 * Returns the class of response that we receive when we call GET on this
+	 * data resource.
+	 */
+	ResponseType getResponseType();
+
+	/**
 	 * Puts the data for this resource
 	 *
 	 * @param data

@@ -3,6 +3,7 @@ package restless.handler.binding.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -10,22 +11,19 @@ import javax.inject.Inject;
 import restless.common.util.MutableOptional;
 import restless.handler.binding.model.HandlerType;
 import restless.handler.binding.model.PathSpec;
+import restless.handler.binding.model.PathSpecMatch;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
 import restless.handler.filesystem.backend.LockedFile;
 import restless.handler.filesystem.backend.LockedTypedFile;
-import restless.system.config.RestlessConfig;
 
 final class BindingStoreImpl implements BindingStore
 {
 	private final FilesystemStore filesystem;
-	private final RestlessConfig config;
 
 	@Inject
-	private BindingStoreImpl(final RestlessConfig config,
-			final FilesystemStore filesystem)
+	private BindingStoreImpl(final FilesystemStore filesystem)
 	{
-		this.config = checkNotNull(config);
 		this.filesystem = checkNotNull(filesystem);
 	}
 
@@ -33,7 +31,6 @@ final class BindingStoreImpl implements BindingStore
 	public void initialize()
 	{
 		filesystem.initialize();
-		filesystem.bindPath(bindingsPath());
 		try (LockedTypedFile<BindingSet> f = lockBindings())
 		{
 			if (!f.fileExits())
@@ -44,39 +41,30 @@ final class BindingStoreImpl implements BindingStore
 	}
 
 	@Override
-	public void bind(final PathSpec pathSpec, final HandlerType handlerType, final String handlerPath)
+	public void bind(final PathSpec pathSpec, final HandlerType handlerType)
 	{
 		switch (handlerType) {
 		case filesystem:
-			bindFilesystem(pathSpec, handlerPath);
+			bindFilesystem(pathSpec);
 			break;
 		default:
 			throw new UnsupportedOperationException("Unknown handler: " + handlerType);
 		}
 	}
 
-	private void bindFilesystem(final PathSpec pathSpec, final String handlerPath)
+	private void bindFilesystem(final PathSpec pathSpec)
 	{
+		final FsPath path = filesystem.newBucket(pathSpec.nameHint());
+		try (LockedFile f = filesystem.lock(path))
+		{
+			f.createDirectoryIfNotPresent();
+		}
 		final Binding binding = new BindingImpl(
 				HandlerType.filesystem,
 				pathSpec,
 				UUID.randomUUID().toString(),
-				handlerPath);
+				path.toString());
 		registerBinding(binding);
-		try
-		{
-			final FsPath path = filesystem.nonemptyPath(handlerPath);
-			filesystem.bindPath(path);
-			try (LockedFile f = filesystem.lock(path))
-			{
-				f.createDirectoryIfNotPresent();
-			}
-		}
-		catch (final RuntimeException e)
-		{
-			deregisterBinding(binding);
-			throw e;
-		}
 	}
 
 	private void deregisterBinding(final Binding binding)
@@ -99,17 +87,20 @@ final class BindingStoreImpl implements BindingStore
 	@Override
 	public ManagementFunctions lookup(final PathSpec pathSpec)
 	{
-		final MutableOptional<Binding> point = MutableOptional.empty();
-		for (final Binding binding : snapshot())
+		final MutableOptional<Binding> binding = MutableOptional.empty();
+		final MutableOptional<PathSpecMatch> match = MutableOptional.empty();
+		for (final Binding candidate : snapshot())
 		{
-			if (binding.pathSpec().contains(pathSpec))
+			final Optional<PathSpecMatch> maybeMatch = candidate.pathSpec().match(pathSpec);
+			if (maybeMatch.isPresent())
 			{
-				point.add(binding);
+				binding.add(candidate);
+				match.add(maybeMatch);
 			}
 		}
-		if (point.isPresent())
+		if (binding.isPresent())
 		{
-			return functionsFor(pathSpec, point.get());
+			return functionsFor(pathSpec, binding.get(), match.get());
 		}
 		else
 		{
@@ -122,13 +113,15 @@ final class BindingStoreImpl implements BindingStore
 		return new EmptyManagementFunctionsImpl();
 	}
 
-	private ManagementFunctions functionsFor(final PathSpec pathSpec, final Binding bindingPoint)
+	private ManagementFunctions functionsFor(final PathSpec pathSpec,
+			final Binding bindingPoint,
+			final PathSpecMatch match)
 	{
-		final PathSpec relativePathSpec = pathSpec.relativeTo(bindingPoint.pathSpec());
 		switch (bindingPoint.handler()) {
 		case filesystem:
-			final FsPath path = filesystem.nonemptyPath(bindingPoint.handlerPath())
-					.plusRelativePathSpec(relativePathSpec);
+			final FsPath path = filesystem
+					.fromBucketName(bindingPoint.handlerPath())
+					.withPathSegments(match.nonLiteralChunk());
 			return filesystem.manage(path);
 		default:
 			throw new UnsupportedOperationException("Unrecognized handler: " + bindingPoint.handler());
@@ -151,6 +144,6 @@ final class BindingStoreImpl implements BindingStore
 
 	private FsPath bindingsPath()
 	{
-		return filesystem.nonemptyPath(config.fsBindingPath()).segment("bindings");
+		return filesystem.systemBucket().segment("bindings");
 	}
 }

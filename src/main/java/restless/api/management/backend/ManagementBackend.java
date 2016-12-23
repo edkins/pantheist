@@ -1,6 +1,7 @@
 package restless.api.management.backend;
 
 import restless.api.management.model.ConfigRequest;
+import restless.handler.binding.backend.PossibleData;
 import restless.handler.binding.model.PathSpec;
 
 public interface ManagementBackend
@@ -11,5 +12,5 @@ public interface ManagementBackend
 
 	void putData(PathSpec path, String data);
 
-	String getData(PathSpec path);
+	PossibleData getData(PathSpec path);
 }

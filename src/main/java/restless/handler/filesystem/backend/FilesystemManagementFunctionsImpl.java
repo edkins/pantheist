@@ -12,6 +12,7 @@ import org.apache.commons.io.IOUtils;
 import com.google.inject.assistedinject.Assisted;
 
 import restless.handler.binding.backend.ManagementFunctions;
+import restless.handler.binding.backend.PossibleData;
 import restless.handler.filesystem.except.FsIoException;
 
 final class FilesystemManagementFunctionsImpl implements ManagementFunctions
@@ -29,11 +30,19 @@ final class FilesystemManagementFunctionsImpl implements ManagementFunctions
 	}
 
 	@Override
-	public String getString()
+	public PossibleData getString()
 	{
 		try (LockedFile f = store.lock(path))
 		{
-			return IOUtils.toString(f.inputStream(), StandardCharsets.UTF_8);
+			if (f.fileExists())
+			{
+				final String data = IOUtils.toString(f.inputStream(), StandardCharsets.UTF_8);
+				return PossibleData.of(data);
+			}
+			else
+			{
+				return PossibleData.doesNotExist();
+			}
 		}
 		catch (final IOException e)
 		{

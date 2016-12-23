@@ -14,5 +14,19 @@ public interface PathSpecSegment
 	String value();
 
 	@JsonIgnore
-	boolean contains(PathSpecSegment other);
+	boolean literal();
+
+	@JsonIgnore
+	boolean matches(PathSpecSegment segment);
+
+	/**
+	 * @return whether this segment matches a fixed number of things. Literal
+	 *         segments and "*" both do.
+	 *
+	 *         "**" does not.
+	 */
+	@JsonIgnore
+	boolean fixedNumber();
+
+	String nameHint();
 }

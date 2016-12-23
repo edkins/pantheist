@@ -29,6 +29,13 @@ public interface ManagementPath
 	ManagementPath segment(String segment);
 
 	/**
+	 * Adds a wildcard segment, encoded as a *
+	 *
+	 * This will match a single segment only.
+	 */
+	ManagementPath star();
+
+	/**
 	 * Returns a path to the data api for this resource. This can be used for
 	 * setting and retrieving data for handlers that support that, such as the
 	 * filesystem.

@@ -44,7 +44,7 @@ public interface LockedFile extends AutoCloseable
 	 * @throws FsIoException
 	 *             if there is a directory here instead
 	 */
-	boolean fileExits();
+	boolean fileExists();
 
 	/**
 	 * Returns the contents of the file
@@ -73,4 +73,9 @@ public interface LockedFile extends AutoCloseable
 	 *             there's a file here instead of a directory.
 	 */
 	void createDirectoryIfNotPresent();
+
+	/**
+	 * Try to create a new directory here, or return false if we can't.
+	 */
+	boolean attemptNewDirectory();
 }

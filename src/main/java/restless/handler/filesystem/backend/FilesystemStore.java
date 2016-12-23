@@ -13,17 +13,7 @@ public interface FilesystemStore
 	 * Turn a string into a FsPath, under the assumption that it's nonempty and
 	 * valid.
 	 */
-	FsPath nonemptyPath(String path);
-
-	/**
-	 * Bind a filesystem path that hasn't already been bound
-	 *
-	 * The path must not be empty, must not already be in use and various other
-	 * caveats might also apply.
-	 *
-	 * @param path
-	 */
-	void bindPath(FsPath path);
+	FsPath fromBucketName(String path);
 
 	LockedFile lock(FsPath path);
 
@@ -33,4 +23,15 @@ public interface FilesystemStore
 	 * Look up a particular file and return its management interface.
 	 */
 	ManagementFunctions manage(FsPath path);
+
+	/**
+	 * Used by other handlers to store their stuff.
+	 */
+	FsPath systemBucket();
+
+	/**
+	 * Create a new directory with a name similar to the one specified, and
+	 * return its path.
+	 */
+	FsPath newBucket(String nameHint);
 }

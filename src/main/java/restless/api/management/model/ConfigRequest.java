@@ -10,7 +10,4 @@ public interface ConfigRequest
 {
 	@JsonProperty("handler")
 	HandlerType handler();
-
-	@JsonProperty("handlerPath")
-	String handlerPath();
 }

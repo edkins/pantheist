@@ -3,7 +3,7 @@ package restless.handler.filesystem.backend;
 import java.io.File;
 import java.util.List;
 
-import restless.handler.binding.model.PathSpec;
+import restless.handler.binding.model.PathSpecSegment;
 
 public interface FsPath
 {
@@ -48,5 +48,5 @@ public interface FsPath
 
 	List<FsPathSegment> segments();
 
-	FsPath plusRelativePathSpec(PathSpec relativePathSpec);
+	FsPath withPathSegments(List<PathSpecSegment> segments);
 }
