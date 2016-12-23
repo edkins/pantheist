@@ -6,8 +6,12 @@ public interface RestlessConfig
 {
 	int managementPort();
 
+	int mainPort();
+
 	/**
 	 * @return the directory where all the files get put.
 	 */
 	File dataDir();
+
+	String nginxExecutable();
 }

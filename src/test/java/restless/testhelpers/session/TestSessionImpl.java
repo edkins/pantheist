@@ -20,6 +20,8 @@ public final class TestSessionImpl implements TestSession
 {
 	private final PortFinder managementPort;
 
+	private final PortFinder mainPort;
+
 	private final SeleniumInfo seleniumInfo;
 
 	private final MutableOptional<File> dataDir;
@@ -29,6 +31,7 @@ public final class TestSessionImpl implements TestSession
 	private TestSessionImpl(final SeleniumInfo seleniumInfo)
 	{
 		this.managementPort = PortFinder.empty();
+		this.mainPort = PortFinder.empty();
 		this.seleniumInfo = checkNotNull(seleniumInfo);
 		this.dataDir = MutableOptional.empty();
 		this.objectMapper = new ObjectMapper();
@@ -106,6 +109,12 @@ public final class TestSessionImpl implements TestSession
 	public boolean screenshotOnFailure()
 	{
 		return seleniumInfo.screenshotOnFailure();
+	}
+
+	@Override
+	public int mainPort()
+	{
+		return mainPort.get();
 	}
 
 }

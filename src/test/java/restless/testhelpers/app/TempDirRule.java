@@ -5,6 +5,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.File;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -15,6 +17,7 @@ import restless.testhelpers.session.TestSession;
 
 public class TempDirRule implements TestRule
 {
+	private static final Logger LOGGER = LogManager.getLogger(TempDirRule.class);
 	private final TestSession session;
 
 	private TempDirRule(final TestSession session)
@@ -36,6 +39,7 @@ public class TempDirRule implements TestRule
 			public void evaluate() throws Throwable
 			{
 				final File tempDir = Files.createTempDir();
+				LOGGER.info("Temp dir for this test will be {}", tempDir.getAbsolutePath());
 				try
 				{
 					session.supplyDataDir(tempDir);

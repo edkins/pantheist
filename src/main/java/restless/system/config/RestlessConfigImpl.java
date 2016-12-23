@@ -26,7 +26,7 @@ public class RestlessConfigImpl implements RestlessConfig
 	@Override
 	public int managementPort()
 	{
-		return propertyFactory.getIntProperty("RESTLESS_MANAGEMENT_PORT", 3300).get();
+		return propertyFactory.getIntProperty("RESTLESS_MANAGEMENT_PORT", 3301).get();
 	}
 
 	@Override
@@ -41,6 +41,18 @@ public class RestlessConfigImpl implements RestlessConfig
 		{
 			return new File(path);
 		}
+	}
+
+	@Override
+	public int mainPort()
+	{
+		return propertyFactory.getIntProperty("RESTLESS_MAIN_PORT", 3300).get();
+	}
+
+	@Override
+	public String nginxExecutable()
+	{
+		return propertyFactory.getStringProperty("RESTLESS_NGINX", "/usr/sbin/nginx").get();
 	}
 
 }

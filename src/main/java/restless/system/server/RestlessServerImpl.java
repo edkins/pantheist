@@ -79,6 +79,7 @@ final class RestlessServerImpl implements RestlessServer
 			try
 			{
 				serverOpt.get().stop();
+				initializer.stop();
 			}
 			catch (final Exception e)
 			{

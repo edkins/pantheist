@@ -16,15 +16,18 @@ import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
 import restless.handler.filesystem.backend.LockedFile;
 import restless.handler.filesystem.backend.LockedTypedFile;
+import restless.handler.nginx.manage.NginxService;
 
 final class BindingStoreImpl implements BindingStore
 {
 	private final FilesystemStore filesystem;
+	private final NginxService nginxService;
 
 	@Inject
-	private BindingStoreImpl(final FilesystemStore filesystem)
+	private BindingStoreImpl(final FilesystemStore filesystem, final NginxService nginxService)
 	{
 		this.filesystem = checkNotNull(filesystem);
+		this.nginxService = checkNotNull(nginxService);
 	}
 
 	@Override
@@ -65,6 +68,7 @@ final class BindingStoreImpl implements BindingStore
 				UUID.randomUUID().toString(),
 				path.toString());
 		registerBinding(binding);
+		restartNginx();
 	}
 
 	private void deregisterBinding(final Binding binding)
@@ -145,5 +149,16 @@ final class BindingStoreImpl implements BindingStore
 	private FsPath bindingsPath()
 	{
 		return filesystem.systemBucket().segment("bindings");
+	}
+
+	@Override
+	public void stop()
+	{
+		nginxService.stop();
+	}
+
+	private void restartNginx()
+	{
+		nginxService.configureAndStart();
 	}
 }

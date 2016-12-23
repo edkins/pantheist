@@ -20,6 +20,8 @@ public interface TestSession extends SeleniumInfo
 
 	int managementPort();
 
+	int mainPort();
+
 	URL managementUrl();
 
 	File dataDir();

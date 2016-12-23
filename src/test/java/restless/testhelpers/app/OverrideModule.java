@@ -27,6 +27,7 @@ class OverrideModule extends PrivateModule
 		expose(RestlessConfig.class);
 		bind(RestlessConfig.class).to(OverrideConfig.class).in(Scopes.SINGLETON);
 		bind(Integer.class).annotatedWith(TestManagementPort.class).toInstance(session.managementPort());
+		bind(Integer.class).annotatedWith(TestMainPort.class).toInstance(session.mainPort());
 		bind(File.class).annotatedWith(TestDataDir.class).toInstance(session.dataDir());
 	}
 

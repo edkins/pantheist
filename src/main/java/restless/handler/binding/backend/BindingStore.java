@@ -10,4 +10,6 @@ public interface BindingStore
 	ManagementFunctions lookup(PathSpec pathSpec);
 
 	void initialize();
+
+	void stop();
 }
