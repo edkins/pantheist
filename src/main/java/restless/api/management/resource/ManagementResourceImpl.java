@@ -24,19 +24,14 @@ import restless.api.management.model.ConfigRequest;
 import restless.handler.binding.backend.PossibleData;
 
 /**
- * Handles the following management functions:
+ * Path segments may be:
  *
- * .config: PUT json
- *
- * .data: PUT text, GET text
- *
- * The paths match any sequence of +foo/+bar/+baz
- *
- * i.e. each segment starts with a "+" and there can be any number of them.
- *
- * or they can start with a *.
- *
- * They are written out here as a horrible regex.
+ *   +literal refers to an exact path segment
+ *   *        matches any single path segment
+ *   **       matches zero or more path segments
+ *   config   management function
+ *   data     management function
+ *   schema   management function
  */
 @Path("/")
 public final class ManagementResourceImpl implements ManagementResource
@@ -62,14 +57,14 @@ public final class ManagementResourceImpl implements ManagementResource
 	}
 
 	/**
-	 * Handles the .config management function
+	 * Handles the config management function
 	 */
 	@PUT
-	@Path("{path:([^./][^/]*[/])*}.config")
+	@Path("{path:([+*][^/]*[/])*}config")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response putConfig(@PathParam("path") final String path, final String configJson) throws IOException
 	{
-		LOGGER.info("PUT {}.config", path);
+		LOGGER.info("PUT {}config", path);
 
 		try
 		{
@@ -86,14 +81,14 @@ public final class ManagementResourceImpl implements ManagementResource
 	}
 
 	/**
-	 * Handles the .data management function (PUT)
+	 * Handles the data management function (PUT)
 	 */
 	@PUT
-	@Path("{path:([^./][^/]*[/])*}.data")
+	@Path("{path:([+*][^/]*[/])*}data")
 	@Consumes(MediaType.TEXT_PLAIN)
 	public Response putData(@PathParam("path") final String path, final String data)
 	{
-		LOGGER.info("PUT {}.data", path);
+		LOGGER.info("PUT {}data", path);
 
 		try
 		{
@@ -108,14 +103,14 @@ public final class ManagementResourceImpl implements ManagementResource
 	}
 
 	/**
-	 * Handles the .data management function (GET)
+	 * Handles the data management function (GET)
 	 */
 	@GET
-	@Path("{path:([^./][^/]*[/])*}.data")
+	@Path("{path:([+*][^/]*[/])*}data")
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response getData(@PathParam("path") final String path)
 	{
-		LOGGER.info("GET {}.data", path);
+		LOGGER.info("GET {}data", path);
 
 		try
 		{

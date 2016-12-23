@@ -32,13 +32,13 @@ final class ManagementPathImpl implements ManagementPath
 	@Override
 	public ManagementData data()
 	{
-		return new ManagementDataImpl(target.withSegment(".data"));
+		return new ManagementDataImpl(target.withSegment("data"));
 	}
 
 	@Override
 	public ManagementConfig config()
 	{
-		return new ManagementConfigImpl(target.withSegment(".config"));
+		return new ManagementConfigImpl(target.withSegment("config"));
 	}
 
 }

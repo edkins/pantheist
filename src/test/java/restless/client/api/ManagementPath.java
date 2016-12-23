@@ -40,7 +40,7 @@ public interface ManagementPath
 	 * setting and retrieving data for handlers that support that, such as the
 	 * filesystem.
 	 *
-	 * @return .data api
+	 * @return data api
 	 */
 	ManagementData data();
 
@@ -49,7 +49,7 @@ public interface ManagementPath
 	 * setting up any configuration unique to that particular resource path or
 	 * path pattern.
 	 *
-	 * @return
+	 * @return config api
 	 */
 	ManagementConfig config();
 }

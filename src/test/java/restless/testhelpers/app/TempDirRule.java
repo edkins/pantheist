@@ -39,6 +39,7 @@ public class TempDirRule implements TestRule
 			public void evaluate() throws Throwable
 			{
 				final File tempDir = Files.createTempDir();
+				LOGGER.info("---------------------------");
 				LOGGER.info("Temp dir for this test will be {}", tempDir.getAbsolutePath());
 				try
 				{
