@@ -2,6 +2,8 @@ package restless.testhelpers.app;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.File;
+
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
@@ -25,6 +27,7 @@ class OverrideModule extends PrivateModule
 		expose(RestlessConfig.class);
 		bind(RestlessConfig.class).to(OverrideConfig.class).in(Scopes.SINGLETON);
 		bind(Integer.class).annotatedWith(TestManagementPort.class).toInstance(session.managementPort());
+		bind(File.class).annotatedWith(TestDataDir.class).toInstance(session.dataDir());
 	}
 
 	@Provides

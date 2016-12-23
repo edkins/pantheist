@@ -18,6 +18,10 @@ public interface ManagementConfig
 	 * - dataPath can't contain other weird stuff like empty segments, trailing
 	 * slashes, . or ..
 	 *
+	 * - you can't bind multiple things to the same place, or to places that
+	 * overlap. Each thing must be in its own separate directory. Some might
+	 * already be used by the system itself for its own configuration.
+	 *
 	 * - Note this is set up for ext4 on Linux. Other operating systems or
 	 * filesystems may introduce other restrictions or case insensitivity which
 	 * could cause problems here

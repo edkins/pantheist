@@ -1,5 +1,10 @@
 package restless.api.management.resource;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.IOException;
+
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -11,6 +16,11 @@ import javax.ws.rs.core.Response;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import restless.api.management.backend.ManagementBackend;
+import restless.api.management.model.ConfigRequest;
 
 /**
  * Handles the following management functions:
@@ -29,6 +39,15 @@ import org.apache.logging.log4j.Logger;
 public final class ManagementResourceImpl implements ManagementResource
 {
 	private static final Logger LOGGER = LogManager.getLogger(ManagementResourceImpl.class);
+	private final ManagementBackend backend;
+	private final ObjectMapper objectMapper;
+
+	@Inject
+	ManagementResourceImpl(final ManagementBackend backend, final ObjectMapper objectMapper)
+	{
+		this.backend = checkNotNull(backend);
+		this.objectMapper = checkNotNull(objectMapper);
+	}
 
 	/**
 	 * Right now just used for the test checking that the server is alive
@@ -45,10 +64,22 @@ public final class ManagementResourceImpl implements ManagementResource
 	@PUT
 	@Path("{path:(\\+[^/]+\\/)*}.config")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response putConfig(@PathParam("path") final String path, final String configJson)
+	public Response putConfig(@PathParam("path") final String path, final String configJson) throws IOException
 	{
 		LOGGER.info("PUT {}.config", path);
-		return Response.noContent().build();
+
+		try
+		{
+			final ConfigRequest request = objectMapper.readValue(configJson, ConfigRequest.class);
+
+			backend.putConfig(backend.pathSpec(path), request);
+
+			return Response.noContent().build();
+		}
+		catch (final RuntimeException ex)
+		{
+			return errorResponse(ex);
+		}
 	}
 
 	/**
@@ -60,7 +91,17 @@ public final class ManagementResourceImpl implements ManagementResource
 	public Response putData(@PathParam("path") final String path, final String data)
 	{
 		LOGGER.info("PUT {}.data", path);
-		return Response.noContent().build();
+
+		try
+		{
+			backend.putData(backend.pathSpec(path), data);
+
+			return Response.noContent().build();
+		}
+		catch (final RuntimeException ex)
+		{
+			return errorResponse(ex);
+		}
 	}
 
 	/**
@@ -72,6 +113,22 @@ public final class ManagementResourceImpl implements ManagementResource
 	public Response getData(@PathParam("path") final String path)
 	{
 		LOGGER.info("GET {}.data", path);
-		return Response.ok("wrong answer").build();
+
+		try
+		{
+			final String data = backend.getData(backend.pathSpec(path));
+
+			return Response.ok(data).build();
+		}
+		catch (final RuntimeException ex)
+		{
+			return errorResponse(ex);
+		}
+	}
+
+	private Response errorResponse(final RuntimeException ex)
+	{
+		LOGGER.catching(ex);
+		throw ex;
 	}
 }
