@@ -1,6 +1,7 @@
 package restless.handler.nginx.model;
 
-import java.io.File;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -10,6 +11,8 @@ import javax.inject.Inject;
 import restless.common.util.Make;
 import restless.common.util.MutableOptional;
 import restless.common.util.OtherPreconditions;
+import restless.handler.filesystem.backend.FsPath;
+import restless.system.config.RestlessConfig;
 
 final class NginxConfigImpl implements NginxConfig
 {
@@ -18,10 +21,12 @@ final class NginxConfigImpl implements NginxConfig
 	private final NginxVar error_log;
 	private final NginxEvents events;
 	private final NginxHttp http;
+	private final RestlessConfig restlessConfig;
 
 	@Inject
-	NginxConfigImpl()
+	NginxConfigImpl(final RestlessConfig restlessConfig)
 	{
+		this.restlessConfig = checkNotNull(restlessConfig);
 		pid = new NginxVarImpl("pid", 0);
 		error_log = new NginxVarImpl("error_log", 0);
 		events = new NginxEventsImpl();
@@ -63,7 +68,7 @@ final class NginxConfigImpl implements NginxConfig
 				.toString();
 	}
 
-	private static final class NginxHttpImpl implements NginxHttp
+	private final class NginxHttpImpl implements NginxHttp
 	{
 		private final NginxVar access_log;
 		private final NginxVar root;
@@ -117,7 +122,7 @@ final class NginxConfigImpl implements NginxConfig
 
 	}
 
-	private static final class NginxServerImpl implements NginxServer
+	private final class NginxServerImpl implements NginxServer
 	{
 		private final NginxVar listen;
 		private final List<NginxLocation> locations;
@@ -143,7 +148,16 @@ final class NginxConfigImpl implements NginxConfig
 		@Override
 		public NginxLocation addLocation(final String locPath)
 		{
-			final NginxLocation location = new NginxLocationImpl();
+			final NginxLocation location = new NginxLocationImpl("");
+			location.location().giveValue(locPath);
+			locations.add(location);
+			return location;
+		}
+
+		@Override
+		public NginxLocation addLocationEquals(final String locPath)
+		{
+			final NginxLocation location = new NginxLocationImpl("=");
 			location.location().giveValue(locPath);
 			locations.add(location);
 			return location;
@@ -163,13 +177,17 @@ final class NginxConfigImpl implements NginxConfig
 
 	}
 
-	private static final class NginxLocationImpl implements NginxLocation
+	private final class NginxLocationImpl implements NginxLocation
 	{
 		private final NginxVar location;
+		private final NginxVar alias;
+		private final String oper;
 
-		private NginxLocationImpl()
+		private NginxLocationImpl(final String oper)
 		{
 			location = new NginxVarImpl("location", -1);
+			alias = new NginxVarImpl("alias", 3);
+			this.oper = oper;
 		}
 
 		@Override
@@ -179,18 +197,28 @@ final class NginxConfigImpl implements NginxConfig
 		}
 
 		@Override
+		public NginxVar alias()
+		{
+			return alias;
+		}
+
+		@Override
 		public String toString()
 		{
-			return new StringBuilder()
+			final StringBuilder sb = new StringBuilder()
 					.append(indent(2))
-					.append("location ")
-					.append(location.value())
+					.append("location ");
+			if (!oper.isEmpty())
+			{
+				sb.append(oper).append(" ");
+			}
+			return sb.append(location.value())
 					.append(" {\n")
+					.append(alias)
 					.append(indent(2))
 					.append("}\n")
 					.toString();
 		}
-
 	}
 
 	private static final class NginxEventsImpl implements NginxEvents
@@ -202,7 +230,7 @@ final class NginxConfigImpl implements NginxConfig
 		}
 	}
 
-	private static final class NginxVarImpl implements NginxVar
+	private final class NginxVarImpl implements NginxVar
 	{
 		private final String name;
 		private final int indent;
@@ -237,13 +265,26 @@ final class NginxConfigImpl implements NginxConfig
 		@Override
 		public String toString()
 		{
-			return indent(indent) + name + " " + check(value()) + ";\n";
+			if (value.isPresent())
+			{
+				return indent(indent) + name + " " + check(value.get()) + ";\n";
+			}
+			else
+			{
+				return "";
+			}
 		}
 
 		@Override
-		public void giveFile(final File file)
+		public void giveDirPath(final FsPath path)
 		{
-			giveValue(file.getAbsolutePath());
+			giveValue(path.in(restlessConfig.dataDir()).getAbsolutePath() + "/");
+		}
+
+		@Override
+		public void giveFilePath(final FsPath path)
+		{
+			giveValue(path.in(restlessConfig.dataDir()).getAbsolutePath());
 		}
 
 	}
@@ -261,5 +302,15 @@ final class NginxConfigImpl implements NginxConfig
 	private static final String indent(final int n)
 	{
 		return Make.spaces(4 * n);
+	}
+
+	@Override
+	public NginxServer httpServer()
+	{
+		if (http.servers().size() != 1)
+		{
+			throw new IllegalStateException("Must be exactly one server");
+		}
+		return http.servers().get(0);
 	}
 }

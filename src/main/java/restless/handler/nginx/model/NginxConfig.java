@@ -15,4 +15,12 @@ public interface NginxConfig
 	NginxEvents events();
 
 	NginxHttp http();
+
+	/**
+	 * Convenience method for accessing the single http server.
+	 *
+	 * @throws IllegalStateException
+	 *             if there isn't exactly one server.
+	 */
+	NginxServer httpServer();
 }

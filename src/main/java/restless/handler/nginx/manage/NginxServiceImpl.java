@@ -13,10 +13,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import restless.handler.filesystem.backend.FilesystemStore;
+import restless.handler.filesystem.backend.FsPath;
 import restless.handler.nginx.model.NginxConfig;
-import restless.handler.nginx.model.NginxLocation;
 import restless.handler.nginx.model.NginxModelFactory;
-import restless.handler.nginx.model.NginxServer;
 import restless.system.config.RestlessConfig;
 
 final class NginxServiceImpl implements NginxService
@@ -41,21 +40,8 @@ final class NginxServiceImpl implements NginxService
 	}
 
 	@Override
-	public void configureAndStart()
+	public void configureAndStart(final NginxConfig nginx)
 	{
-		final NginxConfig nginx = modelFactory.newConfig();
-
-		final File pidFile = new File(systemDir(), "nginx.pid");
-		final File errorLog = new File(systemDir(), "nginx-error.log");
-		final File accessLog = new File(systemDir(), "nginx-access.log");
-
-		nginx.pid().giveFile(pidFile);
-		nginx.error_log().giveFile(errorLog);
-		nginx.http().root().giveFile(config.dataDir());
-		nginx.http().access_log().giveFile(accessLog);
-		final NginxServer server = nginx.http().addServer("127.0.0.1", config.mainPort());
-		final NginxLocation location = server.addLocation("/");
-
 		try
 		{
 			FileUtils.writeStringToFile(nginxConf(), nginx.toString(), StandardCharsets.UTF_8);
@@ -85,12 +71,7 @@ final class NginxServiceImpl implements NginxService
 
 	private File nginxConf()
 	{
-		return new File(systemDir(), "nginx.conf");
-	}
-
-	private File systemDir()
-	{
-		return new File(config.dataDir(), filesystemStore.systemBucket().toString());
+		return sys("nginx.conf").in(config.dataDir());
 	}
 
 	@Override
@@ -114,6 +95,24 @@ final class NginxServiceImpl implements NginxService
 				// Suppress them so we don't cause trouble for other things stopping.
 			}
 		}
+	}
+
+	@Override
+	public NginxConfig newConfig()
+	{
+		final NginxConfig nginx = modelFactory.newConfig();
+
+		nginx.pid().giveFilePath(sys("nginx.pid"));
+		nginx.error_log().giveFilePath(sys("nginx-error.log"));
+		nginx.http().root().giveDirPath(filesystemStore.rootPath());
+		nginx.http().access_log().giveFilePath(sys("nginx-access.log"));
+		nginx.http().addServer("127.0.0.1", config.mainPort());
+		return nginx;
+	}
+
+	private FsPath sys(final String name)
+	{
+		return filesystemStore.systemBucket().segment(name);
 	}
 
 }

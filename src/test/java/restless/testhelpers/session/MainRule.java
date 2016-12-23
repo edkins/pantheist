@@ -76,7 +76,7 @@ public class MainRule implements TestRule
 		}
 		else
 		{
-			return ManagementClientImpl.from(session.managementUrl(), session.objectMapper());
+			return ManagementClientImpl.from(session.managementUrl(), session.mainUrl(), session.objectMapper());
 		}
 	}
 

@@ -9,6 +9,7 @@ import java.util.UUID;
 import javax.inject.Inject;
 
 import restless.common.util.MutableOptional;
+import restless.handler.binding.model.BindingModelFactory;
 import restless.handler.binding.model.HandlerType;
 import restless.handler.binding.model.PathSpec;
 import restless.handler.binding.model.PathSpecMatch;
@@ -17,17 +18,24 @@ import restless.handler.filesystem.backend.FsPath;
 import restless.handler.filesystem.backend.LockedFile;
 import restless.handler.filesystem.backend.LockedTypedFile;
 import restless.handler.nginx.manage.NginxService;
+import restless.handler.nginx.model.NginxConfig;
+import restless.handler.nginx.model.NginxLocation;
+import restless.handler.nginx.model.NginxServer;
 
 final class BindingStoreImpl implements BindingStore
 {
 	private final FilesystemStore filesystem;
 	private final NginxService nginxService;
+	private final BindingModelFactory modelFactory;
 
 	@Inject
-	private BindingStoreImpl(final FilesystemStore filesystem, final NginxService nginxService)
+	private BindingStoreImpl(final FilesystemStore filesystem,
+			final NginxService nginxService,
+			final BindingModelFactory modelFactory)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.nginxService = checkNotNull(nginxService);
+		this.modelFactory = checkNotNull(modelFactory);
 	}
 
 	@Override
@@ -159,6 +167,45 @@ final class BindingStoreImpl implements BindingStore
 
 	private void restartNginx()
 	{
-		nginxService.configureAndStart();
+		nginxService.configureAndStart(nginxConf());
+	}
+
+	private NginxConfig nginxConf()
+	{
+		final NginxConfig nginx = nginxService.newConfig();
+		final NginxServer server = nginx.httpServer();
+
+		for (final Binding binding : snapshot())
+		{
+			switch (binding.handler()) {
+			case filesystem:
+				addFilesystemLocation(server, binding);
+				break;
+			default:
+				throw new UnsupportedOperationException("Unrecognized handler: " + binding.handler());
+			}
+		}
+		return nginx;
+	}
+
+	private void addFilesystemLocation(final NginxServer server, final Binding binding)
+	{
+		final NginxLocation location;
+		final PathSpec path = binding.pathSpec();
+		switch (path.classify()) {
+		case EXACT:
+			location = server.addLocationEquals(path.literalString());
+			break;
+		case PREFIX:
+			location = server.addLocation(path.minus(modelFactory.multi()).literalString());
+			break;
+		case PREFIX_STAR:
+			// TODO: this is not correct. It will match anything in the directory, not just one level deep as requested.
+			location = server.addLocation(path.minus(modelFactory.star()).literalString());
+			break;
+		default:
+			throw new UnsupportedOperationException("Cannot handle this kind of path");
+		}
+		location.alias().giveDirPath(filesystem.fromBucketName(binding.handlerPath()));
 	}
 }

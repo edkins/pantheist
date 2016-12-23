@@ -111,4 +111,10 @@ final class FilesystemStoreImpl implements FilesystemStoreInterfaces
 			}
 		}
 	}
+
+	@Override
+	public FsPath rootPath()
+	{
+		return FsPathImpl.empty();
+	}
 }

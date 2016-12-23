@@ -14,5 +14,7 @@ public interface NginxServer
 
 	List<NginxLocation> locations();
 
+	NginxLocation addLocationEquals(String location);
+
 	NginxLocation addLocation(String location);
 }

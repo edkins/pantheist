@@ -84,6 +84,16 @@ public class Make
 		return ImmutableList.copyOf(xs.subList(0, xs.size() - 1));
 	}
 
+	public static <T> T last(final List<T> xs)
+	{
+		checkNotNull(xs);
+		if (xs.isEmpty())
+		{
+			throw new IllegalArgumentException("last: empty list");
+		}
+		return xs.get(xs.size() - 1);
+	}
+
 	public static <K, V> ImmutableMap<K, V> map(final Map<K, V> map, final K key, final V value)
 	{
 		checkNotNull(map);

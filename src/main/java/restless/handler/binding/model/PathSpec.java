@@ -30,4 +30,36 @@ public interface PathSpec
 	 */
 	@JsonIgnore
 	String nameHint();
+
+	/**
+	 * Classify this path spec according to common patterns.
+	 *
+	 * EXACT: all segments are literal. This identifies a single resource only.
+	 *
+	 * PREFIX: the path matches everything under a given directory, e.g. a/b/$$
+	 *
+	 * PREFIX_STAR: the prefix matches things in a given directory, one level
+	 * deep e.g. a/b/$
+	 *
+	 * OTHER: a catch-all for anything that doesn't fit one of those categories.
+	 */
+	PathSpecClassification classify();
+
+	/**
+	 * Return a PathSpec with the last segment removed. You specify what that
+	 * segment is to avoid mistakes, since different types of segment serve very
+	 * different purposes.
+	 *
+	 * @throws IllegalArgumentException
+	 *             If the segment is wrong or the path is empty
+	 */
+	PathSpec minus(PathSpecSegment segment);
+
+	/**
+	 * Returns this path as a string, with leading and trailing slashes. Fails
+	 * if any segment is not literal.
+	 *
+	 * Unusual characters will be escaped.
+	 */
+	String literalString();
 }

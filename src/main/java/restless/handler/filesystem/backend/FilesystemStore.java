@@ -34,4 +34,6 @@ public interface FilesystemStore
 	 * return its path.
 	 */
 	FsPath newBucket(String nameHint);
+
+	FsPath rootPath();
 }

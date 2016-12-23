@@ -24,6 +24,8 @@ public interface TestSession extends SeleniumInfo
 
 	URL managementUrl();
 
+	URL mainUrl();
+
 	File dataDir();
 
 	File dumpFile(String prefix, String ext);

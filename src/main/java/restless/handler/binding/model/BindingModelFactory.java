@@ -2,11 +2,18 @@ package restless.handler.binding.model;
 
 import java.util.List;
 
-import com.google.inject.assistedinject.Assisted;
+import javax.inject.Named;
 
 public interface BindingModelFactory
 {
 	PathSpec pathSpec(List<PathSpecSegment> segments);
 
-	PathSpecSegment pathSpecSegment(PathSpecSegmentType type, @Assisted("value") String value);
+	@Named("literal")
+	PathSpecSegment literal(String value);
+
+	@Named("star")
+	PathSpecSegment star();
+
+	@Named("multi")
+	PathSpecSegment multi();
 }

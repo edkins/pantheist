@@ -12,6 +12,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.Assisted;
 
+import restless.common.util.Make;
 import restless.common.util.OtherCollectors;
 
 final class PathSpecImpl implements PathSpec
@@ -95,6 +96,47 @@ final class PathSpecImpl implements PathSpec
 				.map(PathSpecSegment::nameHint)
 				.collect(OtherCollectors.join("_"))
 				.orElse("root");
+	}
+
+	@Override
+	public PathSpecClassification classify()
+	{
+		if (segments.stream().allMatch(PathSpecSegment::literal))
+		{
+			return PathSpecClassification.EXACT;
+		}
+		else if (Make.init(segments).stream().allMatch(PathSpecSegment::literal)
+				&& Make.last(segments).type().equals(PathSpecSegmentType.multi))
+		{
+			return PathSpecClassification.PREFIX;
+		}
+		else if (Make.init(segments).stream().allMatch(PathSpecSegment::literal)
+				&& Make.last(segments).type().equals(PathSpecSegmentType.star))
+		{
+			return PathSpecClassification.PREFIX_STAR;
+		}
+		else
+		{
+			return PathSpecClassification.OTHER;
+		}
+	}
+
+	@Override
+	public PathSpec minus(final PathSpecSegment seg)
+	{
+		if (segments.isEmpty() || !Make.last(segments).equals(seg))
+		{
+			throw new IllegalArgumentException("Path does not end with the given segment");
+		}
+		return new PathSpecImpl(Make.init(segments));
+	}
+
+	@Override
+	public String literalString()
+	{
+		final StringBuilder sb = new StringBuilder("/");
+		segments.forEach(seg -> sb.append(seg.escapedLiteralValue()).append('/'));
+		return sb.toString();
 	}
 
 }

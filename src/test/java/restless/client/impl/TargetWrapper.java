@@ -18,7 +18,7 @@ import restless.client.api.ResponseType;
 import restless.common.util.DummyException;
 import restless.common.util.OtherPreconditions;
 
-final class TargetWrapper
+public final class TargetWrapper
 {
 	private final WebTarget target;
 	private final ObjectMapper objectMapper;

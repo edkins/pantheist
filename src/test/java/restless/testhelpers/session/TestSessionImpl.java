@@ -64,14 +64,25 @@ public final class TestSessionImpl implements TestSession
 	@Override
 	public URL managementUrl()
 	{
+		return localhostWithPort(managementPort.get());
+	}
+
+	private URL localhostWithPort(final int port)
+	{
 		try
 		{
-			return new URL("http://localhost:" + managementPort.get());
+			return new URL("http://localhost:" + port);
 		}
 		catch (final MalformedURLException e)
 		{
 			throw Throwables.propagate(e);
 		}
+	}
+
+	@Override
+	public URL mainUrl()
+	{
+		return localhostWithPort(mainPort.get());
 	}
 
 	@Override

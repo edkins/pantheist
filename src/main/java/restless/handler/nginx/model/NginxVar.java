@@ -1,6 +1,6 @@
 package restless.handler.nginx.model;
 
-import java.io.File;
+import restless.handler.filesystem.backend.FsPath;
 
 public interface NginxVar
 {
@@ -24,7 +24,17 @@ public interface NginxVar
 	void giveValue(String value);
 
 	/**
-	 * Set the value to the absolute path of the file given.
+	 * Set the value to the absolute path of the directory given, which is
+	 * assumed to lie within the data directory.
+	 *
+	 * The difference between this and giveFilePath is this one will put a slash
+	 * at the end.
 	 */
-	void giveFile(File file);
+	void giveDirPath(FsPath path);
+
+	/**
+	 * Set the value to the absolute path of the file given, which is assumed to
+	 * lie within the data directory.
+	 */
+	void giveFilePath(FsPath path);
 }

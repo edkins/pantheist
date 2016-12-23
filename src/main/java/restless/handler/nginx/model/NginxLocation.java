@@ -9,4 +9,6 @@ public interface NginxLocation
 	String toString();
 
 	NginxVar location();
+
+	NginxVar alias();
 }

@@ -1,17 +1,16 @@
 package restless.handler.binding.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@JsonDeserialize(as = PathSpecSegmentImpl.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({
+		@JsonSubTypes.Type(value = PathSpecSegmentLiteralImpl.class, name = "literal"),
+		@JsonSubTypes.Type(value = PathSpecSegmentStarImpl.class, name = "star") })
 public interface PathSpecSegment
 {
-	@JsonProperty("type")
 	PathSpecSegmentType type();
-
-	@JsonProperty("value")
-	String value();
 
 	@JsonIgnore
 	boolean literal();
@@ -28,5 +27,20 @@ public interface PathSpecSegment
 	@JsonIgnore
 	boolean fixedNumber();
 
+	@JsonIgnore
 	String nameHint();
+
+	/**
+	 * Return the value of this segment, but only if it is a literal string. No
+	 * escaping is performed here.
+	 */
+	@JsonIgnore
+	String literalValue();
+
+	/**
+	 * Return the value of this segment, but only if it is a literal string.
+	 * Unusual characters will be escaped.
+	 */
+	@JsonIgnore
+	String escapedLiteralValue();
 }

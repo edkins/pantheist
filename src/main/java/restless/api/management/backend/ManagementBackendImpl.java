@@ -12,7 +12,6 @@ import restless.handler.binding.backend.PossibleData;
 import restless.handler.binding.model.BindingModelFactory;
 import restless.handler.binding.model.PathSpec;
 import restless.handler.binding.model.PathSpecSegment;
-import restless.handler.binding.model.PathSpecSegmentType;
 
 final class ManagementBackendImpl implements ManagementBackend
 {
@@ -42,11 +41,11 @@ final class ManagementBackendImpl implements ManagementBackend
 	{
 		if (seg.startsWith("+"))
 		{
-			return bindingFactory.pathSpecSegment(PathSpecSegmentType.literal, seg.substring(1));
+			return bindingFactory.literal(seg.substring(1));
 		}
 		else if (seg.equals("*"))
 		{
-			return bindingFactory.pathSpecSegment(PathSpecSegmentType.star, "*");
+			return bindingFactory.star();
 		}
 		else
 		{
