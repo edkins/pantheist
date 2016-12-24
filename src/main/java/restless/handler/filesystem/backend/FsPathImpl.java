@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
 import restless.common.util.Make;
@@ -143,5 +144,22 @@ final class FsPathImpl implements FsPath
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Objects.hashCode(segments);
+	}
+
+	@Override
+	public boolean equals(final Object object)
+	{
+		if (object instanceof FsPathImpl)
+		{
+			final FsPathImpl that = (FsPathImpl) object;
+			return Objects.equal(this.segments, that.segments);
+		}
+		return false;
 	}
 }

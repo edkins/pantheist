@@ -18,7 +18,7 @@ import restless.handler.binding.model.PathSpec;
 import restless.handler.binding.model.PathSpecMatch;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
-import restless.handler.filesystem.backend.LockedTypedFile;
+import restless.handler.filesystem.backend.JsonSnapshot;
 
 final class BindingStoreImpl implements BindingStore
 {
@@ -39,12 +39,10 @@ final class BindingStoreImpl implements BindingStore
 	@Override
 	public void initialize()
 	{
-		try (LockedTypedFile<BindingSet> f = lockBindings())
+		final JsonSnapshot<BindingSet> file = file();
+		if (!file.exists())
 		{
-			if (!f.fileExits())
-			{
-				f.write(emptyBindingSet());
-			}
+			file.write(emptyBindingSet());
 		}
 	}
 
@@ -56,23 +54,19 @@ final class BindingStoreImpl implements BindingStore
 	@Override
 	public void changeConfig(final PathSpec pathSpec, final Function<Binding, Binding> fn)
 	{
-		try (LockedTypedFile<BindingSet> f = lockBindings())
-		{
-			// Might make more sense to use mutable objects here.
-
-			final BindingSet oldBindingSet = f.read();
-			final Binding oldBinding = oldBindingSet.get(pathSpec);
-			final Binding newBinding = fn.apply(oldBinding);
-			final BindingSet newBindingSet = oldBindingSet.put(newBinding);
-			f.write(newBindingSet);
-		}
+		final JsonSnapshot<BindingSet> file = file();
+		final BindingSet bindingSet = file.read();
+		final Binding oldBinding = bindingSet.get(pathSpec);
+		final Binding newBinding = fn.apply(oldBinding);
+		bindingSet.put(newBinding);
+		file.writeMutable();
 	}
 
 	@Override
 	public BindingMatch lookup(final PathSpec pathSpec)
 	{
 		final MutableOptional<BindingMatch> result = MutableOptional.empty();
-		for (final Binding binding : snapshot())
+		for (final Binding binding : file().read().bindings())
 		{
 			final Optional<PathSpecMatch> maybeMatch = binding.pathSpec().match(pathSpec);
 			if (maybeMatch.isPresent())
@@ -88,19 +82,15 @@ final class BindingStoreImpl implements BindingStore
 		return modelFactory.match(modelFactory.pathSpecMatch(ImmutableList.of()), pathSpec.emptyBinding());
 	}
 
+	private JsonSnapshot<BindingSet> file()
+	{
+		return filesystem.jsonSnapshot(bindingsPath(), BindingSet.class);
+	}
+
 	@Override
 	public List<Binding> snapshot()
 	{
-		try (LockedTypedFile<BindingSet> f = lockBindings())
-		{
-			return f.read().bindings();
-		}
-	}
-
-	private LockedTypedFile<BindingSet> lockBindings()
-	{
-		final FsPath path = bindingsPath();
-		return filesystem.lockJson(path, BindingSet.class);
+		return file().read().bindings();
 	}
 
 	private FsPath bindingsPath()
@@ -111,9 +101,6 @@ final class BindingStoreImpl implements BindingStore
 	@Override
 	public Binding exact(final PathSpec pathSpec)
 	{
-		try (LockedTypedFile<BindingSet> f = lockBindings())
-		{
-			return f.read().get(pathSpec);
-		}
+		return file().read().get(pathSpec);
 	}
 }

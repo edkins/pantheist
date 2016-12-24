@@ -2,19 +2,19 @@ package restless.handler.filesystem.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import javax.inject.Inject;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.assistedinject.Assisted;
 
 import restless.handler.binding.backend.ManagementFunctions;
 import restless.handler.binding.backend.PossibleData;
 import restless.handler.binding.backend.PossibleEmpty;
-import restless.handler.filesystem.except.FsIoException;
 
 final class FilesystemManagementFunctionsImpl implements ManagementFunctions
 {
@@ -33,35 +33,31 @@ final class FilesystemManagementFunctionsImpl implements ManagementFunctions
 	@Override
 	public PossibleData getString()
 	{
-		try (LockedFile f = store.lock(path))
+		final FilesystemSnapshot snapshot = store.snapshot();
+		if (snapshot.isFile(path))
 		{
-			if (f.fileExists())
-			{
-				final String data = IOUtils.toString(f.inputStream(), StandardCharsets.UTF_8);
-				return PossibleData.of(data);
-			}
-			else
-			{
-				return PossibleData.doesNotExist();
-			}
+			final String data = snapshot.read(path, in -> IOUtils.toString(in, StandardCharsets.UTF_8));
+			return PossibleData.of(data);
 		}
-		catch (final IOException e)
+		else
 		{
-			throw new FsIoException(e);
+			return PossibleData.doesNotExist();
 		}
 	}
 
 	@Override
 	public PossibleEmpty putString(final String data)
 	{
-		try (LockedFile f = store.lock(path))
+		final FilesystemSnapshot snapshot = store.snapshot();
+		if (snapshot.parentDirectoryExists(path))
 		{
-			IOUtils.write(data, f.outputStream(), StandardCharsets.UTF_8);
+			snapshot.write(
+					ImmutableMap.of(path, file -> FileUtils.writeStringToFile(file, data, StandardCharsets.UTF_8)));
 			return PossibleEmpty.ok();
 		}
-		catch (final IOException e)
+		else
 		{
-			throw new FsIoException(e);
+			return PossibleEmpty.parentDoesNotExist();
 		}
 	}
 

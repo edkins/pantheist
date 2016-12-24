@@ -16,7 +16,7 @@ public final class Cleanup
 		throw new UnsupportedOperationException();
 	}
 
-	private static void run(final List<Runnable> tasks)
+	public static void run(final List<Runnable> tasks)
 	{
 		if (!tasks.isEmpty())
 		{

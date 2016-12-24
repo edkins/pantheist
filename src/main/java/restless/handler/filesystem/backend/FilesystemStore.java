@@ -9,15 +9,13 @@ public interface FilesystemStore
 	 */
 	void initialize();
 
+	FilesystemSnapshot snapshot();
+
 	/**
-	 * Turn a string into a FsPath, under the assumption that it's nonempty and
-	 * valid.
+	 * For operating on a single json file. Parses the given file as json.
+	 * When you're finished you can write out a new value.
 	 */
-	FsPath fromBucketName(String path);
-
-	LockedFile lock(FsPath path);
-
-	<T> LockedTypedFile<T> lockJson(FsPath path, Class<T> clazz);
+	<T> JsonSnapshot<T> jsonSnapshot(FsPath path, Class<T> clazz);
 
 	/**
 	 * Look up a particular file and return its management interface.

@@ -21,7 +21,7 @@ interface BindingSet
 	 * If the binding is empty then it might get removed from the list.
 	 */
 	@JsonIgnore
-	BindingSet put(Binding binding);
+	void put(Binding binding);
 
 	/**
 	 * Return the binding at the given path spec, or an empty binding if there's none there.

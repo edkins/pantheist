@@ -23,6 +23,11 @@ public class PossibleEmpty
 		return new PossibleEmpty(WhatHappenedToData.DOES_NOT_EXIST);
 	}
 
+	public static PossibleEmpty parentDoesNotExist()
+	{
+		return new PossibleEmpty(WhatHappenedToData.PARENT_DOES_NOT_EXIST);
+	}
+
 	public static PossibleEmpty handlerDoesNotSupport()
 	{
 		return new PossibleEmpty(WhatHappenedToData.HANDLER_DOES_NOT_SUPPORT);

@@ -2,13 +2,12 @@ package restless.handler.binding.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.Assisted;
 
 import restless.common.util.OtherCollectors;
@@ -17,17 +16,15 @@ import restless.handler.binding.model.PathSpec;
 
 final class BindingSetImpl implements BindingSet
 {
-	private final ImmutableList<Binding> bindings;
-	private final BindingBackendFactory backendFactory;
+	//State
+	private final List<Binding> bindings;
 
 	@Inject
 	BindingSetImpl(
-			@JacksonInject final BindingBackendFactory backendFactory,
 			@Assisted @JsonProperty("bindings") final List<Binding> bindings)
 	{
 		checkNotNull(bindings);
-		this.bindings = ImmutableList.copyOf(bindings);
-		this.backendFactory = checkNotNull(backendFactory);
+		this.bindings = new ArrayList<>(bindings);
 	}
 
 	@Override
@@ -37,14 +34,17 @@ final class BindingSetImpl implements BindingSet
 	}
 
 	@Override
-	public BindingSet put(final Binding binding)
+	public void put(final Binding binding)
 	{
-		return backendFactory.bindingSet(bindings
-				.stream()
-				.filter(b -> !b.pathSpec().equals(binding.pathSpec()))
-				.collect(OtherCollectors.toListBuilder())
-				.add(binding)
-				.build());
+		for (int i = 0; i < bindings.size(); i++)
+		{
+			if (bindings.get(i).pathSpec().equals(binding.pathSpec()))
+			{
+				bindings.set(i, binding);
+				return;
+			}
+		}
+		bindings.add(binding);
 	}
 
 	@Override

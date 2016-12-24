@@ -4,7 +4,7 @@ import restless.handler.binding.backend.ManagementFunctions;
 
 interface FilesystemFactory
 {
-	LockedFile lockedFile(FsPath path);
+	FilesystemSnapshot snapshot();
 
 	ManagementFunctions managementFunctions(FsPath path);
 }
