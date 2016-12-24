@@ -47,4 +47,10 @@ final class ManagementPathImpl implements ManagementPath
 		return new ManagementDataImpl(target.withSegment("schema"));
 	}
 
+	@Override
+	public ManagementData jerseyFile()
+	{
+		return new ManagementDataImpl(target.withSegment("jersey-file"));
+	}
+
 }

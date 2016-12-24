@@ -6,14 +6,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
@@ -131,6 +131,12 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot
 	@Override
 	public void write(final Map<FsPath, FileProcessor> fns)
 	{
+		orderedWrite(fns.keySet(), (path, file) -> fns.get(path).process(file));
+	}
+
+	@Override
+	public void orderedWrite(final Collection<FsPath> paths, final PathProcessor fn)
+	{
 		if (written)
 		{
 			throw new IllegalStateException("Already written to this snapshot");
@@ -141,7 +147,7 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot
 		{
 			final Set<FsPath> interestingFiles = new HashSet<>();
 			interestingFiles.addAll(knownFileStates.keySet());
-			interestingFiles.addAll(fns.keySet());
+			interestingFiles.addAll(paths);
 			for (final FsPath path : interestingFiles)
 			{
 				// This will check each file is in the same state that it was (if known), and that it wasn't modified
@@ -149,30 +155,23 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot
 				checkFileState(path);
 			}
 
-			Cleanup.run(
-					fns.entrySet()
-							.stream()
-							.map(this::task)
-							.collect(Collectors.toList()));
+			final Consumer<FsPath> tweakedFn = path -> {
+				try
+				{
+					fn.process(path, find(path));
+				}
+				catch (final IOException ex)
+				{
+					throw new FsIoException(ex);
+				}
+			};
+
+			Cleanup.run(tweakedFn, paths.iterator());
 		}
 		finally
 		{
 			lock.unlock();
 		}
-	}
-
-	private Runnable task(final Entry<FsPath, FileProcessor> entry)
-	{
-		return () -> {
-			try
-			{
-				entry.getValue().process(find(entry.getKey()));
-			}
-			catch (final IOException e)
-			{
-				throw new FsIoException(e);
-			}
-		};
 	}
 
 	@Override

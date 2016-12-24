@@ -1,5 +1,7 @@
 package restless.handler.binding.model;
 
+import javax.annotation.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
@@ -14,4 +16,8 @@ public interface Binding
 
 	@JsonProperty("schema")
 	Schema schema();
+
+	@Nullable
+	@JsonProperty("jerseyClass")
+	String jerseyClass();
 }

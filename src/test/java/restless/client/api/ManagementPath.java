@@ -63,4 +63,12 @@ public interface ManagementPath
 	 * @return schema api
 	 */
 	ManagementData schema();
+
+	/**
+	 * Returns a path representing a jersey resource, i.e. a java source file. You can put
+	 * the java source directly here.
+	 *
+	 * @return jersey-file api
+	 */
+	ManagementData jerseyFile();
 }

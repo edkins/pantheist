@@ -20,6 +20,7 @@ dependencies {
 	compile group: 'commons-io', name: 'commons-io', version: '2.5'
 	compile group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.22'
 	compile group: 'com.github.fge', name: 'json-schema-validator', version: '2.2.6'
+	compile group: 'com.github.javaparser', name: 'javaparser-core', version: '3.0.0-RC.3'
 
 	testCompile group: 'org.seleniumhq.selenium', name: 'selenium-firefox-driver', version: '3.0.1'
 	testCompile group: 'org.seleniumhq.selenium', name: 'selenium-support', version: '3.0.1'

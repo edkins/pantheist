@@ -57,4 +57,14 @@ public interface FsPath
 	List<FsPathSegment> segments();
 
 	FsPath withPathSegments(List<PathSpecSegment> segments);
+
+	/**
+	 * Return a list of all the leading portions of this path, starting with the
+	 * empty path and ending with this path.
+	 *
+	 * e.g. for "a/b/c" it would return ["","a","a/b","a/b/c"]
+	 *
+	 * This is useful if you need to recursively create a bunch of directories.
+	 */
+	List<FsPath> leadingPortions();
 }

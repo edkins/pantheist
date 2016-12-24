@@ -2,9 +2,11 @@ package restless.handler.binding.model;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.inject.Named;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.inject.assistedinject.Assisted;
 
 import restless.handler.filesystem.backend.FsPath;
 
@@ -21,7 +23,11 @@ public interface BindingModelFactory
 	@Named("multi")
 	PathSpecSegment multi();
 
-	Binding binding(PathSpec pathSpec, Handler handler, Schema schema);
+	Binding binding(
+			PathSpec pathSpec,
+			Handler handler,
+			Schema schema,
+			@Nullable @Assisted("jerseyClass") String jerseyClass);
 
 	@Named("empty")
 	Handler emptyHandler();

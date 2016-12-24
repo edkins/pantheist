@@ -1,0 +1,15 @@
+package restless.examples;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.Response;
+
+@Path("/")
+public class ExampleJerseyResource
+{
+	@GET
+	public Response root()
+	{
+		return Response.ok("this returns a thing!").build();
+	}
+}

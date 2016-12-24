@@ -21,4 +21,8 @@ public interface ManagementBackend
 	PossibleEmpty putJsonSchema(PathSpec pathSpec, JsonNode schema);
 
 	Schema getSchema(PathSpec pathSpec);
+
+	PossibleEmpty putJerseyFile(PathSpec pathSpec, String code);
+
+	PossibleData getJerseyFile(PathSpec pathSpec);
 }

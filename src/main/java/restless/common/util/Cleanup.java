@@ -1,6 +1,7 @@
 package restless.common.util;
 
-import java.util.List;
+import java.util.Iterator;
+import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableList;
 
@@ -16,23 +17,23 @@ public final class Cleanup
 		throw new UnsupportedOperationException();
 	}
 
-	public static void run(final List<Runnable> tasks)
+	public static <T> void run(final Consumer<T> fn, final Iterator<T> iterator)
 	{
-		if (!tasks.isEmpty())
+		if (iterator.hasNext())
 		{
 			try
 			{
-				tasks.get(0).run();
+				fn.accept(iterator.next());
 			}
 			finally
 			{
-				run(Make.tail(tasks));
+				run(fn, iterator);
 			}
 		}
 	}
 
 	public static void run(final Runnable... tasks)
 	{
-		run(ImmutableList.copyOf(tasks));
+		run(Runnable::run, ImmutableList.copyOf(tasks).iterator());
 	}
 }

@@ -146,7 +146,7 @@ final class PathSpecImpl implements PathSpec
 	@Override
 	public Binding emptyBinding()
 	{
-		return modelFactory.binding(this, modelFactory.emptyHandler(), modelFactory.emptySchema());
+		return modelFactory.binding(this, modelFactory.emptyHandler(), modelFactory.emptySchema(), null);
 	}
 
 }

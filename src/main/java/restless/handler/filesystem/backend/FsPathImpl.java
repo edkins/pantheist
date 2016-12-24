@@ -162,4 +162,19 @@ final class FsPathImpl implements FsPath
 		}
 		return false;
 	}
+
+	@Override
+	public List<FsPath> leadingPortions()
+	{
+		final ImmutableList.Builder<FsPathSegment> portionBuilder = ImmutableList.builder();
+		final ImmutableList.Builder<FsPath> resultBuilder = ImmutableList.builder();
+
+		resultBuilder.add(empty());
+		for (final FsPathSegment seg : segments)
+		{
+			portionBuilder.add(seg);
+			resultBuilder.add(new FsPathImpl(portionBuilder.build()));
+		}
+		return resultBuilder.build();
+	}
 }

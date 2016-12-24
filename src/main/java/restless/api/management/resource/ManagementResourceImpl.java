@@ -29,12 +29,13 @@ import restless.handler.binding.model.Schema;
 /**
  * Path segments may be:
  *
- *   +literal refers to an exact path segment
- *   *        matches any single path segment
- *   **       matches zero or more path segments
- *   config   management function
- *   data     management function
- *   schema   management function
+ *   +literal    refers to an exact path segment
+ *   *           matches any single path segment
+ *   **          matches zero or more path segments
+ *   config      management function
+ *   data        management function
+ *   schema      management function
+ *   jersey-file management function
  */
 @Path("/")
 public final class ManagementResourceImpl implements ManagementResource
@@ -174,6 +175,48 @@ public final class ManagementResourceImpl implements ManagementResource
 		}
 	}
 
+	/**
+	 * Handles the jersey-file management function (PUT)
+	 */
+	@PUT
+	@Path("{path:([+*][^/]*[/])*}jersey-file")
+	@Consumes("text/plain")
+	public Response putJerseyFile(@PathParam("path") final String path, final String data)
+	{
+		LOGGER.info("PUT {}jersey-file", path);
+
+		try
+		{
+			final PossibleEmpty result = backend.putJerseyFile(backend.pathSpec(path), data);
+			return possibleEmptyResponse(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return errorResponse(ex);
+		}
+	}
+
+	/**
+	 * Handles the jersey-file management function (GET)
+	 */
+	@GET
+	@Path("{path:([+*][^/]*[/])*}jersey-file")
+	@Produces("text/plain")
+	public Response getJerseyFile(@PathParam("path") final String path)
+	{
+		LOGGER.info("GET {}jersey-file", path);
+
+		try
+		{
+			final PossibleData result = backend.getJerseyFile(backend.pathSpec(path));
+			return possibleDataResponse(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return errorResponse(ex);
+		}
+	}
+
 	private Response jsonValidationResponse(final IOException e)
 	{
 		LOGGER.catching(e);
@@ -194,17 +237,21 @@ public final class ManagementResourceImpl implements ManagementResource
 		}
 		else
 		{
-			LOGGER.info("Returning status " + data.httpStatus());
-			return Response.status(data.httpStatus()).build();
+			LOGGER.info("Returning status " + data.httpStatus() + " " + data.message());
+			return Response.status(data.httpStatus()).entity(data.message()).build();
 		}
 	}
 
 	private Response possibleEmptyResponse(final PossibleEmpty data)
 	{
-		if (!data.isOk())
+		if (data.isOk())
 		{
-			LOGGER.info("Returning status " + data.httpStatus());
+			return Response.noContent().build();
 		}
-		return Response.status(data.httpStatus()).build();
+		else
+		{
+			LOGGER.info("Returning status " + data.httpStatus() + " " + data.message());
+			return Response.status(data.httpStatus()).entity(data.message()).build();
+		}
 	}
 }

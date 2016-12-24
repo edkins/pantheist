@@ -22,6 +22,7 @@ import restless.handler.binding.model.PathSpecSegment;
 import restless.handler.binding.model.Schema;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
+import restless.handler.java.backend.JavaStore;
 import restless.handler.nginx.manage.NginxService;
 
 final class ManagementBackendImpl implements ManagementBackend
@@ -32,6 +33,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	private final NginxService nginxService;
 	private final NginxFilesystemGlue nginxFilesystemGlue;
 	private final SchemaValidation schemaValidation;
+	private final JavaStore javaStore;
 
 	@Inject
 	ManagementBackendImpl(final BindingModelFactory bindingFactory,
@@ -39,7 +41,8 @@ final class ManagementBackendImpl implements ManagementBackend
 			final FilesystemStore filesystem,
 			final NginxService nginxService,
 			final NginxFilesystemGlue nginxFilesystemGlue,
-			final SchemaValidation schemaValidation)
+			final SchemaValidation schemaValidation,
+			final JavaStore javaStore)
 	{
 		this.bindingFactory = checkNotNull(bindingFactory);
 		this.bindingStore = checkNotNull(bindingStore);
@@ -47,6 +50,7 @@ final class ManagementBackendImpl implements ManagementBackend
 		this.nginxService = checkNotNull(nginxService);
 		this.nginxFilesystemGlue = checkNotNull(nginxFilesystemGlue);
 		this.schemaValidation = checkNotNull(schemaValidation);
+		this.javaStore = checkNotNull(javaStore);
 	}
 
 	@Override
@@ -76,12 +80,13 @@ final class ManagementBackendImpl implements ManagementBackend
 		}
 	}
 
-	private Binding changeFilesystemHandler(final PathSpec pathSpec, final FsPath bucket, final Binding b)
+	private Binding changeFilesystemHandler(final FsPath bucket, final Binding b)
 	{
 		return bindingFactory.binding(
-				pathSpec,
+				b.pathSpec(),
 				bindingFactory.filesystem(bucket),
-				b.schema());
+				b.schema(),
+				b.jerseyClass());
 	}
 
 	@Override
@@ -90,7 +95,7 @@ final class ManagementBackendImpl implements ManagementBackend
 		switch (config.handler()) {
 		case filesystem:
 			final FsPath bucket = filesystem.newBucket(pathSpec.nameHint());
-			bindingStore.changeConfig(pathSpec, b -> changeFilesystemHandler(pathSpec, bucket, b));
+			bindingStore.changeConfig(pathSpec, b -> changeFilesystemHandler(bucket, b));
 			break;
 		default:
 			throw new UnsupportedOperationException("Unknown handler type: " + config.handler());
@@ -119,13 +124,13 @@ final class ManagementBackendImpl implements ManagementBackend
 	{
 		final Schema schema = bindingFactory.jsonSchema(jsonNode);
 		return schemaValidation.checkSchema(schema).then(() -> {
-			bindingStore.changeConfig(pathSpec, b -> changeSchema(pathSpec, schema, b));
+			bindingStore.changeConfig(pathSpec, b -> changeSchema(schema, b));
 		});
 	}
 
-	private Binding changeSchema(final PathSpec pathSpec, final Schema schema, final Binding b)
+	private Binding changeSchema(final Schema schema, final Binding b)
 	{
-		return bindingFactory.binding(pathSpec, b.handler(), schema);
+		return bindingFactory.binding(b.pathSpec(), b.handler(), schema, b.jerseyClass());
 	}
 
 	private ManagementFunctions functionsFor(final BindingMatch match)
@@ -150,6 +155,34 @@ final class ManagementBackendImpl implements ManagementBackend
 	public Schema getSchema(final PathSpec pathSpec)
 	{
 		return bindingStore.exact(pathSpec).schema();
+	}
+
+	@Override
+	public PossibleEmpty putJerseyFile(final PathSpec pathSpec, final String code)
+	{
+		return javaStore.storeJava(code).thenEmpty(className -> {
+			bindingStore.changeConfig(pathSpec, b -> changeJerseyClass(className, b));
+			return PossibleEmpty.ok();
+		});
+	}
+
+	private Binding changeJerseyClass(final String jerseyClass, final Binding b)
+	{
+		return bindingFactory.binding(b.pathSpec(), b.handler(), b.schema(), jerseyClass);
+	}
+
+	@Override
+	public PossibleData getJerseyFile(final PathSpec pathSpec)
+	{
+		final String jerseyClass = bindingStore.exact(pathSpec).jerseyClass();
+		if (jerseyClass == null)
+		{
+			return PossibleData.doesNotExist();
+		}
+		else
+		{
+			return javaStore.getJava(jerseyClass);
+		}
 	}
 
 }

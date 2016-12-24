@@ -4,13 +4,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.function.Supplier;
 
-public class PossibleEmpty
+public final class PossibleEmpty
 {
 	private final WhatHappenedToData whatHappened;
 
 	private PossibleEmpty(final WhatHappenedToData whatHappened)
 	{
 		this.whatHappened = checkNotNull(whatHappened);
+	}
+
+	static PossibleEmpty fromWhatHappend(final WhatHappenedToData whatHappened)
+	{
+		return new PossibleEmpty(whatHappened);
 	}
 
 	public static PossibleEmpty ok()
@@ -43,6 +48,11 @@ public class PossibleEmpty
 		return new PossibleEmpty(WhatHappenedToData.REQUEST_FAILED_SCHEMA);
 	}
 
+	public static PossibleEmpty alreadyExists()
+	{
+		return new PossibleEmpty(WhatHappenedToData.ALREADY_EXISTS);
+	}
+
 	public int httpStatus()
 	{
 		return whatHappened.httpStatus;
@@ -69,5 +79,10 @@ public class PossibleEmpty
 			return r.get();
 		}
 		return this;
+	}
+
+	public String message()
+	{
+		return whatHappened.toString();
 	}
 }

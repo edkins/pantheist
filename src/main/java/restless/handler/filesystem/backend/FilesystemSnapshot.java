@@ -1,5 +1,6 @@
 package restless.handler.filesystem.backend;
 
+import java.util.Collection;
 import java.util.Map;
 
 import restless.handler.filesystem.except.FsConflictException;
@@ -72,4 +73,10 @@ public interface FilesystemSnapshot
 	 *      (It's ok to never write though)
 	 */
 	void write(Map<FsPath, FileProcessor> fns);
+
+	/**
+	 * Even though it looks weird, this version is the most convenient if the files need to
+	 * be processed in a particular order, e.g. recursively creating directories.
+	 */
+	void orderedWrite(Collection<FsPath> paths, PathProcessor fn);
 }
