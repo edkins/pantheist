@@ -1,0 +1,20 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "Coffee",
+    "description": "A nice cup of hot steaming coffee",
+    "type": "object",
+    "properties": {
+    	"vendor": {
+    		"type": "string",
+    		"enum": ["Starbucks", "Timmy's"]
+    	},
+    	"roast": {
+    		"type": "string",
+    		"enum": ["dark", "light", "medium"]
+    	},
+    	"tasty": {
+    		"type": "boolean"
+    	}
+    },
+    "required": "roast"
+}

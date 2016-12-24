@@ -52,4 +52,15 @@ public interface ManagementPath
 	 * @return config api
 	 */
 	ManagementConfig config();
+
+	/**
+	 * Returns a path to the schema api for this resource. This can be used for
+	 * setting validation on json documents. If a schema is set, any future data put
+	 * will be validated against the supplied schema.
+	 *
+	 * Of course the schema itself is validated. Currently only json-schema is supported.
+	 *
+	 * @return schema api
+	 */
+	ManagementData schema();
 }

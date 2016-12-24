@@ -2,6 +2,9 @@ package restless.client.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
@@ -37,8 +40,7 @@ public final class TargetWrapper
 
 	public String getTextPlain()
 	{
-		final Response response = target.request(MediaType.TEXT_PLAIN).get();
-		return expectContent(response);
+		return getString("text/plain");
 	}
 
 	public ResponseType getTextPlainResponseType()
@@ -50,7 +52,7 @@ public final class TargetWrapper
 	public void putTextPlain(final String text)
 	{
 		final Response response = target.request().put(Entity.text(text));
-		expectNoContent(response);
+		expectNoContent(response, "PUT");
 	}
 
 	public void putObjectAsJson(final Object obj)
@@ -59,7 +61,7 @@ public final class TargetWrapper
 		{
 			final String json = objectMapper.writeValueAsString(obj);
 			final Response response = target.request().put(Entity.json(json));
-			expectNoContent(response);
+			expectNoContent(response, "PUT");
 		}
 		catch (final JsonProcessingException e)
 		{
@@ -67,7 +69,7 @@ public final class TargetWrapper
 		}
 	}
 
-	private void expectNoContent(final Response response)
+	private void expectNoContent(final Response response, final String hint)
 	{
 		if (response.getStatus() == 204 && !response.hasEntity())
 		{
@@ -75,11 +77,11 @@ public final class TargetWrapper
 		}
 		else
 		{
-			errorResponse(response);
+			errorResponse(response, hint);
 		}
 	}
 
-	private String expectContent(final Response response)
+	private String expectContent(final Response response, final String hint)
 	{
 		if (response.getStatus() == 200 && response.hasEntity())
 		{
@@ -87,7 +89,7 @@ public final class TargetWrapper
 		}
 		else
 		{
-			throw errorResponse(response);
+			throw errorResponse(response, hint);
 		}
 	}
 
@@ -100,9 +102,9 @@ public final class TargetWrapper
 	 * @throws ManagementUnexpectedResponseException
 	 *             on anything else
 	 */
-	private DummyException errorResponse(final Response response)
+	private DummyException errorResponse(final Response response, final String hint)
 	{
-		final String message = response.getStatus() + " " + target.getUri().toString();
+		final String message = response.getStatus() + " " + hint + " " + target.getUri().toString();
 		switch (response.getStatus()) {
 		case 404:
 			throw new ManagementResourceNotFoundException(message);
@@ -145,5 +147,29 @@ public final class TargetWrapper
 		default:
 			return ResponseType.UNEXPECTED;
 		}
+	}
+
+	private void putStream(final InputStream input, final String contentType)
+	{
+		final Response response = target.request().put(Entity.entity(input, contentType));
+		expectNoContent(response, "PUT");
+	}
+
+	public void putResource(final String resourcePath, final String contentType)
+	{
+		try (InputStream input = TargetWrapper.class.getResourceAsStream(resourcePath))
+		{
+			putStream(input, contentType);
+		}
+		catch (final IOException e)
+		{
+			throw new ManagementClientException("Error reading resource file", e);
+		}
+	}
+
+	public String getString(final String contentType)
+	{
+		final Response response = target.request(contentType).get();
+		return expectContent(response, "GET");
 	}
 }

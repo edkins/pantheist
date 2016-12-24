@@ -69,4 +69,9 @@ public class MutableOptional<T>
 	{
 		return value;
 	}
+
+	public void replace(final T newValue)
+	{
+		value = Optional.of(newValue);
+	}
 }

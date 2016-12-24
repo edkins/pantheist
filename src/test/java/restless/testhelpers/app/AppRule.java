@@ -10,8 +10,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
+import restless.glue.initializer.Initializer;
 import restless.system.main.AllRestlessModule;
-import restless.system.server.RestlessServer;
 import restless.testhelpers.session.TestSession;
 
 public class AppRule implements TestRule
@@ -41,9 +41,9 @@ public class AppRule implements TestRule
 			@Override
 			public void evaluate() throws Throwable
 			{
-				try (RestlessServer server = createInjector().getInstance(RestlessServer.class))
+				try (Initializer init = createInjector().getInstance(Initializer.class))
 				{
-					server.start();
+					init.start();
 					base.evaluate();
 				}
 			}

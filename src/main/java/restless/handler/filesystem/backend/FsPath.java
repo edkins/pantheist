@@ -3,10 +3,18 @@ package restless.handler.filesystem.backend;
 import java.io.File;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import restless.handler.binding.model.PathSpecSegment;
 
+@JsonDeserialize(as = FsPathImpl.class)
 public interface FsPath
 {
+	@JsonValue
+	@Override
+	String toString();
+
 	/**
 	 * @return the first path segment in this path. It will always exist because
 	 *         the path is nonempty.

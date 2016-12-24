@@ -41,4 +41,10 @@ final class ManagementPathImpl implements ManagementPath
 		return new ManagementConfigImpl(target.withSegment("config"));
 	}
 
+	@Override
+	public ManagementData schema()
+	{
+		return new ManagementDataImpl(target.withSegment("schema"));
+	}
+
 }

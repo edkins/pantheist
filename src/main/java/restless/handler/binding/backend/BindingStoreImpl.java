@@ -4,143 +4,87 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableList;
+
 import restless.common.util.MutableOptional;
+import restless.handler.binding.model.Binding;
+import restless.handler.binding.model.BindingMatch;
 import restless.handler.binding.model.BindingModelFactory;
-import restless.handler.binding.model.HandlerType;
 import restless.handler.binding.model.PathSpec;
 import restless.handler.binding.model.PathSpecMatch;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
-import restless.handler.filesystem.backend.LockedFile;
 import restless.handler.filesystem.backend.LockedTypedFile;
-import restless.handler.nginx.manage.NginxService;
-import restless.handler.nginx.model.NginxConfig;
-import restless.handler.nginx.model.NginxLocation;
-import restless.handler.nginx.model.NginxServer;
 
 final class BindingStoreImpl implements BindingStore
 {
 	private final FilesystemStore filesystem;
-	private final NginxService nginxService;
 	private final BindingModelFactory modelFactory;
+	private final BindingBackendFactory backendFactory;
 
 	@Inject
 	private BindingStoreImpl(final FilesystemStore filesystem,
-			final NginxService nginxService,
-			final BindingModelFactory modelFactory)
+			final BindingModelFactory modelFactory,
+			final BindingBackendFactory backendFactory)
 	{
 		this.filesystem = checkNotNull(filesystem);
-		this.nginxService = checkNotNull(nginxService);
 		this.modelFactory = checkNotNull(modelFactory);
+		this.backendFactory = checkNotNull(backendFactory);
 	}
 
 	@Override
 	public void initialize()
 	{
-		filesystem.initialize();
 		try (LockedTypedFile<BindingSet> f = lockBindings())
 		{
 			if (!f.fileExits())
 			{
-				f.write(BindingSetImpl.empty());
+				f.write(emptyBindingSet());
 			}
 		}
 	}
 
+	private BindingSet emptyBindingSet()
+	{
+		return backendFactory.bindingSet(ImmutableList.of());
+	}
+
 	@Override
-	public void bind(final PathSpec pathSpec, final HandlerType handlerType)
-	{
-		switch (handlerType) {
-		case filesystem:
-			bindFilesystem(pathSpec);
-			break;
-		default:
-			throw new UnsupportedOperationException("Unknown handler: " + handlerType);
-		}
-	}
-
-	private void bindFilesystem(final PathSpec pathSpec)
-	{
-		final FsPath path = filesystem.newBucket(pathSpec.nameHint());
-		try (LockedFile f = filesystem.lock(path))
-		{
-			f.createDirectoryIfNotPresent();
-		}
-		final Binding binding = new BindingImpl(
-				HandlerType.filesystem,
-				pathSpec,
-				UUID.randomUUID().toString(),
-				path.toString());
-		registerBinding(binding);
-		restartNginx();
-	}
-
-	private void deregisterBinding(final Binding binding)
+	public void changeConfig(final PathSpec pathSpec, final Function<Binding, Binding> fn)
 	{
 		try (LockedTypedFile<BindingSet> f = lockBindings())
 		{
-			f.write(f.read().minus(binding));
-		}
+			// Might make more sense to use mutable objects here.
 
-	}
-
-	private void registerBinding(final Binding binding)
-	{
-		try (LockedTypedFile<BindingSet> f = lockBindings())
-		{
-			f.write(f.read().plus(binding));
+			final BindingSet oldBindingSet = f.read();
+			final Binding oldBinding = oldBindingSet.get(pathSpec);
+			final Binding newBinding = fn.apply(oldBinding);
+			final BindingSet newBindingSet = oldBindingSet.put(newBinding);
+			f.write(newBindingSet);
 		}
 	}
 
 	@Override
-	public ManagementFunctions lookup(final PathSpec pathSpec)
+	public Optional<BindingMatch> lookup(final PathSpec pathSpec)
 	{
-		final MutableOptional<Binding> binding = MutableOptional.empty();
-		final MutableOptional<PathSpecMatch> match = MutableOptional.empty();
-		for (final Binding candidate : snapshot())
+		final MutableOptional<BindingMatch> result = MutableOptional.empty();
+		for (final Binding binding : snapshot())
 		{
-			final Optional<PathSpecMatch> maybeMatch = candidate.pathSpec().match(pathSpec);
+			final Optional<PathSpecMatch> maybeMatch = binding.pathSpec().match(pathSpec);
 			if (maybeMatch.isPresent())
 			{
-				binding.add(candidate);
-				match.add(maybeMatch);
+				result.add(modelFactory.match(maybeMatch.get(), binding));
 			}
 		}
-		if (binding.isPresent())
-		{
-			return functionsFor(pathSpec, binding.get(), match.get());
-		}
-		else
-		{
-			return emptyFunctions();
-		}
+		return result.value();
 	}
 
-	private ManagementFunctions emptyFunctions()
-	{
-		return new EmptyManagementFunctionsImpl();
-	}
-
-	private ManagementFunctions functionsFor(final PathSpec pathSpec,
-			final Binding bindingPoint,
-			final PathSpecMatch match)
-	{
-		switch (bindingPoint.handler()) {
-		case filesystem:
-			final FsPath path = filesystem
-					.fromBucketName(bindingPoint.handlerPath())
-					.withPathSegments(match.nonLiteralChunk());
-			return filesystem.manage(path);
-		default:
-			throw new UnsupportedOperationException("Unrecognized handler: " + bindingPoint.handler());
-		}
-	}
-
-	private List<Binding> snapshot()
+	@Override
+	public List<Binding> snapshot()
 	{
 		try (LockedTypedFile<BindingSet> f = lockBindings())
 		{
@@ -160,52 +104,11 @@ final class BindingStoreImpl implements BindingStore
 	}
 
 	@Override
-	public void stop()
+	public Binding exact(final PathSpec pathSpec)
 	{
-		nginxService.stop();
-	}
-
-	private void restartNginx()
-	{
-		nginxService.configureAndStart(nginxConf());
-	}
-
-	private NginxConfig nginxConf()
-	{
-		final NginxConfig nginx = nginxService.newConfig();
-		final NginxServer server = nginx.httpServer();
-
-		for (final Binding binding : snapshot())
+		try (LockedTypedFile<BindingSet> f = lockBindings())
 		{
-			switch (binding.handler()) {
-			case filesystem:
-				addFilesystemLocation(server, binding);
-				break;
-			default:
-				throw new UnsupportedOperationException("Unrecognized handler: " + binding.handler());
-			}
+			return f.read().get(pathSpec);
 		}
-		return nginx;
-	}
-
-	private void addFilesystemLocation(final NginxServer server, final Binding binding)
-	{
-		final NginxLocation location;
-		final PathSpec path = binding.pathSpec();
-		switch (path.classify()) {
-		case EXACT:
-			location = server.addLocationEquals(path.literalString());
-			break;
-		case PREFIX:
-			location = server.addLocation(path.minus(modelFactory.multi()).literalString());
-			break;
-		case PREFIX_STAR:
-			// TODO: this is not correct. It will match anything in the directory, not just one level deep as requested.
-			location = server.addLocation(path.minus(modelFactory.star()).literalString());
-			break;
-		default:
-			throw new UnsupportedOperationException("Cannot handle this kind of path");
-		}
-		location.alias().giveDirPath(filesystem.fromBucketName(binding.handlerPath()));
 	}
 }

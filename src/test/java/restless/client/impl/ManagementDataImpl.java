@@ -15,9 +15,9 @@ final class ManagementDataImpl implements ManagementData
 	}
 
 	@Override
-	public String getString()
+	public String getString(final String contentType)
 	{
-		return target.getTextPlain();
+		return target.getString(contentType);
 	}
 
 	@Override
@@ -30,6 +30,12 @@ final class ManagementDataImpl implements ManagementData
 	public ResponseType getResponseType()
 	{
 		return target.getTextPlainResponseType();
+	}
+
+	@Override
+	public void putResource(final String resourcePath, final String contentType)
+	{
+		target.putResource(resourcePath, contentType);
 	}
 
 }

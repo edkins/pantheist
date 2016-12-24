@@ -1,7 +1,7 @@
 package restless.handler.binding.model;
 
-public enum HandlerType
+public enum SchemaType
 {
 	empty,
-	filesystem;
+	json;
 }

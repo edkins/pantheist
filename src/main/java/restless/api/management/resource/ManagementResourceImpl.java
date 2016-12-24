@@ -17,11 +17,13 @@ import javax.ws.rs.core.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.api.management.backend.ManagementBackend;
 import restless.api.management.model.ConfigRequest;
 import restless.handler.binding.backend.PossibleData;
+import restless.handler.binding.model.Schema;
 
 /**
  * Path segments may be:
@@ -122,6 +124,59 @@ public final class ManagementResourceImpl implements ManagementResource
 		{
 			return errorResponse(ex);
 		}
+	}
+
+	/**
+	 * Handles the schema management function (PUT)
+	 */
+	@PUT
+	@Path("{path:([+*][^/]*[/])*}schema")
+	@Consumes("application/schema+json")
+	public Response putSchema(@PathParam("path") final String path, final String data)
+	{
+		LOGGER.info("PUT {}schema", path);
+
+		try
+		{
+			final JsonNode jsonNode = objectMapper.readValue(data, JsonNode.class);
+			backend.putJsonSchema(backend.pathSpec(path), jsonNode);
+
+			return Response.noContent().build();
+		}
+		catch (final RuntimeException ex)
+		{
+			return errorResponse(ex);
+		}
+		catch (final IOException e)
+		{
+			return jsonValidationResponse(e);
+		}
+	}
+
+	/**
+	 * Handles the schema management function (GET)
+	 */
+	@GET
+	@Path("{path:([+*][^/]*[/])*}schema")
+	public Response getSchema(@PathParam("path") final String path)
+	{
+		LOGGER.info("GET {}schema", path);
+
+		try
+		{
+			final Schema schema = backend.getSchema(backend.pathSpec(path));
+			return Response.ok(schema.contentAsString(), schema.httpContentType()).build();
+		}
+		catch (final RuntimeException ex)
+		{
+			return errorResponse(ex);
+		}
+	}
+
+	private Response jsonValidationResponse(final IOException e)
+	{
+		LOGGER.catching(e);
+		return Response.status(400).entity("Bad json").build();
 	}
 
 	private Response errorResponse(final RuntimeException ex)

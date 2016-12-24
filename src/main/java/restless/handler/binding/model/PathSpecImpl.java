@@ -94,7 +94,7 @@ final class PathSpecImpl implements PathSpec
 	{
 		return segments.stream()
 				.map(PathSpecSegment::nameHint)
-				.collect(OtherCollectors.join("_"))
+				.reduce(OtherCollectors.join("_"))
 				.orElse("root");
 	}
 

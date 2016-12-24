@@ -3,9 +3,11 @@ package restless.handler.filesystem.backend;
 import java.io.File;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.collect.ImmutableList;
 
 import restless.common.util.Make;
+import restless.common.util.OtherCollectors;
 import restless.common.util.OtherPreconditions;
 import restless.handler.binding.model.PathSpecSegment;
 
@@ -21,18 +23,10 @@ final class FsPathImpl implements FsPath
 	@Override
 	public String toString()
 	{
-		final StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		for (final FsPathSegment segment : segments)
-		{
-			if (!first)
-			{
-				sb.append('/');
-			}
-			first = false;
-			sb.append(segment);
-		}
-		return sb.toString();
+		return segments.stream()
+				.map(FsPathSegment::toString)
+				.reduce(OtherCollectors.join("/"))
+				.orElse("");
 	}
 
 	public static FsPath empty()
@@ -40,7 +34,8 @@ final class FsPathImpl implements FsPath
 		return new FsPathImpl(ImmutableList.of());
 	}
 
-	public static FsPath nonempty(final String path)
+	@JsonCreator
+	private static FsPathImpl nonemptyFsPathImpl(final String path)
 	{
 		final ImmutableList.Builder<FsPathSegment> builder = ImmutableList.builder();
 		OtherPreconditions.checkNotNullOrEmpty(path);
@@ -58,6 +53,12 @@ final class FsPathImpl implements FsPath
 			throw new IllegalArgumentException("Path cannot be empty here");
 		}
 		return new FsPathImpl(list);
+	}
+
+	@JsonCreator
+	public static FsPath nonempty(final String path)
+	{
+		return nonemptyFsPathImpl(path);
 	}
 
 	@Override

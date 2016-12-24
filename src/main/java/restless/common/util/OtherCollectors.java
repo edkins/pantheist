@@ -8,6 +8,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableSet;
 
 public final class OtherCollectors
@@ -20,27 +22,24 @@ public final class OtherCollectors
 	/**
 	 * Join streams of strings using the given delimiter.
 	 *
+	 * This is actually used with reduce() not collect().
+	 *
 	 * Returns an Optional&lt;String&gt; which will be empty if the stream was
 	 * empty.
 	 */
-	public static Collector<String, MutableOptional<StringBuilder>, Optional<String>> join(final String delim)
+	public static BinaryOperator<String> join(final String delim)
 	{
-		return new Collector<String, MutableOptional<StringBuilder>, Optional<String>>() {
+		return (a, b) -> a + delim + b;
+	}
+
+	public static <T> Collector<T, MutableOptional<T>, Optional<T>> toOptional()
+	{
+		return new Collector<T, MutableOptional<T>, Optional<T>>() {
 
 			@Override
-			public BiConsumer<MutableOptional<StringBuilder>, String> accumulator()
+			public BiConsumer<MutableOptional<T>, T> accumulator()
 			{
-				return (sb, item) -> {
-					if (sb.isPresent())
-					{
-						sb.get().append(delim);
-					}
-					else
-					{
-						sb.add(new StringBuilder());
-					}
-					sb.get().append(item);
-				};
+				return (a, x) -> a.add(x);
 			}
 
 			@Override
@@ -50,36 +49,62 @@ public final class OtherCollectors
 			}
 
 			@Override
-			public BinaryOperator<MutableOptional<StringBuilder>> combiner()
+			public BinaryOperator<MutableOptional<T>> combiner()
 			{
-				return (sb, sb2) -> {
-					if (sb2.isPresent())
-					{
-						if (sb.isPresent())
-						{
-							sb.get().append(delim).append(sb2);
-						}
-						else
-						{
-							return sb2;
-						}
-					}
-					return sb;
+				return (a, b) -> {
+					a.add(b);
+					return a;
 				};
 			}
 
 			@Override
-			public Function<MutableOptional<StringBuilder>, Optional<String>> finisher()
+			public Function<MutableOptional<T>, Optional<T>> finisher()
 			{
-				return sb -> sb.value().map(StringBuilder::toString);
+				return MutableOptional::value;
 			}
 
 			@Override
-			public Supplier<MutableOptional<StringBuilder>> supplier()
+			public Supplier<MutableOptional<T>> supplier()
 			{
-				return () -> MutableOptional.empty();
+				return MutableOptional::empty;
 			}
 		};
+	}
 
+	public static <T> Collector<T, ImmutableList.Builder<T>, ImmutableList.Builder<T>> toListBuilder()
+	{
+		return new Collector<T, ImmutableList.Builder<T>, ImmutableList.Builder<T>>() {
+
+			@Override
+			public BiConsumer<Builder<T>, T> accumulator()
+			{
+				return (a, x) -> a.add(x);
+			}
+
+			@Override
+			public Set<java.util.stream.Collector.Characteristics> characteristics()
+			{
+				return ImmutableSet.of();
+			}
+
+			@Override
+			public BinaryOperator<Builder<T>> combiner()
+			{
+				return (a, b) -> a.addAll(b.build());
+			}
+
+			@Override
+			public Function<Builder<T>, Builder<T>> finisher()
+			{
+				return a -> a;
+			}
+
+			@Override
+			public Supplier<Builder<T>> supplier()
+			{
+				return ImmutableList::builder;
+			}
+
+		};
 	}
 }

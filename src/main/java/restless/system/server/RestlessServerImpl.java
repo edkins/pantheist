@@ -24,7 +24,6 @@ final class RestlessServerImpl implements RestlessServer
 	private static final Logger LOGGER = LogManager.getLogger(RestlessServerImpl.class);
 	private final RestlessConfig config;
 	private final ManagementResource managementResource;
-	private final BindingStore initializer;
 
 	// State
 	MutableOptional<Server> serverOpt;
@@ -37,14 +36,11 @@ final class RestlessServerImpl implements RestlessServer
 		this.config = checkNotNull(config);
 		this.managementResource = checkNotNull(managementResource);
 		this.serverOpt = MutableOptional.empty();
-		this.initializer = initializer;
 	}
 
 	@Override
 	public void start()
 	{
-		initializer.initialize();
-
 		try
 		{
 			final int port = config.managementPort();
@@ -72,14 +68,13 @@ final class RestlessServerImpl implements RestlessServer
 	}
 
 	@Override
-	public void close()
+	public void stop()
 	{
 		if (serverOpt.isPresent())
 		{
 			try
 			{
 				serverOpt.get().stop();
-				initializer.stop();
 			}
 			catch (final Exception e)
 			{
