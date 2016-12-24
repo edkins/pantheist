@@ -2,10 +2,7 @@ package restless.api.management.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Optional;
-
 import javax.inject.Inject;
-import javax.ws.rs.NotFoundException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
@@ -15,11 +12,12 @@ import restless.glue.nginx.filesystem.NginxFilesystemGlue;
 import restless.handler.binding.backend.BindingStore;
 import restless.handler.binding.backend.ManagementFunctions;
 import restless.handler.binding.backend.PossibleData;
+import restless.handler.binding.backend.PossibleEmpty;
+import restless.handler.binding.backend.SchemaValidation;
 import restless.handler.binding.model.Binding;
 import restless.handler.binding.model.BindingMatch;
 import restless.handler.binding.model.BindingModelFactory;
 import restless.handler.binding.model.PathSpec;
-import restless.handler.binding.model.PathSpecMatch;
 import restless.handler.binding.model.PathSpecSegment;
 import restless.handler.binding.model.Schema;
 import restless.handler.filesystem.backend.FilesystemStore;
@@ -33,19 +31,22 @@ final class ManagementBackendImpl implements ManagementBackend
 	private final FilesystemStore filesystem;
 	private final NginxService nginxService;
 	private final NginxFilesystemGlue nginxFilesystemGlue;
+	private final SchemaValidation schemaValidation;
 
 	@Inject
 	ManagementBackendImpl(final BindingModelFactory bindingFactory,
 			final BindingStore bindingStore,
 			final FilesystemStore filesystem,
 			final NginxService nginxService,
-			final NginxFilesystemGlue nginxFilesystemGlue)
+			final NginxFilesystemGlue nginxFilesystemGlue,
+			final SchemaValidation schemaValidation)
 	{
 		this.bindingFactory = checkNotNull(bindingFactory);
 		this.bindingStore = checkNotNull(bindingStore);
 		this.filesystem = checkNotNull(filesystem);
 		this.nginxService = checkNotNull(nginxService);
 		this.nginxFilesystemGlue = checkNotNull(nginxFilesystemGlue);
+		this.schemaValidation = checkNotNull(schemaValidation);
 	}
 
 	@Override
@@ -84,7 +85,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	}
 
 	@Override
-	public void putConfig(final PathSpec pathSpec, final ConfigRequest config)
+	public PossibleEmpty putConfig(final PathSpec pathSpec, final ConfigRequest config)
 	{
 		switch (config.handler()) {
 		case filesystem:
@@ -95,55 +96,48 @@ final class ManagementBackendImpl implements ManagementBackend
 			throw new UnsupportedOperationException("Unknown handler type: " + config.handler());
 		}
 		restartNginx();
+		return PossibleEmpty.ok();
 	}
 
 	@Override
-	public void putData(final PathSpec path, final String data)
+	public PossibleEmpty putData(final PathSpec path, final String data)
 	{
-		lookup(path).putString(data);
+		final BindingMatch match = bindingStore.lookup(path);
+		return schemaValidation
+				.validate(match.binding().schema(), data)
+				.then(() -> functionsFor(match).putString(data));
 	}
 
 	@Override
 	public PossibleData getData(final PathSpec path)
 	{
-		return lookup(path).getString();
+		return functionsFor(bindingStore.lookup(path)).getString();
 	}
 
 	@Override
-	public void putJsonSchema(final PathSpec pathSpec, final JsonNode schema)
+	public PossibleEmpty putJsonSchema(final PathSpec pathSpec, final JsonNode jsonNode)
 	{
-		bindingStore.changeConfig(pathSpec, b -> changeSchema(pathSpec, schema, b));
+		final Schema schema = bindingFactory.jsonSchema(jsonNode);
+		return schemaValidation.checkSchema(schema).then(() -> {
+			bindingStore.changeConfig(pathSpec, b -> changeSchema(pathSpec, schema, b));
+		});
 	}
 
-	private Binding changeSchema(final PathSpec pathSpec, final JsonNode schema, final Binding b)
+	private Binding changeSchema(final PathSpec pathSpec, final Schema schema, final Binding b)
 	{
-		return bindingFactory.binding(pathSpec, b.handler(), bindingFactory.jsonSchema(schema));
+		return bindingFactory.binding(pathSpec, b.handler(), schema);
 	}
 
-	private ManagementFunctions lookup(final PathSpec pathSpec)
+	private ManagementFunctions functionsFor(final BindingMatch match)
 	{
-		final Optional<BindingMatch> match = bindingStore.lookup(pathSpec);
-		if (match.isPresent())
-		{
-			return functionsFor(pathSpec, match.get().binding(), match.get().pathMatch());
-		}
-		else
-		{
-			throw new NotFoundException();
-		}
-	}
-
-	private ManagementFunctions functionsFor(final PathSpec pathSpec,
-			final Binding bindingPoint,
-			final PathSpecMatch match)
-	{
-		switch (bindingPoint.handler().type()) {
+		final Binding binding = match.binding();
+		switch (binding.handler().type()) {
 		case filesystem:
-			final FsPath path = bindingPoint.handler().filesystemBucket()
-					.withPathSegments(match.nonLiteralChunk());
+			final FsPath path = binding.handler().filesystemBucket()
+					.withPathSegments(match.pathMatch().nonLiteralChunk());
 			return filesystem.manage(path);
 		default:
-			throw new UnsupportedOperationException("Unrecognized handler: " + bindingPoint.handler());
+			throw new UnsupportedOperationException("Unrecognized handler: " + binding.handler());
 		}
 	}
 

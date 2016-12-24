@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import restless.api.management.backend.ManagementBackend;
 import restless.api.management.model.ConfigRequest;
 import restless.handler.binding.backend.PossibleData;
+import restless.handler.binding.backend.PossibleEmpty;
 import restless.handler.binding.model.Schema;
 
 /**
@@ -72,9 +73,9 @@ public final class ManagementResourceImpl implements ManagementResource
 		{
 			final ConfigRequest request = objectMapper.readValue(configJson, ConfigRequest.class);
 
-			backend.putConfig(backend.pathSpec(path), request);
+			final PossibleEmpty result = backend.putConfig(backend.pathSpec(path), request);
 
-			return Response.noContent().build();
+			return possibleEmptyResponse(result);
 		}
 		catch (final RuntimeException ex)
 		{
@@ -94,9 +95,9 @@ public final class ManagementResourceImpl implements ManagementResource
 
 		try
 		{
-			backend.putData(backend.pathSpec(path), data);
+			final PossibleEmpty result = backend.putData(backend.pathSpec(path), data);
 
-			return Response.noContent().build();
+			return possibleEmptyResponse(result);
 		}
 		catch (final RuntimeException ex)
 		{
@@ -139,9 +140,9 @@ public final class ManagementResourceImpl implements ManagementResource
 		try
 		{
 			final JsonNode jsonNode = objectMapper.readValue(data, JsonNode.class);
-			backend.putJsonSchema(backend.pathSpec(path), jsonNode);
+			final PossibleEmpty result = backend.putJsonSchema(backend.pathSpec(path), jsonNode);
 
-			return Response.noContent().build();
+			return possibleEmptyResponse(result);
 		}
 		catch (final RuntimeException ex)
 		{
@@ -196,5 +197,14 @@ public final class ManagementResourceImpl implements ManagementResource
 			LOGGER.info("Returning status " + data.httpStatus());
 			return Response.status(data.httpStatus()).build();
 		}
+	}
+
+	private Response possibleEmptyResponse(final PossibleEmpty data)
+	{
+		if (!data.isOk())
+		{
+			LOGGER.info("Returning status " + data.httpStatus());
+		}
+		return Response.status(data.httpStatus()).build();
 	}
 }

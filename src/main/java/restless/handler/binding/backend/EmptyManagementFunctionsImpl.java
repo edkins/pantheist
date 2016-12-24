@@ -1,8 +1,11 @@
 package restless.handler.binding.backend;
 
+import javax.inject.Inject;
+
 final class EmptyManagementFunctionsImpl implements ManagementFunctions
 {
-	EmptyManagementFunctionsImpl()
+	@Inject
+	private EmptyManagementFunctionsImpl()
 	{
 
 	}
@@ -10,13 +13,13 @@ final class EmptyManagementFunctionsImpl implements ManagementFunctions
 	@Override
 	public PossibleData getString()
 	{
-		throw new UnsupportedOperationException();
+		return PossibleData.handlerDoesNotSupport();
 	}
 
 	@Override
-	public void putString(final String data)
+	public PossibleEmpty putString(final String data)
 	{
-		throw new UnsupportedOperationException();
+		return PossibleEmpty.handlerDoesNotSupport();
 	}
 
 }

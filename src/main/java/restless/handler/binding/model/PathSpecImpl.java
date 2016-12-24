@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
@@ -18,12 +19,15 @@ import restless.common.util.OtherCollectors;
 final class PathSpecImpl implements PathSpec
 {
 	private final List<PathSpecSegment> segments;
+	private final BindingModelFactory modelFactory;
 
 	@Inject
-	private PathSpecImpl(@Assisted @JsonProperty("segments") final List<PathSpecSegment> segments)
+	private PathSpecImpl(@JacksonInject final BindingModelFactory modelFactory,
+			@Assisted @JsonProperty("segments") final List<PathSpecSegment> segments)
 	{
 		checkNotNull(segments);
 		this.segments = ImmutableList.copyOf(segments);
+		this.modelFactory = checkNotNull(modelFactory);
 	}
 
 	@Override
@@ -86,7 +90,7 @@ final class PathSpecImpl implements PathSpec
 			}
 			builder.add(PathSpecMatchSegmentImpl.from(matcher, ImmutableList.of(matched)));
 		}
-		return Optional.of(new PathSpecMatchImpl(builder.build()));
+		return Optional.of(modelFactory.pathSpecMatch(builder.build()));
 	}
 
 	@Override
@@ -128,7 +132,7 @@ final class PathSpecImpl implements PathSpec
 		{
 			throw new IllegalArgumentException("Path does not end with the given segment");
 		}
-		return new PathSpecImpl(Make.init(segments));
+		return modelFactory.pathSpec(Make.init(segments));
 	}
 
 	@Override
@@ -137,6 +141,12 @@ final class PathSpecImpl implements PathSpec
 		final StringBuilder sb = new StringBuilder("/");
 		segments.forEach(seg -> sb.append(seg.escapedLiteralValue()).append('/'));
 		return sb.toString();
+	}
+
+	@Override
+	public Binding emptyBinding()
+	{
+		return modelFactory.binding(this, modelFactory.emptyHandler(), modelFactory.emptySchema());
 	}
 
 }

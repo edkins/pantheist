@@ -3,6 +3,7 @@ package restless.handler.binding.model;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.JsonNode;
 
 final class SchemaEmptyImpl implements Schema
 {
@@ -27,6 +28,12 @@ final class SchemaEmptyImpl implements Schema
 
 	@Override
 	public String contentAsString()
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public JsonNode jsonNode()
 	{
 		throw new UnsupportedOperationException();
 	}

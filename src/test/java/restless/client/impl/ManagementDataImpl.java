@@ -38,4 +38,10 @@ final class ManagementDataImpl implements ManagementData
 		target.putResource(resourcePath, contentType);
 	}
 
+	@Override
+	public ResponseType putResourceResponseType(final String resourcePath, final String contentType)
+	{
+		return target.putResourceResponseType(resourcePath, contentType);
+	}
+
 }

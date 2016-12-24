@@ -69,7 +69,7 @@ final class BindingStoreImpl implements BindingStore
 	}
 
 	@Override
-	public Optional<BindingMatch> lookup(final PathSpec pathSpec)
+	public BindingMatch lookup(final PathSpec pathSpec)
 	{
 		final MutableOptional<BindingMatch> result = MutableOptional.empty();
 		for (final Binding binding : snapshot())
@@ -80,7 +80,12 @@ final class BindingStoreImpl implements BindingStore
 				result.add(modelFactory.match(maybeMatch.get(), binding));
 			}
 		}
-		return result.value();
+		return result.value().orElseGet(() -> emptyBindingMatch(pathSpec));
+	}
+
+	private BindingMatch emptyBindingMatch(final PathSpec pathSpec)
+	{
+		return modelFactory.match(modelFactory.pathSpecMatch(ImmutableList.of()), pathSpec.emptyBinding());
 	}
 
 	@Override

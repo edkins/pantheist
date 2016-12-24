@@ -13,6 +13,7 @@ import com.google.inject.assistedinject.Assisted;
 
 import restless.handler.binding.backend.ManagementFunctions;
 import restless.handler.binding.backend.PossibleData;
+import restless.handler.binding.backend.PossibleEmpty;
 import restless.handler.filesystem.except.FsIoException;
 
 final class FilesystemManagementFunctionsImpl implements ManagementFunctions
@@ -51,11 +52,12 @@ final class FilesystemManagementFunctionsImpl implements ManagementFunctions
 	}
 
 	@Override
-	public void putString(final String data)
+	public PossibleEmpty putString(final String data)
 	{
 		try (LockedFile f = store.lock(path))
 		{
 			IOUtils.write(data, f.outputStream(), StandardCharsets.UTF_8);
+			return PossibleEmpty.ok();
 		}
 		catch (final IOException e)
 		{

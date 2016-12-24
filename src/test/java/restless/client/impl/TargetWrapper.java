@@ -143,6 +143,7 @@ public final class TargetWrapper
 		case 501: // not implemented
 			return ResponseType.NOT_IMPLEMENTED;
 		case 400: // bad request
+			return ResponseType.BAD_REQUEST;
 		case 405: // method not allowed
 		default:
 			return ResponseType.UNEXPECTED;
@@ -171,5 +172,18 @@ public final class TargetWrapper
 	{
 		final Response response = target.request(contentType).get();
 		return expectContent(response, "GET");
+	}
+
+	public ResponseType putResourceResponseType(final String resourcePath, final String contentType)
+	{
+		try (InputStream input = TargetWrapper.class.getResourceAsStream(resourcePath))
+		{
+			final Response response = target.request().put(Entity.entity(input, contentType));
+			return responseType(response);
+		}
+		catch (final IOException e)
+		{
+			throw new ManagementClientException("Error reading resource file", e);
+		}
 	}
 }

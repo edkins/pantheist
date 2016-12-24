@@ -37,4 +37,9 @@ public interface ManagementData
 	 * transmit the data, so make sure the resource is of the right type.
 	 */
 	void putResource(String resourcePath, String contentType);
+
+	/**
+	 * Attempt to put a resource and return the response type.
+	 */
+	ResponseType putResourceResponseType(String resourcePath, String contentType);
 }

@@ -13,23 +13,20 @@ import com.google.inject.assistedinject.Assisted;
 
 import restless.common.util.OtherCollectors;
 import restless.handler.binding.model.Binding;
-import restless.handler.binding.model.BindingModelFactory;
 import restless.handler.binding.model.PathSpec;
 
 final class BindingSetImpl implements BindingSet
 {
 	private final ImmutableList<Binding> bindings;
-	private final BindingModelFactory modelFactory;
 	private final BindingBackendFactory backendFactory;
 
 	@Inject
-	BindingSetImpl(@JacksonInject final BindingModelFactory modelFactory,
+	BindingSetImpl(
 			@JacksonInject final BindingBackendFactory backendFactory,
 			@Assisted @JsonProperty("bindings") final List<Binding> bindings)
 	{
 		checkNotNull(bindings);
 		this.bindings = ImmutableList.copyOf(bindings);
-		this.modelFactory = checkNotNull(modelFactory);
 		this.backendFactory = checkNotNull(backendFactory);
 	}
 
@@ -57,12 +54,7 @@ final class BindingSetImpl implements BindingSet
 				.stream()
 				.filter(b -> b.pathSpec().equals(pathSpec))
 				.collect(OtherCollectors.toOptional())
-				.orElse(emptyBinding(pathSpec));
-	}
-
-	private Binding emptyBinding(final PathSpec pathSpec)
-	{
-		return modelFactory.binding(pathSpec, modelFactory.emptyHandler(), modelFactory.emptySchema());
+				.orElseGet(pathSpec::emptyBinding);
 	}
 
 }

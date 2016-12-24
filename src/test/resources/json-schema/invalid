@@ -1,0 +1,7 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "Invalid schema",
+    "description": "Invalid example of a json schema",
+    "type": "object",
+    "required": "thisShouldBeArray"
+}

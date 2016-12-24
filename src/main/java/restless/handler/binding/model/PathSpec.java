@@ -43,6 +43,7 @@ public interface PathSpec
 	 *
 	 * OTHER: a catch-all for anything that doesn't fit one of those categories.
 	 */
+	@JsonIgnore
 	PathSpecClassification classify();
 
 	/**
@@ -53,6 +54,7 @@ public interface PathSpec
 	 * @throws IllegalArgumentException
 	 *             If the segment is wrong or the path is empty
 	 */
+	@JsonIgnore
 	PathSpec minus(PathSpecSegment segment);
 
 	/**
@@ -61,5 +63,12 @@ public interface PathSpec
 	 *
 	 * Unusual characters will be escaped.
 	 */
+	@JsonIgnore
 	String literalString();
+
+	/**
+	 * @return an empty binding associated with this path spec.
+	 */
+	@JsonIgnore
+	Binding emptyBinding();
 }

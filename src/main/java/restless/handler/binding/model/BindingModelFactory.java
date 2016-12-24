@@ -36,4 +36,6 @@ public interface BindingModelFactory
 	Schema jsonSchema(JsonNode schema);
 
 	BindingMatch match(PathSpecMatch pathMatch, Binding binding);
+
+	PathSpecMatch pathSpecMatch(List<PathSpecMatchSegment> segments);
 }

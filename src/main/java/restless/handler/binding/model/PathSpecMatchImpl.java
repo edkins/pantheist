@@ -5,11 +5,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
+
+import com.google.inject.assistedinject.Assisted;
+
 final class PathSpecMatchImpl implements PathSpecMatch
 {
 	private final List<PathSpecMatchSegment> segments;
 
-	PathSpecMatchImpl(final List<PathSpecMatchSegment> segments)
+	@Inject
+	private PathSpecMatchImpl(@Assisted final List<PathSpecMatchSegment> segments)
 	{
 		this.segments = checkNotNull(segments);
 	}

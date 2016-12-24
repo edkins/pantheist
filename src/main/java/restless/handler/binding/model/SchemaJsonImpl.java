@@ -59,4 +59,10 @@ final class SchemaJsonImpl implements Schema
 		}
 	}
 
+	@Override
+	public JsonNode jsonNode()
+	{
+		return schema;
+	}
+
 }

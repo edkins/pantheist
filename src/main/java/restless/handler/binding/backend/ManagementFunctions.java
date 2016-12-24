@@ -4,5 +4,5 @@ public interface ManagementFunctions
 {
 	PossibleData getString();
 
-	void putString(String data);
+	PossibleEmpty putString(String data);
 }

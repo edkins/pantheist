@@ -7,4 +7,6 @@ import restless.handler.binding.model.Binding;
 interface BindingBackendFactory
 {
 	BindingSet bindingSet(List<Binding> bindings);
+
+	ManagementFunctions emptyManagementFunctions();
 }

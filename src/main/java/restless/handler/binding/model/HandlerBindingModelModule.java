@@ -16,6 +16,7 @@ public class HandlerBindingModelModule extends PrivateModule
 				.implement(PathSpecSegment.class, Names.named("literal"), PathSpecSegmentLiteralImpl.class)
 				.implement(PathSpecSegment.class, Names.named("star"), PathSpecSegmentStarImpl.class)
 				.implement(PathSpecSegment.class, Names.named("multi"), PathSpecSegmentMultiImpl.class)
+				.implement(PathSpecMatch.class, PathSpecMatchImpl.class)
 				.implement(Binding.class, BindingImpl.class)
 				.implement(BindingMatch.class, BindingMatchImpl.class)
 				.implement(Handler.class, Names.named("empty"), HandlerEmptyImpl.class)
