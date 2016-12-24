@@ -1,9 +1,11 @@
 package restless.testhelpers.app;
 
 import java.io.File;
+import java.util.List;
 
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.config.DynamicPropertyFactory;
 
 import restless.system.config.RestlessConfigImpl;
@@ -42,5 +44,14 @@ final class OverrideConfig extends RestlessConfigImpl
 	public File dataDir()
 	{
 		return testDataDir;
+	}
+
+	@Override
+	public List<String> resourceFiles()
+	{
+		final ImmutableList.Builder<String> builder = ImmutableList.builder();
+		builder.addAll(super.resourceFiles());
+		builder.add("example-resource.txt");
+		return builder.build();
 	}
 }

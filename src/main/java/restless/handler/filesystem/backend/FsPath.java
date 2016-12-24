@@ -67,4 +67,10 @@ public interface FsPath
 	 * This is useful if you need to recursively create a bunch of directories.
 	 */
 	List<FsPath> leadingPortions();
+
+	/**
+	 * Append zero or more segments separated by slashes. Empty string appends nothing. Leading or trailing slashes
+	 * are an error
+	 */
+	FsPath slashSeparatedSegments(String relativePath);
 }

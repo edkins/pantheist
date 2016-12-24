@@ -1,6 +1,7 @@
 package restless.system.config;
 
 import java.io.File;
+import java.util.List;
 
 public interface RestlessConfig
 {
@@ -14,4 +15,9 @@ public interface RestlessConfig
 	File dataDir();
 
 	String nginxExecutable();
+
+	/**
+	 * List of resource files to copy into system/resource-files
+	 */
+	List<String> resourceFiles();
 }

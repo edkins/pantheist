@@ -6,25 +6,20 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
-import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
-import restless.common.util.Cleanup;
 import restless.common.util.DummyException;
 import restless.handler.filesystem.except.FsConflictException;
 import restless.handler.filesystem.except.FsIoException;
 import restless.handler.filesystem.except.FsUnexpectedStateException;
 import restless.system.config.RestlessConfig;
 
-final class FilesystemSnapshotImpl implements FilesystemSnapshot
+final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 {
 	private final Lock lock;
 	private final RestlessConfig config;
@@ -71,6 +66,15 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot
 
 	@Override
 	public FileState checkFileState(final FsPath path)
+	{
+		if (written)
+		{
+			throw new IllegalStateException("Already written to this snapshot");
+		}
+		return internalCheckFileState(path);
+	}
+
+	private FileState internalCheckFileState(final FsPath path)
 	{
 		final File file = find(path);
 
@@ -129,13 +133,7 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot
 	}
 
 	@Override
-	public void write(final Map<FsPath, FileProcessor> fns)
-	{
-		orderedWrite(fns.keySet(), (path, file) -> fns.get(path).process(file));
-	}
-
-	@Override
-	public void orderedWrite(final Collection<FsPath> paths, final PathProcessor fn)
+	public void write(final FileProcessor fn)
 	{
 		if (written)
 		{
@@ -145,28 +143,18 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot
 		lock.lock();
 		try
 		{
-			final Set<FsPath> interestingFiles = new HashSet<>();
-			interestingFiles.addAll(knownFileStates.keySet());
-			interestingFiles.addAll(paths);
-			for (final FsPath path : interestingFiles)
+			for (final FsPath path : knownFileStates.keySet())
 			{
 				// This will check each file is in the same state that it was (if known), and that it wasn't modified
 				// since the timestamp.
-				checkFileState(path);
+				internalCheckFileState(path);
 			}
 
-			final Consumer<FsPath> tweakedFn = path -> {
-				try
-				{
-					fn.process(path, find(path));
-				}
-				catch (final IOException ex)
-				{
-					throw new FsIoException(ex);
-				}
-			};
-
-			Cleanup.run(tweakedFn, paths.iterator());
+			fn.process(this);
+		}
+		catch (final IOException ex)
+		{
+			throw new FsIoException(ex);
 		}
 		finally
 		{
@@ -210,6 +198,25 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot
 			throw new IllegalArgumentException("parentDirectoryExists: empty path");
 		}
 		return isDir(path.parent());
+	}
+
+	@Override
+	public void writeSingle(final FsPath path, final SingleFileProcessor fn)
+	{
+		write(map -> fn.process(map.get(path)));
+	}
+
+	@Override
+	public File get(final FsPath path)
+	{
+		if (knownFileStates.containsKey(path))
+		{
+			return find(path);
+		}
+		else
+		{
+			throw new IllegalStateException("Did not previously check state of " + path);
+		}
 	}
 
 }

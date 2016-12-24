@@ -3,10 +3,12 @@ package restless.system.config;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
+import java.util.List;
 
 import javax.inject.Inject;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.netflix.config.DynamicPropertyFactory;
 
 import restless.common.annotations.NotFinalForTesting;
@@ -53,6 +55,12 @@ public class RestlessConfigImpl implements RestlessConfig
 	public String nginxExecutable()
 	{
 		return propertyFactory.getStringProperty("RESTLESS_NGINX", "/usr/sbin/nginx").get();
+	}
+
+	@Override
+	public List<String> resourceFiles()
+	{
+		return ImmutableList.of();
 	}
 
 }

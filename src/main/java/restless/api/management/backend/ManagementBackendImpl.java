@@ -94,9 +94,18 @@ final class ManagementBackendImpl implements ManagementBackend
 	{
 		switch (config.handler()) {
 		case filesystem:
+		{
 			final FsPath bucket = filesystem.newBucket(pathSpec.nameHint());
 			bindingStore.changeConfig(pathSpec, b -> changeFilesystemHandler(bucket, b));
 			break;
+		}
+		case resource_files:
+		{
+			final FsPath bucket = filesystem.systemBucket().segment("resource-files")
+					.slashSeparatedSegments(config.handlerPath());
+			bindingStore.changeConfig(pathSpec, b -> changeFilesystemHandler(bucket, b));
+			break;
+		}
 		default:
 			throw new UnsupportedOperationException("Unknown handler type: " + config.handler());
 		}

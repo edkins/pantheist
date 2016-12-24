@@ -10,7 +10,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 
 import restless.common.util.MutableOptional;
 import restless.handler.filesystem.except.FsParseException;
@@ -77,8 +76,7 @@ final class JsonSnapshotImpl<T> implements JsonSnapshot<T>
 		try
 		{
 			final String data = objectMapper.writeValueAsString(value);
-			snapshot.write(
-					ImmutableMap.of(path, file -> FileUtils.writeStringToFile(file, data, StandardCharsets.UTF_8)));
+			snapshot.writeSingle(path, file -> FileUtils.writeStringToFile(file, data, StandardCharsets.UTF_8));
 		}
 		catch (final JsonProcessingException e)
 		{

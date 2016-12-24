@@ -1,6 +1,8 @@
 package restless.tests;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
@@ -37,5 +39,14 @@ public class FilesystemTest extends BaseTest
 		manage.segment("my-binding").segment("my-file").data().putString("Contents of file");
 
 		assertEquals("Contents of file", mainApi.withSegment("my-binding").withSegment("my-file").getTextPlain());
+	}
+
+	@Test
+	public void resourceFile_isServed() throws Exception
+	{
+		manage.segment("my-resources").star().config().bindToResourceFiles("");
+
+		final String contents = mainApi.withSegment("my-resources").withSegment("example-resource.txt").getTextPlain();
+		assertThat(contents, is(resource("/resource-files/example-resource.txt")));
 	}
 }

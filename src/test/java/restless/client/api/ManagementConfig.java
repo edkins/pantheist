@@ -7,4 +7,11 @@ public interface ManagementConfig
 	 * you don't get to choose where it will go.
 	 */
 	void bindToFilesystem();
+
+	/**
+	 * Binds this resource to one of the resource files.
+	 *
+	 * @param relativePath subset of resource files to expose, or "" if you want them all.
+	 */
+	void bindToResourceFiles(String relativePath);
 }

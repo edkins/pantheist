@@ -95,15 +95,12 @@ final class JavaStoreImpl implements JavaStore
 				return PossibleData.alreadyExists();
 			}
 
-			snapshot.orderedWrite(filePath.leadingPortions(), (path, file) -> {
-				if (path.equals(filePath))
+			snapshot.write(map -> {
+				for (final FsPath dirPath : filePath.parent().leadingPortions())
 				{
-					FileUtils.write(file, code, StandardCharsets.UTF_8);
+					map.get(dirPath).mkdir();
 				}
-				else
-				{
-					file.mkdir();
-				}
+				FileUtils.write(map.get(filePath), code, StandardCharsets.UTF_8);
 			});
 			return PossibleData.of(typeName);
 		}

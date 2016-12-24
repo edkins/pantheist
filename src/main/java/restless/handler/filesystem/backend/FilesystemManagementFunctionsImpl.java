@@ -9,7 +9,6 @@ import javax.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.assistedinject.Assisted;
 
 import restless.handler.binding.backend.ManagementFunctions;
@@ -51,8 +50,8 @@ final class FilesystemManagementFunctionsImpl implements ManagementFunctions
 		final FilesystemSnapshot snapshot = store.snapshot();
 		if (snapshot.parentDirectoryExists(path))
 		{
-			snapshot.write(
-					ImmutableMap.of(path, file -> FileUtils.writeStringToFile(file, data, StandardCharsets.UTF_8)));
+			snapshot.isFile(path); // throws an exception if it exists but is not a regular file
+			snapshot.writeSingle(path, file -> FileUtils.writeStringToFile(file, data, StandardCharsets.UTF_8));
 			return PossibleEmpty.ok();
 		}
 		else

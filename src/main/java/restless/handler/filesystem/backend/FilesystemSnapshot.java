@@ -1,8 +1,5 @@
 package restless.handler.filesystem.backend;
 
-import java.util.Collection;
-import java.util.Map;
-
 import restless.handler.filesystem.except.FsConflictException;
 import restless.handler.filesystem.except.FsIoException;
 import restless.handler.filesystem.except.FsUnexpectedStateException;
@@ -21,6 +18,7 @@ public interface FilesystemSnapshot
 	 *
 	 * @throws FsConflictException if someone else wrote to the file since the snapshot time.
 	 * @throws FsIoException if the supplied function threw an IOException while reading from the file.
+	 * @throws IllegalStateException if you've already called write().
 	 */
 	<T> T read(FsPath path, InputSteamProcessor<T> fn);
 
@@ -52,8 +50,7 @@ public interface FilesystemSnapshot
 	boolean parentDirectoryExists(FsPath path);
 
 	/**
-	 * Writes a bunch of files. Detects conflicts atomically. If any of the operations throws an exception,
-	 * it will attempt to execute the remaining operations and will then propagate the exception.
+	 * Calls the supplied function, which is assumed to write to a bunch of files.
 	 *
 	 * A conflict will be detected if:
 	 *
@@ -61,22 +58,22 @@ public interface FilesystemSnapshot
 	 *
 	 * - the file has been observed to exist as part of this snapshot and is now deleted.
 	 *
-	 * This applies to both the files included in the map here, and any files that we read from or otherwise accessed.
+	 * It's also invalid if you try to access a file you haven't previously checked the state of.
 	 *
 	 * @throws FsConflictException
-	 * 		if someone else wrote to or deleted any of the files since the snapshot time. If this happens, we
-	 *      make sure none of the files will get written.
+	 * 		if someone else wrote to or deleted any of the files since the snapshot time
 	 * @throws FsIoException
 	 *      if the supplied function threw an IOException while writing to a file
 	 * @throws IllegalStateException
 	 *      if you've already called write on this snapshot, since you're not supposed to do it twice.
 	 *      (It's ok to never write though)
 	 */
-	void write(Map<FsPath, FileProcessor> fns);
+	void write(FileProcessor fn);
 
 	/**
-	 * Even though it looks weird, this version is the most convenient if the files need to
-	 * be processed in a particular order, e.g. recursively creating directories.
+	 * Convenience method for when you only want to write to one file.
+	 *
+	 * Remember that future writes are forbidden on this snapshot so you can't do a bunch of these.
 	 */
-	void orderedWrite(Collection<FsPath> paths, PathProcessor fn);
+	void writeSingle(FsPath path, SingleFileProcessor fn);
 }

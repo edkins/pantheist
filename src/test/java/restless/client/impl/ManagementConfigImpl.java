@@ -24,4 +24,13 @@ final class ManagementConfigImpl implements ManagementConfig
 		target.putObjectAsJson(map);
 	}
 
+	@Override
+	public void bindToResourceFiles(final String relativePath)
+	{
+		final Map<String, Object> map = new HashMap<>();
+		map.put("handler", "resource_files");
+		map.put("handlerPath", relativePath);
+		target.putObjectAsJson(map);
+	}
+
 }

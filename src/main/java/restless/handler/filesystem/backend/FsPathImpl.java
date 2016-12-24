@@ -1,5 +1,7 @@
 package restless.handler.filesystem.backend;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.File;
 import java.util.List;
 
@@ -39,6 +41,17 @@ final class FsPathImpl implements FsPath
 	private static FsPathImpl nonemptyFsPathImpl(final String path)
 	{
 		final ImmutableList.Builder<FsPathSegment> builder = ImmutableList.builder();
+		slashSeparated(path, builder);
+		final ImmutableList<FsPathSegment> list = builder.build();
+		if (list.isEmpty())
+		{
+			throw new IllegalStateException("Path cannot be empty here");
+		}
+		return new FsPathImpl(list);
+	}
+
+	private static void slashSeparated(final String path, final ImmutableList.Builder<FsPathSegment> builder)
+	{
 		OtherPreconditions.checkNotNullOrEmpty(path);
 		if (path.startsWith("/") || path.endsWith("/"))
 		{
@@ -48,12 +61,6 @@ final class FsPathImpl implements FsPath
 		{
 			builder.add(FsPathSegmentImpl.fromString(segment));
 		}
-		final ImmutableList<FsPathSegment> list = builder.build();
-		if (list.isEmpty())
-		{
-			throw new IllegalArgumentException("Path cannot be empty here");
-		}
-		return new FsPathImpl(list);
 	}
 
 	@JsonCreator
@@ -176,5 +183,21 @@ final class FsPathImpl implements FsPath
 			resultBuilder.add(new FsPathImpl(portionBuilder.build()));
 		}
 		return resultBuilder.build();
+	}
+
+	@Override
+	public FsPath slashSeparatedSegments(final String relativePath)
+	{
+		checkNotNull(relativePath);
+		if (relativePath.isEmpty())
+		{
+			return this;
+		}
+		else
+		{
+			final ImmutableList.Builder<FsPathSegment> builder = ImmutableList.builder();
+			slashSeparated(relativePath, builder);
+			return new FsPathImpl(builder.build());
+		}
 	}
 }

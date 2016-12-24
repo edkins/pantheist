@@ -17,6 +17,7 @@ import javax.ws.rs.core.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -66,7 +67,7 @@ public final class ManagementResourceImpl implements ManagementResource
 	@PUT
 	@Path("{path:([+*][^/]*[/])*}config")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response putConfig(@PathParam("path") final String path, final String configJson) throws IOException
+	public Response putConfig(@PathParam("path") final String path, final String configJson)
 	{
 		LOGGER.info("PUT {}config", path);
 
@@ -78,9 +79,13 @@ public final class ManagementResourceImpl implements ManagementResource
 
 			return possibleEmptyResponse(result);
 		}
-		catch (final RuntimeException ex)
+		catch (final JsonProcessingException e)
 		{
-			return errorResponse(ex);
+			return jsonValidationResponse(e);
+		}
+		catch (final RuntimeException | IOException e)
+		{
+			return unexpectedErrorResponse(e);
 		}
 	}
 
@@ -102,7 +107,7 @@ public final class ManagementResourceImpl implements ManagementResource
 		}
 		catch (final RuntimeException ex)
 		{
-			return errorResponse(ex);
+			return unexpectedErrorResponse(ex);
 		}
 	}
 
@@ -124,7 +129,7 @@ public final class ManagementResourceImpl implements ManagementResource
 		}
 		catch (final RuntimeException ex)
 		{
-			return errorResponse(ex);
+			return unexpectedErrorResponse(ex);
 		}
 	}
 
@@ -145,13 +150,13 @@ public final class ManagementResourceImpl implements ManagementResource
 
 			return possibleEmptyResponse(result);
 		}
-		catch (final RuntimeException ex)
-		{
-			return errorResponse(ex);
-		}
-		catch (final IOException e)
+		catch (final JsonProcessingException e)
 		{
 			return jsonValidationResponse(e);
+		}
+		catch (final RuntimeException | IOException ex)
+		{
+			return unexpectedErrorResponse(ex);
 		}
 	}
 
@@ -171,7 +176,7 @@ public final class ManagementResourceImpl implements ManagementResource
 		}
 		catch (final RuntimeException ex)
 		{
-			return errorResponse(ex);
+			return unexpectedErrorResponse(ex);
 		}
 	}
 
@@ -192,7 +197,7 @@ public final class ManagementResourceImpl implements ManagementResource
 		}
 		catch (final RuntimeException ex)
 		{
-			return errorResponse(ex);
+			return unexpectedErrorResponse(ex);
 		}
 	}
 
@@ -213,7 +218,7 @@ public final class ManagementResourceImpl implements ManagementResource
 		}
 		catch (final RuntimeException ex)
 		{
-			return errorResponse(ex);
+			return unexpectedErrorResponse(ex);
 		}
 	}
 
@@ -223,10 +228,10 @@ public final class ManagementResourceImpl implements ManagementResource
 		return Response.status(400).entity("Bad json").build();
 	}
 
-	private Response errorResponse(final RuntimeException ex)
+	private Response unexpectedErrorResponse(final Exception ex)
 	{
 		LOGGER.catching(ex);
-		throw ex;
+		return Response.serverError().entity("Unexpected error").build();
 	}
 
 	private Response possibleDataResponse(final PossibleData data)
