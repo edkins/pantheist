@@ -14,6 +14,9 @@ public interface BindingModelFactory
 {
 	PathSpec pathSpec(List<PathSpecSegment> segments);
 
+	@Deprecated
+	ConfigId configId(List<PathSpecSegment> segments);
+
 	@Named("literal")
 	PathSpecSegment literal(String value);
 
@@ -27,7 +30,8 @@ public interface BindingModelFactory
 			PathSpec pathSpec,
 			Handler handler,
 			Schema schema,
-			@Nullable @Assisted("jerseyClass") String jerseyClass);
+			@Nullable @Assisted("jerseyClass") String jerseyClass,
+			ConfigId configId);
 
 	@Named("empty")
 	Handler emptyHandler();

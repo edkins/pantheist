@@ -14,17 +14,20 @@ final class BindingImpl implements Binding
 	private final PathSpec pathSpec;
 	private final Schema schema;
 	private final String jerseyClass;
+	private final ConfigId configId;
 
 	@Inject
 	BindingImpl(@Assisted @JsonProperty("handler") final Handler handler,
 			@Assisted @JsonProperty("pathSpec") final PathSpec pathSpec,
 			@Assisted @JsonProperty("schema") final Schema schema,
-			@Nullable @Assisted("jerseyClass") @JsonProperty("jerseyClass") final String jerseyClass)
+			@Nullable @Assisted("jerseyClass") @JsonProperty("jerseyClass") final String jerseyClass,
+			@Assisted @JsonProperty("configId") final ConfigId configId)
 	{
 		this.handler = checkNotNull(handler);
 		this.pathSpec = checkNotNull(pathSpec);
 		this.schema = checkNotNull(schema);
 		this.jerseyClass = jerseyClass;
+		this.configId = checkNotNull(configId);
 	}
 
 	@Override
@@ -49,6 +52,12 @@ final class BindingImpl implements Binding
 	public String jerseyClass()
 	{
 		return jerseyClass;
+	}
+
+	@Override
+	public ConfigId configId()
+	{
+		return configId;
 	}
 
 }

@@ -20,4 +20,7 @@ public interface Binding
 	@Nullable
 	@JsonProperty("jerseyClass")
 	String jerseyClass();
+
+	@JsonProperty("configId")
+	ConfigId configId();
 }

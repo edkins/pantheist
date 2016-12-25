@@ -101,7 +101,7 @@ public final class ManagementResourceImpl implements ManagementResource
 
 		try
 		{
-			final PossibleEmpty result = backend.putData(backend.pathSpec(path), data);
+			final PossibleEmpty result = backend.putData(backend.literalPath(path), data);
 
 			return possibleEmptyResponse(result);
 		}
@@ -123,7 +123,7 @@ public final class ManagementResourceImpl implements ManagementResource
 
 		try
 		{
-			final PossibleData data = backend.getData(backend.pathSpec(path));
+			final PossibleData data = backend.getData(backend.literalPath(path));
 
 			return possibleDataResponse(data);
 		}

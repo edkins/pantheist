@@ -16,7 +16,7 @@ import com.google.inject.assistedinject.Assisted;
 import restless.common.util.Make;
 import restless.common.util.OtherCollectors;
 
-final class PathSpecImpl implements PathSpec
+final class PathSpecImpl implements PathSpec, ConfigId
 {
 	private final List<PathSpecSegment> segments;
 	private final BindingModelFactory modelFactory;
@@ -146,7 +146,7 @@ final class PathSpecImpl implements PathSpec
 	@Override
 	public Binding emptyBinding()
 	{
-		return modelFactory.binding(this, modelFactory.emptyHandler(), modelFactory.emptySchema(), null);
+		return modelFactory.binding(this, modelFactory.emptyHandler(), modelFactory.emptySchema(), null, this);
 	}
 
 }

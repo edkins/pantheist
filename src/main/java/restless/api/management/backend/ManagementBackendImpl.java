@@ -17,6 +17,7 @@ import restless.handler.binding.backend.SchemaValidation;
 import restless.handler.binding.model.Binding;
 import restless.handler.binding.model.BindingMatch;
 import restless.handler.binding.model.BindingModelFactory;
+import restless.handler.binding.model.ConfigId;
 import restless.handler.binding.model.PathSpec;
 import restless.handler.binding.model.PathSpecSegment;
 import restless.handler.binding.model.Schema;
@@ -50,14 +51,14 @@ final class ManagementBackendImpl implements ManagementBackend
 	}
 
 	@Override
-	public PathSpec pathSpec(final String path)
+	public ConfigId pathSpec(final String path)
 	{
 		final ImmutableList.Builder<PathSpecSegment> builder = ImmutableList.builder();
 		for (final String seg : path.split("\\/"))
 		{
 			builder.add(segment(seg));
 		}
-		return bindingFactory.pathSpec(builder.build());
+		return bindingFactory.configId(builder.build());
 	}
 
 	private PathSpecSegment segment(final String seg)
@@ -82,11 +83,12 @@ final class ManagementBackendImpl implements ManagementBackend
 				b.pathSpec(),
 				bindingFactory.filesystem(bucket),
 				b.schema(),
-				b.jerseyClass());
+				b.jerseyClass(),
+				b.configId());
 	}
 
 	@Override
-	public PossibleEmpty putConfig(final PathSpec pathSpec, final ConfigRequest config)
+	public PossibleEmpty putConfig(final ConfigId pathSpec, final ConfigRequest config)
 	{
 		switch (config.handler()) {
 		case filesystem:
@@ -125,7 +127,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	}
 
 	@Override
-	public PossibleEmpty putJsonSchema(final PathSpec pathSpec, final JsonNode jsonNode)
+	public PossibleEmpty putJsonSchema(final ConfigId pathSpec, final JsonNode jsonNode)
 	{
 		final Schema schema = bindingFactory.jsonSchema(jsonNode);
 		return schemaValidation.checkSchema(schema).then(() -> {
@@ -135,7 +137,7 @@ final class ManagementBackendImpl implements ManagementBackend
 
 	private Binding changeSchema(final Schema schema, final Binding b)
 	{
-		return bindingFactory.binding(b.pathSpec(), b.handler(), schema, b.jerseyClass());
+		return bindingFactory.binding(b.pathSpec(), b.handler(), schema, b.jerseyClass(), b.configId());
 	}
 
 	private ManagementFunctions functionsFor(final BindingMatch match)
@@ -157,13 +159,13 @@ final class ManagementBackendImpl implements ManagementBackend
 	}
 
 	@Override
-	public Schema getSchema(final PathSpec pathSpec)
+	public Schema getSchema(final ConfigId pathSpec)
 	{
 		return bindingStore.exact(pathSpec).schema();
 	}
 
 	@Override
-	public PossibleEmpty putJerseyFile(final PathSpec pathSpec, final String code)
+	public PossibleEmpty putJerseyFile(final ConfigId pathSpec, final String code)
 	{
 		return javaStore.storeJava(code).thenEmpty(className -> {
 			bindingStore.changeConfig(pathSpec, b -> changeJerseyClass(className, b));
@@ -173,11 +175,11 @@ final class ManagementBackendImpl implements ManagementBackend
 
 	private Binding changeJerseyClass(final String jerseyClass, final Binding b)
 	{
-		return bindingFactory.binding(b.pathSpec(), b.handler(), b.schema(), jerseyClass);
+		return bindingFactory.binding(b.pathSpec(), b.handler(), b.schema(), jerseyClass, b.configId());
 	}
 
 	@Override
-	public PossibleData getJerseyFile(final PathSpec pathSpec)
+	public PossibleData getJerseyFile(final ConfigId pathSpec)
 	{
 		final String jerseyClass = bindingStore.exact(pathSpec).jerseyClass();
 		if (jerseyClass == null)
@@ -188,6 +190,17 @@ final class ManagementBackendImpl implements ManagementBackend
 		{
 			return javaStore.getJava(jerseyClass);
 		}
+	}
+
+	@Override
+	public PathSpec literalPath(final String path)
+	{
+		final ImmutableList.Builder<PathSpecSegment> builder = ImmutableList.builder();
+		for (final String seg : path.split("\\/"))
+		{
+			builder.add(segment(seg));
+		}
+		return bindingFactory.pathSpec(builder.build());
 	}
 
 }

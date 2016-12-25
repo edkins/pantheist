@@ -5,11 +5,12 @@ import java.util.function.Function;
 
 import restless.handler.binding.model.Binding;
 import restless.handler.binding.model.BindingMatch;
+import restless.handler.binding.model.ConfigId;
 import restless.handler.binding.model.PathSpec;
 
 public interface BindingStore
 {
-	void changeConfig(PathSpec pathSpec, Function<Binding, Binding> fn);
+	void changeConfig(ConfigId pathSpec, Function<Binding, Binding> fn);
 
 	/**
 	 * Return the binding at this exact path spec. Won't find things that are at a similar
@@ -17,7 +18,7 @@ public interface BindingStore
 	 *
 	 * Will return an empty binding if there's nothing there.
 	 */
-	Binding exact(PathSpec pathSpec);
+	Binding exact(ConfigId pathSpec);
 
 	/**
 	 * Looks up the given path (which must be literal) and returns matching information or an empty match.

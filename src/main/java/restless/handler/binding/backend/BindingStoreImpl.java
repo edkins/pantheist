@@ -14,6 +14,7 @@ import restless.common.util.MutableOptional;
 import restless.handler.binding.model.Binding;
 import restless.handler.binding.model.BindingMatch;
 import restless.handler.binding.model.BindingModelFactory;
+import restless.handler.binding.model.ConfigId;
 import restless.handler.binding.model.PathSpec;
 import restless.handler.binding.model.PathSpecMatch;
 import restless.handler.filesystem.backend.FilesystemStore;
@@ -52,7 +53,7 @@ final class BindingStoreImpl implements BindingStore
 	}
 
 	@Override
-	public void changeConfig(final PathSpec pathSpec, final Function<Binding, Binding> fn)
+	public void changeConfig(final ConfigId pathSpec, final Function<Binding, Binding> fn)
 	{
 		final JsonSnapshot<BindingSet> file = file();
 		final BindingSet bindingSet = file.read();
@@ -99,7 +100,7 @@ final class BindingStoreImpl implements BindingStore
 	}
 
 	@Override
-	public Binding exact(final PathSpec pathSpec)
+	public Binding exact(final ConfigId pathSpec)
 	{
 		return file().read().get(pathSpec);
 	}

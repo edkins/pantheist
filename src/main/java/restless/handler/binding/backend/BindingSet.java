@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import restless.handler.binding.model.Binding;
-import restless.handler.binding.model.PathSpec;
+import restless.handler.binding.model.ConfigId;
 
 @JsonDeserialize(as = BindingSetImpl.class)
 interface BindingSet
@@ -27,5 +27,5 @@ interface BindingSet
 	 * Return the binding at the given path spec, or an empty binding if there's none there.
 	 */
 	@JsonIgnore
-	Binding get(PathSpec pathSpec);
+	Binding get(ConfigId pathSpec);
 }

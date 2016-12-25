@@ -12,7 +12,7 @@ import com.google.inject.assistedinject.Assisted;
 
 import restless.common.util.OtherCollectors;
 import restless.handler.binding.model.Binding;
-import restless.handler.binding.model.PathSpec;
+import restless.handler.binding.model.ConfigId;
 
 final class BindingSetImpl implements BindingSet
 {
@@ -48,11 +48,11 @@ final class BindingSetImpl implements BindingSet
 	}
 
 	@Override
-	public Binding get(final PathSpec pathSpec)
+	public Binding get(final ConfigId pathSpec)
 	{
 		return bindings
 				.stream()
-				.filter(b -> b.pathSpec().equals(pathSpec))
+				.filter(b -> b.configId().equals(pathSpec))
 				.collect(OtherCollectors.toOptional())
 				.orElseGet(pathSpec::emptyBinding);
 	}
