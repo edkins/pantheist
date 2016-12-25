@@ -24,33 +24,14 @@ final class ManagementPathImpl implements ManagementPath
 	}
 
 	@Override
-	public ManagementPath star()
+	public ManagementData data(final String path)
 	{
-		return new ManagementPathImpl(target.withSegment("*"));
-	}
-
-	@Override
-	public ManagementData data()
-	{
-		return new ManagementDataImpl(target.withSegment("data"));
+		return new ManagementDataImpl(target.withPlusEscapedSlashSeparatedSegments(path).withSegment("data"));
 	}
 
 	@Override
 	public ManagementConfig config()
 	{
-		return new ManagementConfigImpl(target.withSegment("config"));
+		return new ManagementConfigImpl(target);
 	}
-
-	@Override
-	public ManagementData schema()
-	{
-		return new ManagementDataImpl(target.withSegment("schema"));
-	}
-
-	@Override
-	public ManagementData jerseyFile()
-	{
-		return new ManagementDataImpl(target.withSegment("jersey-file"));
-	}
-
 }

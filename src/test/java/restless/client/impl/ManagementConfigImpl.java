@@ -2,10 +2,8 @@ package restless.client.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import restless.client.api.ManagementConfig;
+import restless.client.api.ManagementConfigPoint;
 
 final class ManagementConfigImpl implements ManagementConfig
 {
@@ -17,20 +15,10 @@ final class ManagementConfigImpl implements ManagementConfig
 	}
 
 	@Override
-	public void bindToFilesystem()
+	public ManagementConfigPoint create(final String path)
 	{
-		final Map<String, Object> map = new HashMap<>();
-		map.put("handler", "filesystem");
-		target.putObjectAsJson(map);
-	}
-
-	@Override
-	public void bindToResourceFiles(final String relativePath)
-	{
-		final Map<String, Object> map = new HashMap<>();
-		map.put("handler", "resource_files");
-		map.put("handlerPath", relativePath);
-		target.putObjectAsJson(map);
+		final TargetWrapper newTarget = target.withPlusEscapedSlashSeparatedSegments(path).withSegment("*");
+		return new ManagementConfigPointImpl(newTarget);
 	}
 
 }

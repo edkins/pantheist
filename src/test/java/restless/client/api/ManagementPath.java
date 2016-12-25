@@ -29,20 +29,13 @@ public interface ManagementPath
 	ManagementPath segment(String segment);
 
 	/**
-	 * Adds a wildcard segment, encoded as a *
-	 *
-	 * This will match a single segment only.
-	 */
-	ManagementPath star();
-
-	/**
 	 * Returns a path to the data api for this resource. This can be used for
 	 * setting and retrieving data for handlers that support that, such as the
 	 * filesystem.
 	 *
 	 * @return data api
 	 */
-	ManagementData data();
+	ManagementData data(String path);
 
 	/**
 	 * Returns a path to the config api for this resource. This is used for
@@ -52,23 +45,4 @@ public interface ManagementPath
 	 * @return config api
 	 */
 	ManagementConfig config();
-
-	/**
-	 * Returns a path to the schema api for this resource. This can be used for
-	 * setting validation on json documents. If a schema is set, any future data put
-	 * will be validated against the supplied schema.
-	 *
-	 * Of course the schema itself is validated. Currently only json-schema is supported.
-	 *
-	 * @return schema api
-	 */
-	ManagementData schema();
-
-	/**
-	 * Returns a path representing a jersey resource, i.e. a java source file. You can put
-	 * the java source directly here.
-	 *
-	 * @return jersey-file api
-	 */
-	ManagementData jerseyFile();
 }

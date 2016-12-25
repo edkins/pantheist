@@ -95,6 +95,8 @@ final class JavaStoreImpl implements JavaStore
 				return PossibleData.alreadyExists();
 			}
 
+			filePath.parent().leadingPortions().forEach(dirPath -> snapshot.isDir(dirPath));
+
 			snapshot.write(map -> {
 				for (final FsPath dirPath : filePath.parent().leadingPortions())
 				{

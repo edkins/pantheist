@@ -3,15 +3,11 @@ package restless.client.api;
 public interface ManagementConfig
 {
 	/**
-	 * Binds this particular resource to somewhere in the filesystem. Currently
-	 * you don't get to choose where it will go.
-	 */
-	void bindToFilesystem();
-
-	/**
-	 * Binds this resource to one of the resource files.
+	 * Issues a post request to the config resource.
 	 *
-	 * @param relativePath subset of resource files to expose, or "" if you want them all.
+	 * This will create a new configuration point associated with the given path.
+	 *
+	 * @param path to bind
 	 */
-	void bindToResourceFiles(String relativePath);
+	ManagementConfigPoint create(String path);
 }

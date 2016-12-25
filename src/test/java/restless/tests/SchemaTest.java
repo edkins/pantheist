@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
+import restless.client.api.ManagementConfigPoint;
 import restless.client.api.ResponseType;
 
 public class SchemaTest extends BaseTest
@@ -12,10 +13,10 @@ public class SchemaTest extends BaseTest
 	@Test
 	public void schema_canReadItBack() throws Exception
 	{
-		manage.segment("my-binding").star().config().bindToFilesystem();
-		manage.segment("my-binding").star().schema().putResource("/json-schema/coffee", "application/schema+json");
+		final ManagementConfigPoint configPoint = manage.config().create("my-binding");
+		configPoint.schema().putResource("/json-schema/coffee", "application/schema+json");
 
-		final String data = manage.segment("my-binding").star().schema().getString("application/schema+json");
+		final String data = configPoint.schema().getString("application/schema+json");
 
 		JSONAssert.assertEquals(data, resource("/json-schema/coffee"), true);
 	}
@@ -23,8 +24,9 @@ public class SchemaTest extends BaseTest
 	@Test
 	public void invalidSchema_rejected() throws Exception
 	{
-		manage.segment("my-binding").star().config().bindToFilesystem();
-		final ResponseType responseType = manage.segment("my-binding").star().schema()
+		final ManagementConfigPoint configPoint = manage.config().create("my-binding");
+		configPoint.bindToFilesystem();
+		final ResponseType responseType = configPoint.schema()
 				.putResourceResponseType("/json-schema/invalid", "application/schema+json");
 
 		assertEquals(ResponseType.BAD_REQUEST, responseType);
@@ -33,9 +35,10 @@ public class SchemaTest extends BaseTest
 	@Test
 	public void schema_validData_allowed() throws Exception
 	{
-		manage.segment("my-binding").star().config().bindToFilesystem();
-		manage.segment("my-binding").star().schema().putResource("/json-schema/coffee", "application/schema+json");
-		ResponseType responseType = manage.segment("my-binding").segment("my-file").data()
+		final ManagementConfigPoint configPoint = manage.config().create("my-binding");
+		configPoint.bindToFilesystem();
+		configPoint.schema().putResource("/json-schema/coffee", "application/schema+json");
+		final ResponseType responseType = manage.data("my-binding/my-file")
 				.putResourceResponseType("/json-example/coffee-valid", "text/plain");
 		assertEquals(ResponseType.NO_CONTENT, responseType);
 	}
@@ -43,9 +46,10 @@ public class SchemaTest extends BaseTest
 	@Test
 	public void schema_invalidData_notAllowed() throws Exception
 	{
-		manage.segment("my-binding").star().config().bindToFilesystem();
-		manage.segment("my-binding").star().schema().putResource("/json-schema/coffee", "application/schema+json");
-		ResponseType responseType = manage.segment("my-binding").segment("my-file").data()
+		final ManagementConfigPoint configPoint = manage.config().create("my-binding");
+		configPoint.bindToFilesystem();
+		configPoint.schema().putResource("/json-schema/coffee", "application/schema+json");
+		final ResponseType responseType = manage.data("my-binding/my-file")
 				.putResourceResponseType("/json-example/coffee-invalid", "text/plain");
 		assertEquals(ResponseType.BAD_REQUEST, responseType);
 	}
