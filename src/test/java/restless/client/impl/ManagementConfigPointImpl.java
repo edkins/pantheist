@@ -22,7 +22,7 @@ final class ManagementConfigPointImpl implements ManagementConfigPoint
 	{
 		final Map<String, Object> map = new HashMap<>();
 		map.put("handler", "filesystem");
-		target.withSegment("config").putObjectAsJson(map);
+		target.withSegment("configx").putObjectAsJson(map);
 	}
 
 	@Override
@@ -31,7 +31,7 @@ final class ManagementConfigPointImpl implements ManagementConfigPoint
 		final Map<String, Object> map = new HashMap<>();
 		map.put("handler", "resource_files");
 		map.put("handlerPath", resourcePath);
-		target.withSegment("config").putObjectAsJson(map);
+		target.withSegment("configx").putObjectAsJson(map);
 	}
 
 	@Override

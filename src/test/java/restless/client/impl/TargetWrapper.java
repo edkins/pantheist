@@ -23,11 +23,13 @@ import restless.common.util.OtherPreconditions;
 
 public final class TargetWrapper
 {
+	private final TargetRoot targetRoot;
 	private final WebTarget target;
 	private final ObjectMapper objectMapper;
 
-	TargetWrapper(final WebTarget target, final ObjectMapper objectMapper)
+	TargetWrapper(final TargetRoot targetRoot, final WebTarget target, final ObjectMapper objectMapper)
 	{
+		this.targetRoot = checkNotNull(targetRoot);
 		this.target = checkNotNull(target);
 		this.objectMapper = checkNotNull(objectMapper);
 	}
@@ -35,7 +37,7 @@ public final class TargetWrapper
 	public TargetWrapper withSegment(final String segment)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(segment);
-		return new TargetWrapper(target.path(segment), objectMapper);
+		return new TargetWrapper(targetRoot, target.path(segment), objectMapper);
 	}
 
 	public String getTextPlain()
@@ -69,6 +71,21 @@ public final class TargetWrapper
 		}
 	}
 
+	public TargetWrapper createObjectAsJsonWithPostRequest(final Object obj)
+	{
+		try
+		{
+			final String json = objectMapper.writeValueAsString(obj);
+			final Response response = target.request().post(Entity.json(json));
+			final String location = expectCreated(response, "POST");
+			return targetRoot.forUri(location);
+		}
+		catch (final JsonProcessingException e)
+		{
+			throw new ManagementClientException("ClientException " + target.getUri().toString(), e);
+		}
+	}
+
 	private void expectNoContent(final Response response, final String hint)
 	{
 		if (response.getStatus() == 204 && !response.hasEntity())
@@ -86,6 +103,18 @@ public final class TargetWrapper
 		if (response.getStatus() == 200 && response.hasEntity())
 		{
 			return response.readEntity(String.class);
+		}
+		else
+		{
+			throw errorResponse(response, hint);
+		}
+	}
+
+	private String expectCreated(final Response response, final String hint)
+	{
+		if (response.getStatus() == 201 && response.getHeaders().containsKey("Location"))
+		{
+			return (String) response.getHeaders().getFirst("Location");
 		}
 		else
 		{

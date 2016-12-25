@@ -47,12 +47,12 @@ public class ManagementClientImpl implements ManagementClient
 	@Override
 	public ManagementPath manage()
 	{
-		return new ManagementPathImpl(new TargetWrapper(client.target(managementUri), objectMapper));
+		return new ManagementPathImpl(new TargetRootImpl(client, managementUri.toString(), objectMapper).home());
 	}
 
 	@Override
 	public TargetWrapper main()
 	{
-		return new TargetWrapper(client.target(mainUri), objectMapper);
+		return new TargetRootImpl(client, mainUri.toString(), objectMapper).home();
 	}
 }

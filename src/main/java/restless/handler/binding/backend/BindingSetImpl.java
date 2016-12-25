@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -34,27 +35,36 @@ final class BindingSetImpl implements BindingSet
 	}
 
 	@Override
-	public void put(final Binding binding)
+	public void create(final Binding binding)
 	{
-		for (int i = 0; i < bindings.size(); i++)
+		if (get(binding.configId()).isPresent())
 		{
-			if (bindings.get(i).pathSpec().equals(binding.pathSpec()))
-			{
-				bindings.set(i, binding);
-				return;
-			}
+			throw new IllegalStateException("Binding already exists with id " + binding.configId());
 		}
 		bindings.add(binding);
 	}
 
 	@Override
-	public Binding get(final ConfigId pathSpec)
+	public void replace(final Binding binding)
+	{
+		for (int i = 0; i < bindings.size(); i++)
+		{
+			if (bindings.get(i).configId().equals(binding.configId()))
+			{
+				bindings.set(i, binding);
+				return;
+			}
+		}
+		throw new IllegalStateException("Binding does not exist with id " + binding.configId());
+	}
+
+	@Override
+	public Optional<Binding> get(final ConfigId configId)
 	{
 		return bindings
 				.stream()
-				.filter(b -> b.configId().equals(pathSpec))
-				.collect(OtherCollectors.toOptional())
-				.orElseGet(pathSpec::emptyBinding);
+				.filter(b -> b.configId().equals(configId))
+				.collect(OtherCollectors.toOptional());
 	}
 
 }

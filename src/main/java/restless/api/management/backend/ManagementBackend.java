@@ -1,8 +1,11 @@
 package restless.api.management.backend;
 
+import java.net.URI;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import restless.api.management.model.ConfigRequest;
+import restless.api.management.model.CreateConfigRequest;
 import restless.handler.binding.backend.PossibleData;
 import restless.handler.binding.backend.PossibleEmpty;
 import restless.handler.binding.model.ConfigId;
@@ -11,8 +14,9 @@ import restless.handler.binding.model.Schema;
 
 public interface ManagementBackend
 {
-	@Deprecated
-	ConfigId pathSpec(String path);
+	URI createConfig(CreateConfigRequest request);
+
+	ConfigId configId(String configId);
 
 	PathSpec literalPath(String path);
 

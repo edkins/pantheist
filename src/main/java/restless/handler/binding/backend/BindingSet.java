@@ -1,6 +1,7 @@
 package restless.handler.binding.backend;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,16 +17,20 @@ interface BindingSet
 	List<Binding> bindings();
 
 	/**
-	 * Replaces the binding with the given path spec with the one specified.
-	 *
-	 * If the binding is empty then it might get removed from the list.
+	 * Creates a new binding, and fails if one already exists with this id.
 	 */
 	@JsonIgnore
-	void put(Binding binding);
+	void create(Binding binding);
 
 	/**
-	 * Return the binding at the given path spec, or an empty binding if there's none there.
+	 * Replaces the binding with the given path spec with the one specified.
 	 */
 	@JsonIgnore
-	Binding get(ConfigId pathSpec);
+	void replace(Binding binding);
+
+	/**
+	 * Return the binding with the given id, or an empty result if there's none there.
+	 */
+	@JsonIgnore
+	Optional<Binding> get(ConfigId configId);
 }

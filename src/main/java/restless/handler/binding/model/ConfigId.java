@@ -10,7 +10,4 @@ public interface ConfigId
 
 	@Deprecated
 	String nameHint();
-
-	@Deprecated
-	Binding emptyBinding();
 }

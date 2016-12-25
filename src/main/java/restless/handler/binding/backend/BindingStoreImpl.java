@@ -57,9 +57,9 @@ final class BindingStoreImpl implements BindingStore
 	{
 		final JsonSnapshot<BindingSet> file = file();
 		final BindingSet bindingSet = file.read();
-		final Binding oldBinding = bindingSet.get(pathSpec);
+		final Binding oldBinding = bindingSet.get(pathSpec).get();
 		final Binding newBinding = fn.apply(oldBinding);
-		bindingSet.put(newBinding);
+		bindingSet.replace(newBinding);
 		file.writeMutable();
 	}
 
@@ -102,6 +102,16 @@ final class BindingStoreImpl implements BindingStore
 	@Override
 	public Binding exact(final ConfigId pathSpec)
 	{
-		return file().read().get(pathSpec);
+		return file().read().get(pathSpec).get();
+	}
+
+	@Override
+	public ConfigId createConfig(final PathSpec pathSpec)
+	{
+		final JsonSnapshot<BindingSet> file = file();
+		final Binding emptyBinding = pathSpec.emptyBinding();
+		file.read().create(emptyBinding);
+		file.writeMutable();
+		return emptyBinding.configId();
 	}
 }

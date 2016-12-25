@@ -1,5 +1,7 @@
 package restless.client.api;
 
+import java.io.IOException;
+
 /**
  * Indicates an unexpected response from the server, e.g.
  *
@@ -12,5 +14,10 @@ public class ManagementUnexpectedResponseException extends RuntimeException
 	public ManagementUnexpectedResponseException(final String message)
 	{
 		super(message);
+	}
+
+	public ManagementUnexpectedResponseException(final IOException e)
+	{
+		super(e);
 	}
 }

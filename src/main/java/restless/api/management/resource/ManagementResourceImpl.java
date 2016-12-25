@@ -3,10 +3,12 @@ package restless.api.management.resource;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
+import java.net.URI;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -23,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.api.management.backend.ManagementBackend;
 import restless.api.management.model.ConfigRequest;
+import restless.api.management.model.CreateConfigRequest;
 import restless.handler.binding.backend.PossibleData;
 import restless.handler.binding.backend.PossibleEmpty;
 import restless.handler.binding.model.Schema;
@@ -62,10 +65,38 @@ public final class ManagementResourceImpl implements ManagementResource
 	}
 
 	/**
+	 * Handles creating new config
+	 */
+	@POST
+	@Path("config")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response createConfig(final String requestJson)
+	{
+		LOGGER.info("POST config {}", requestJson);
+
+		try
+		{
+			final CreateConfigRequest request = objectMapper.readValue(requestJson, CreateConfigRequest.class);
+
+			final URI newUri = backend.createConfig(request);
+
+			return Response.created(newUri).build();
+		}
+		catch (final JsonProcessingException e)
+		{
+			return jsonValidationResponse(e);
+		}
+		catch (final RuntimeException | IOException e)
+		{
+			return unexpectedErrorResponse(e);
+		}
+	}
+
+	/**
 	 * Handles the config management function
 	 */
 	@PUT
-	@Path("{path:([+*][^/]*[/])*}config")
+	@Path("{path:([+*][^/]*[/])*}configx")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response putConfig(@PathParam("path") final String path, final String configJson)
 	{
@@ -75,7 +106,7 @@ public final class ManagementResourceImpl implements ManagementResource
 		{
 			final ConfigRequest request = objectMapper.readValue(configJson, ConfigRequest.class);
 
-			final PossibleEmpty result = backend.putConfig(backend.pathSpec(path), request);
+			final PossibleEmpty result = backend.putConfig(backend.configId(path), request);
 
 			return possibleEmptyResponse(result);
 		}
@@ -146,7 +177,7 @@ public final class ManagementResourceImpl implements ManagementResource
 		try
 		{
 			final JsonNode jsonNode = objectMapper.readValue(data, JsonNode.class);
-			final PossibleEmpty result = backend.putJsonSchema(backend.pathSpec(path), jsonNode);
+			final PossibleEmpty result = backend.putJsonSchema(backend.configId(path), jsonNode);
 
 			return possibleEmptyResponse(result);
 		}
@@ -171,7 +202,7 @@ public final class ManagementResourceImpl implements ManagementResource
 
 		try
 		{
-			final Schema schema = backend.getSchema(backend.pathSpec(path));
+			final Schema schema = backend.getSchema(backend.configId(path));
 			return Response.ok(schema.contentAsString(), schema.httpContentType()).build();
 		}
 		catch (final RuntimeException ex)
@@ -192,7 +223,7 @@ public final class ManagementResourceImpl implements ManagementResource
 
 		try
 		{
-			final PossibleEmpty result = backend.putJerseyFile(backend.pathSpec(path), data);
+			final PossibleEmpty result = backend.putJerseyFile(backend.configId(path), data);
 			return possibleEmptyResponse(result);
 		}
 		catch (final RuntimeException ex)
@@ -213,7 +244,7 @@ public final class ManagementResourceImpl implements ManagementResource
 
 		try
 		{
-			final PossibleData result = backend.getJerseyFile(backend.pathSpec(path));
+			final PossibleData result = backend.getJerseyFile(backend.configId(path));
 			return possibleDataResponse(result);
 		}
 		catch (final RuntimeException ex)

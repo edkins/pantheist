@@ -28,4 +28,6 @@ public interface BindingStore
 	void initialize();
 
 	List<Binding> snapshot();
+
+	ConfigId createConfig(PathSpec pathSpec);
 }

@@ -2,12 +2,17 @@ package restless.api.management.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.net.URI;
+
 import javax.inject.Inject;
+import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 
 import restless.api.management.model.ConfigRequest;
+import restless.api.management.model.CreateConfigRequest;
+import restless.common.util.OtherCollectors;
 import restless.glue.nginx.filesystem.NginxFilesystemGlue;
 import restless.handler.binding.backend.BindingStore;
 import restless.handler.binding.backend.ManagementFunctions;
@@ -24,6 +29,7 @@ import restless.handler.binding.model.Schema;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
 import restless.handler.java.backend.JavaStore;
+import restless.system.config.RestlessConfig;
 
 final class ManagementBackendImpl implements ManagementBackend
 {
@@ -33,6 +39,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	private final NginxFilesystemGlue nginxFilesystemGlue;
 	private final SchemaValidation schemaValidation;
 	private final JavaStore javaStore;
+	private final RestlessConfig config;
 
 	@Inject
 	ManagementBackendImpl(final BindingModelFactory bindingFactory,
@@ -40,7 +47,8 @@ final class ManagementBackendImpl implements ManagementBackend
 			final FilesystemStore filesystem,
 			final NginxFilesystemGlue nginxFilesystemGlue,
 			final SchemaValidation schemaValidation,
-			final JavaStore javaStore)
+			final JavaStore javaStore,
+			final RestlessConfig config)
 	{
 		this.bindingFactory = checkNotNull(bindingFactory);
 		this.bindingStore = checkNotNull(bindingStore);
@@ -48,17 +56,20 @@ final class ManagementBackendImpl implements ManagementBackend
 		this.nginxFilesystemGlue = checkNotNull(nginxFilesystemGlue);
 		this.schemaValidation = checkNotNull(schemaValidation);
 		this.javaStore = checkNotNull(javaStore);
+		this.config = checkNotNull(config);
 	}
 
 	@Override
-	public ConfigId pathSpec(final String path)
+	public ConfigId configId(final String path)
 	{
-		final ImmutableList.Builder<PathSpecSegment> builder = ImmutableList.builder();
-		for (final String seg : path.split("\\/"))
-		{
-			builder.add(segment(seg));
-		}
-		return bindingFactory.configId(builder.build());
+		final PathSpec pathSpec = pathSpec(path);
+		return bindingStore
+				.snapshot()
+				.stream()
+				.filter(b -> b.pathSpec().equals(pathSpec))
+				.collect(OtherCollectors.toOptional())
+				.get()
+				.configId();
 	}
 
 	private PathSpecSegment segment(final String seg)
@@ -194,6 +205,39 @@ final class ManagementBackendImpl implements ManagementBackend
 
 	@Override
 	public PathSpec literalPath(final String path)
+	{
+		final ImmutableList.Builder<PathSpecSegment> builder = ImmutableList.builder();
+		for (final String seg : path.split("\\/"))
+		{
+			builder.add(segment(seg));
+		}
+		return bindingFactory.pathSpec(builder.build());
+	}
+
+	@Override
+	public URI createConfig(final CreateConfigRequest request)
+	{
+		final ConfigId configId = bindingStore.createConfig(pathSpecWithoutPluses(request.pathSpec()));
+		return managementUriBuilder().path("config").path(configId.toString()).build();
+	}
+
+	private UriBuilder managementUriBuilder()
+	{
+		return UriBuilder.fromUri("http://localhost").port(config.managementPort());
+	}
+
+	private PathSpec pathSpecWithoutPluses(final String path)
+	{
+		final ImmutableList.Builder<PathSpecSegment> builder = ImmutableList.builder();
+		for (final String seg : path.split("\\/"))
+		{
+			builder.add(bindingFactory.literal(seg));
+		}
+		builder.add(bindingFactory.star());
+		return bindingFactory.pathSpec(builder.build());
+	}
+
+	private PathSpec pathSpec(final String path)
 	{
 		final ImmutableList.Builder<PathSpecSegment> builder = ImmutableList.builder();
 		for (final String seg : path.split("\\/"))
