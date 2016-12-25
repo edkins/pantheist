@@ -60,7 +60,7 @@ public class RestlessConfigImpl implements RestlessConfig
 	@Override
 	public List<String> resourceFiles()
 	{
-		return ImmutableList.of();
+		return ImmutableList.of("restless-frontend.js", "example-client.html");
 	}
 
 }

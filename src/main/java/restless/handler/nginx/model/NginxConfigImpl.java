@@ -8,6 +8,8 @@ import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 
+import com.google.common.collect.Lists;
+
 import restless.common.util.Make;
 import restless.common.util.MutableOptional;
 import restless.common.util.OtherPreconditions;
@@ -72,12 +74,14 @@ final class NginxConfigImpl implements NginxConfig
 	{
 		private final NginxVar access_log;
 		private final NginxVar root;
+		private final NginxVarImpl charset;
 		private final List<NginxServer> servers;
 
 		private NginxHttpImpl()
 		{
 			access_log = new NginxVarImpl("access_log", 1);
 			root = new NginxVarImpl("root", 1);
+			charset = new NginxVarImpl("charset", 1);
 			servers = new ArrayList<>();
 		}
 
@@ -105,19 +109,25 @@ final class NginxConfigImpl implements NginxConfig
 			final StringBuilder sb = new StringBuilder()
 					.append("http {\n")
 					.append(access_log)
-					.append(root);
+					.append(root)
+					.append(charset);
 			servers.forEach(sb::append);
 			sb.append("}\n");
 			return sb.toString();
 		}
 
 		@Override
-		public NginxServer addServer(final String host, final int port)
+		public NginxServer addServer(final int port)
 		{
-			final NginxServer server = new NginxServerImpl();
-			server.listen().giveValue(host + ":" + port);
+			final NginxServer server = new NginxServerImpl(port);
 			servers.add(server);
 			return server;
+		}
+
+		@Override
+		public NginxVar charset()
+		{
+			return charset;
 		}
 
 	}
@@ -126,11 +136,14 @@ final class NginxConfigImpl implements NginxConfig
 	{
 		private final NginxVar listen;
 		private final List<NginxLocation> locations;
+		private final int port;
 
-		private NginxServerImpl()
+		private NginxServerImpl(final int port)
 		{
 			listen = new NginxVarImpl("listen", 2);
+			listen.giveValue("127.0.0.1:" + port);
 			locations = new ArrayList<>();
+			this.port = port;
 		}
 
 		@Override
@@ -173,6 +186,18 @@ final class NginxConfigImpl implements NginxConfig
 			locations.forEach(sb::append);
 			sb.append(indent(1)).append("}\n");
 			return sb.toString();
+		}
+
+		@Override
+		public boolean isEmpty()
+		{
+			return locations.isEmpty();
+		}
+
+		@Override
+		public int port()
+		{
+			return port;
 		}
 
 	}
@@ -312,5 +337,17 @@ final class NginxConfigImpl implements NginxConfig
 			throw new IllegalStateException("Must be exactly one server");
 		}
 		return http.servers().get(0);
+	}
+
+	@Override
+	public boolean isEmpty()
+	{
+		return http.servers().stream().allMatch(NginxServer::isEmpty);
+	}
+
+	@Override
+	public List<Integer> ports()
+	{
+		return Lists.transform(http.servers(), NginxServer::port);
 	}
 }

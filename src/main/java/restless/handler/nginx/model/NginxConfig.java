@@ -1,5 +1,7 @@
 package restless.handler.nginx.model;
 
+import java.util.List;
+
 public interface NginxConfig
 {
 	/**
@@ -23,4 +25,11 @@ public interface NginxConfig
 	 *             if there isn't exactly one server.
 	 */
 	NginxServer httpServer();
+
+	/**
+	 * Return true if there's nothing in here to serve.
+	 */
+	boolean isEmpty();
+
+	List<Integer> ports();
 }

@@ -17,4 +17,11 @@ public interface NginxServer
 	NginxLocation addLocationEquals(String location);
 
 	NginxLocation addLocation(String location);
+
+	/**
+	 * Returns true if this server is not serving any locations.
+	 */
+	boolean isEmpty();
+
+	int port();
 }

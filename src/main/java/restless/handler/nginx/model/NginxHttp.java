@@ -14,7 +14,9 @@ public interface NginxHttp
 
 	NginxVar root();
 
+	NginxVar charset();
+
 	List<NginxServer> servers();
 
-	NginxServer addServer(String host, int port);
+	NginxServer addServer(int port);
 }

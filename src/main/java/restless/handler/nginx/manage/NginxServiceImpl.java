@@ -4,6 +4,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 
 import javax.inject.Inject;
@@ -46,6 +48,7 @@ final class NginxServiceImpl implements NginxService
 		try
 		{
 			FileUtils.writeStringToFile(nginxConf(), nginx.toString(), StandardCharsets.UTF_8);
+
 			if (runningProcess.isPresent())
 			{
 				final Process process = new ProcessBuilder(config.nginxExecutable(), "-c",
@@ -59,16 +62,68 @@ final class NginxServiceImpl implements NginxService
 			}
 			else
 			{
+				if (pidFileExists())
+				{
+					LOGGER.info("oops, might be nginx process left over from before. Sending it kill signal.");
+					tellNginxToQuit();
+					LOGGER.info("pidfile has gone now, we assume it's stopped.");
+				}
+
+				for (final int port : nginx.ports())
+				{
+					willNeedPort(port);
+				}
+
 				final Process process = new ProcessBuilder(config.nginxExecutable(), "-c",
 						nginxConf().getAbsolutePath()).start();
 				runningProcess.add(process);
-				LOGGER.info("nginx started on port {}", config.mainPort());
+				LOGGER.info("nginx started on port {} with pid {}", config.mainPort(), getPidOfProcess(process));
 			}
 		}
 		catch (final IOException | InterruptedException e)
 		{
 			throw new NginxServiceException(e);
 		}
+	}
+
+	private void willNeedPort(final int port)
+	{
+		try
+		{
+			(new ServerSocket(port)).close();
+		}
+		catch (final IOException e)
+		{
+			LOGGER.debug(e);
+			throw new NginxServiceException("Will need port " + port + " but it's in use");
+		}
+	}
+
+	private static long getPidOfProcess(final Process p)
+	{
+		long pid = -1;
+
+		try
+		{
+			if (p.getClass().getName().equals("java.lang.UNIXProcess"))
+			{
+				final Field f = p.getClass().getDeclaredField("pid");
+				f.setAccessible(true);
+				pid = f.getLong(p);
+				f.setAccessible(false);
+			}
+		}
+		catch (final RuntimeException | NoSuchFieldException | IllegalAccessException e)
+		{
+			LOGGER.catching(e);
+			pid = -1;
+		}
+		return pid;
+	}
+
+	private boolean pidFileExists()
+	{
+		return sys("nginx.pid").in(config.dataDir()).isFile();
 	}
 
 	private File nginxConf()
@@ -84,10 +139,7 @@ final class NginxServiceImpl implements NginxService
 			try
 			{
 				// Tell it to quit
-				final Process process = new ProcessBuilder(config.nginxExecutable(),
-						"-c", nginxConf().getAbsolutePath(),
-						"-s", "quit").start();
-				process.waitFor();
+				tellNginxToQuit();
 
 				// Wait for it to quit
 				final int exitCode = runningProcess.get().waitFor();
@@ -110,6 +162,18 @@ final class NginxServiceImpl implements NginxService
 		}
 	}
 
+	private void tellNginxToQuit() throws IOException, InterruptedException
+	{
+		final Process process = new ProcessBuilder(config.nginxExecutable(),
+				"-c", nginxConf().getAbsolutePath(),
+				"-s", "quit").start();
+		process.waitFor();
+		while (pidFileExists())
+		{
+			Thread.sleep(100);
+		}
+	}
+
 	@Override
 	public NginxConfig newConfig()
 	{
@@ -119,7 +183,8 @@ final class NginxServiceImpl implements NginxService
 		nginx.error_log().giveFilePath(sys("nginx-error.log"));
 		nginx.http().root().giveDirPath(filesystemStore.rootPath());
 		nginx.http().access_log().giveFilePath(sys("nginx-access.log"));
-		nginx.http().addServer("127.0.0.1", config.mainPort());
+		nginx.http().charset().giveValue("utf-8");
+		nginx.http().addServer(config.mainPort());
 		return nginx;
 	}
 

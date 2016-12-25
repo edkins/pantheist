@@ -1,0 +1,137 @@
+<html>
+<head>
+<script src="/resources/restless-frontend.js"></script>
+<script src="/resources/ace-builds/src-noconflict/ace.js"></script>
+<script>
+	var editor = undefined;
+
+	function msg(message)
+	{
+		document.getElementById('displayMessage').textContent = message;
+	}
+	
+	function clearMsg()
+	{
+		msg('\u00a0');   // non-breaking space
+	}
+	
+	function showError(e)
+	{
+		if(typeof(e) === 'object' && 'stack' in e)
+		{
+			msg('Exception: ' + e + ': ' + e.stack);
+		}
+		else
+		{
+			msg('Received error: ' + JSON.stringify(e));
+		}
+	}
+	
+	function doc(content)
+	{
+		editor.setValue(content);
+		editor.selection.clearSelection();
+	}
+	
+	function inputDoc()
+	{
+		return editor.getValue();
+	}
+	
+	function setUri(uri)
+	{
+		document.getElementById('inputUri').value = uri;
+	}
+	
+	function inputUri()
+	{
+		return document.getElementById('inputUri').value;
+	}
+	
+	function clickGet(event)
+	{
+		try
+		{
+			msg('Fetching');
+			var uri = inputUri();
+			Restless.node(uri).get().then(
+				data => {
+					msg('OK');
+					doc(JSON.stringify(data, null, '    '));
+				},
+				showError
+			);
+		} catch(e) {
+			showError(e);
+		}
+	}
+	
+	function clickPut(event)
+	{
+		try
+		{
+			msg('Putting');
+			var uri = inputUri();
+			var data = JSON.parse(inputDoc());
+			Restless.node(uri).put(data).then(
+				ok => {
+					msg('OK');
+				},
+				showError
+			);
+		} catch(e) {
+			showError(e);
+		}
+	}
+	
+	function clickHome(event)
+	{
+		setUri(Restless.home.uri);
+		clearMsg();
+	}
+	
+	function setupAce()
+	{
+	    editor = ace.edit("editor");
+	    editor.setTheme("ace/theme/chrome");
+	    editor.getSession().setMode("ace/mode/json");
+	    editor.setShowPrintMargin(false);
+	}
+	
+	window.onload = function()
+	{
+		try
+		{
+			setupAce();
+
+			Restless.initialize();
+			document.getElementById('btnGet').onclick = clickGet;
+			document.getElementById('btnPut').onclick = clickPut;
+			document.getElementById('btnHome').onclick = clickHome;
+			
+		} catch(e) {
+			msg('Initialization error: ' + e);
+		}
+	}
+</script>
+<style type="text/css" media="screen">
+    #editor {
+    	width: 100%;
+    	height: 500pt;
+    }
+</style>
+</head>
+<body>
+	<p>
+		<input type="text" id="inputUri" value="client:" autocomplete="off">
+		<input type="button" value="Get" id="btnGet">
+		<input type="button" value="Put" id="btnPut">
+		<input type="button" value="Home" id="btnHome">
+	</p>
+	<p id="displayMessage">&nbsp;
+	</p>
+
+	<div id="editor"></div>
+
+</body>
+</html>

@@ -23,14 +23,12 @@ import restless.handler.binding.model.Schema;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
 import restless.handler.java.backend.JavaStore;
-import restless.handler.nginx.manage.NginxService;
 
 final class ManagementBackendImpl implements ManagementBackend
 {
 	private final BindingModelFactory bindingFactory;
 	private final BindingStore bindingStore;
 	private final FilesystemStore filesystem;
-	private final NginxService nginxService;
 	private final NginxFilesystemGlue nginxFilesystemGlue;
 	private final SchemaValidation schemaValidation;
 	private final JavaStore javaStore;
@@ -39,7 +37,6 @@ final class ManagementBackendImpl implements ManagementBackend
 	ManagementBackendImpl(final BindingModelFactory bindingFactory,
 			final BindingStore bindingStore,
 			final FilesystemStore filesystem,
-			final NginxService nginxService,
 			final NginxFilesystemGlue nginxFilesystemGlue,
 			final SchemaValidation schemaValidation,
 			final JavaStore javaStore)
@@ -47,7 +44,6 @@ final class ManagementBackendImpl implements ManagementBackend
 		this.bindingFactory = checkNotNull(bindingFactory);
 		this.bindingStore = checkNotNull(bindingStore);
 		this.filesystem = checkNotNull(filesystem);
-		this.nginxService = checkNotNull(nginxService);
 		this.nginxFilesystemGlue = checkNotNull(nginxFilesystemGlue);
 		this.schemaValidation = checkNotNull(schemaValidation);
 		this.javaStore = checkNotNull(javaStore);
@@ -109,7 +105,7 @@ final class ManagementBackendImpl implements ManagementBackend
 		default:
 			throw new UnsupportedOperationException("Unknown handler type: " + config.handler());
 		}
-		restartNginx();
+		restartServers();
 		return PossibleEmpty.ok();
 	}
 
@@ -155,9 +151,9 @@ final class ManagementBackendImpl implements ManagementBackend
 		}
 	}
 
-	private void restartNginx()
+	private void restartServers()
 	{
-		nginxService.configureAndStart(nginxFilesystemGlue.nginxConf());
+		nginxFilesystemGlue.startStopOrRestart();
 	}
 
 	@Override

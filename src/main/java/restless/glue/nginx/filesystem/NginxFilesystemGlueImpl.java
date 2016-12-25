@@ -69,4 +69,18 @@ final class NginxFilesystemGlueImpl implements NginxFilesystemGlue
 		}
 		location.alias().giveDirPath(binding.handler().filesystemBucket());
 	}
+
+	@Override
+	public void startStopOrRestart()
+	{
+		final NginxConfig conf = nginxConf();
+		if (conf.isEmpty())
+		{
+			nginxService.stop();
+		}
+		else
+		{
+			nginxService.configureAndStart(conf);
+		}
+	}
 }
