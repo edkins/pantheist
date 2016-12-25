@@ -16,7 +16,7 @@ import com.google.inject.assistedinject.Assisted;
 import restless.common.util.Make;
 import restless.common.util.OtherCollectors;
 
-final class PathSpecImpl implements PathSpec, ConfigId
+final class PathSpecImpl implements PathSpec
 {
 	private final List<PathSpecSegment> segments;
 	private final BindingModelFactory modelFactory;
@@ -141,12 +141,6 @@ final class PathSpecImpl implements PathSpec, ConfigId
 		final StringBuilder sb = new StringBuilder("/");
 		segments.forEach(seg -> sb.append(seg.escapedLiteralValue()).append('/'));
 		return sb.toString();
-	}
-
-	@Override
-	public Binding emptyBinding()
-	{
-		return modelFactory.binding(this, modelFactory.emptyHandler(), modelFactory.emptySchema(), null, this);
 	}
 
 }

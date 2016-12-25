@@ -3,6 +3,7 @@ package restless.api.management.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.URI;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.UriBuilder;
@@ -125,16 +126,31 @@ final class ManagementBackendImpl implements ManagementBackend
 	@Override
 	public PossibleEmpty putData(final PathSpec path, final String data)
 	{
-		final BindingMatch match = bindingStore.lookup(path);
-		return schemaValidation
-				.validate(match.binding().schema(), data)
-				.then(() -> functionsFor(match).putString(data));
+		final Optional<BindingMatch> match = bindingStore.lookup(path);
+		if (match.isPresent())
+		{
+			return schemaValidation
+					.validate(match.get().binding().schema(), data)
+					.then(() -> functionsFor(match.get()).putString(data));
+		}
+		else
+		{
+			return PossibleEmpty.doesNotExist();
+		}
 	}
 
 	@Override
 	public PossibleData getData(final PathSpec path)
 	{
-		return functionsFor(bindingStore.lookup(path)).getString();
+		final Optional<BindingMatch> match = bindingStore.lookup(path);
+		if (match.isPresent())
+		{
+			return functionsFor(match.get()).getString();
+		}
+		else
+		{
+			return PossibleData.doesNotExist();
+		}
 	}
 
 	@Override

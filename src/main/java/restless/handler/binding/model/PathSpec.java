@@ -65,10 +65,4 @@ public interface PathSpec
 	 */
 	@JsonIgnore
 	String literalString();
-
-	/**
-	 * @return an empty binding associated with this path spec.
-	 */
-	@JsonIgnore
-	Binding emptyBinding();
 }

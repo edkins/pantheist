@@ -14,8 +14,7 @@ public interface BindingModelFactory
 {
 	PathSpec pathSpec(List<PathSpecSegment> segments);
 
-	@Deprecated
-	ConfigId configId(List<PathSpecSegment> segments);
+	ConfigId configId(String id);
 
 	@Named("literal")
 	PathSpecSegment literal(String value);

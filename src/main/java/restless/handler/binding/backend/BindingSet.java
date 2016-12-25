@@ -33,4 +33,6 @@ interface BindingSet
 	 */
 	@JsonIgnore
 	Optional<Binding> get(ConfigId configId);
+
+	ConfigId nextUnusedId();
 }

@@ -93,7 +93,7 @@ public final class ManagementResourceImpl implements ManagementResource
 	}
 
 	/**
-	 * Handles the config management function
+	 * Handles setting the handler
 	 */
 	@PUT
 	@Path("{path:([+*][^/]*[/])*}configx")

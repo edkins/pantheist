@@ -8,24 +8,33 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.assistedinject.Assisted;
 
 import restless.common.util.OtherCollectors;
 import restless.handler.binding.model.Binding;
+import restless.handler.binding.model.BindingModelFactory;
 import restless.handler.binding.model.ConfigId;
 
 final class BindingSetImpl implements BindingSet
 {
+	private final BindingModelFactory bindingModelFactory;
+
 	//State
 	private final List<Binding> bindings;
+	int counter;
 
 	@Inject
 	BindingSetImpl(
-			@Assisted @JsonProperty("bindings") final List<Binding> bindings)
+			final @JacksonInject BindingModelFactory bindingModelFactory,
+			@Assisted @JsonProperty("bindings") final List<Binding> bindings,
+			@Assisted("counter") @JsonProperty("counter") final int counter)
 	{
 		checkNotNull(bindings);
+		this.bindingModelFactory = checkNotNull(bindingModelFactory);
 		this.bindings = new ArrayList<>(bindings);
+		this.counter = counter;
 	}
 
 	@Override
@@ -65,6 +74,18 @@ final class BindingSetImpl implements BindingSet
 				.stream()
 				.filter(b -> b.configId().equals(configId))
 				.collect(OtherCollectors.toOptional());
+	}
+
+	@Override
+	public ConfigId nextUnusedId()
+	{
+		final ConfigId configId = bindingModelFactory.configId(String.valueOf(counter));
+		if (get(configId).isPresent())
+		{
+			throw new IllegalStateException("configId specified by counter is already in use!");
+		}
+		counter++;
+		return configId;
 	}
 
 }

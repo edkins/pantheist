@@ -1,6 +1,7 @@
 package restless.handler.binding.backend;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import restless.handler.binding.model.Binding;
@@ -21,9 +22,9 @@ public interface BindingStore
 	Binding exact(ConfigId pathSpec);
 
 	/**
-	 * Looks up the given path (which must be literal) and returns matching information or an empty match.
+	 * Looks up the given path (which must be literal) and returns matching information or an empty result if no match.
 	 */
-	BindingMatch lookup(PathSpec pathSpec);
+	Optional<BindingMatch> lookup(PathSpec pathSpec);
 
 	void initialize();
 

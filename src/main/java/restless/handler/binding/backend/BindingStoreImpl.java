@@ -49,7 +49,7 @@ final class BindingStoreImpl implements BindingStore
 
 	private BindingSet emptyBindingSet()
 	{
-		return backendFactory.bindingSet(ImmutableList.of());
+		return backendFactory.bindingSet(ImmutableList.of(), 0);
 	}
 
 	@Override
@@ -64,7 +64,7 @@ final class BindingStoreImpl implements BindingStore
 	}
 
 	@Override
-	public BindingMatch lookup(final PathSpec pathSpec)
+	public Optional<BindingMatch> lookup(final PathSpec pathSpec)
 	{
 		final MutableOptional<BindingMatch> result = MutableOptional.empty();
 		for (final Binding binding : file().read().bindings())
@@ -75,12 +75,7 @@ final class BindingStoreImpl implements BindingStore
 				result.add(modelFactory.match(maybeMatch.get(), binding));
 			}
 		}
-		return result.value().orElseGet(() -> emptyBindingMatch(pathSpec));
-	}
-
-	private BindingMatch emptyBindingMatch(final PathSpec pathSpec)
-	{
-		return modelFactory.match(modelFactory.pathSpecMatch(ImmutableList.of()), pathSpec.emptyBinding());
+		return result.value();
 	}
 
 	private JsonSnapshot<BindingSet> file()
@@ -109,9 +104,15 @@ final class BindingStoreImpl implements BindingStore
 	public ConfigId createConfig(final PathSpec pathSpec)
 	{
 		final JsonSnapshot<BindingSet> file = file();
-		final Binding emptyBinding = pathSpec.emptyBinding();
-		file.read().create(emptyBinding);
+		final BindingSet bindingSet = file.read();
+		final Binding emptyBinding = emptyBinding(pathSpec, bindingSet.nextUnusedId());
+		bindingSet.create(emptyBinding);
 		file.writeMutable();
 		return emptyBinding.configId();
+	}
+
+	private Binding emptyBinding(final PathSpec pathSpec, final ConfigId configId)
+	{
+		return modelFactory.binding(pathSpec, modelFactory.emptyHandler(), modelFactory.emptySchema(), null, configId);
 	}
 }
