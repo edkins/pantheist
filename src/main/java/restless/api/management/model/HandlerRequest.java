@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import restless.handler.binding.model.HandlerType;
 
-@JsonDeserialize(as = ConfigRequestImpl.class)
-public interface ConfigRequest
+@JsonDeserialize(as = HandlerRequestImpl.class)
+public interface HandlerRequest
 {
 	@JsonProperty("handler")
 	HandlerType handler();

@@ -8,12 +8,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import restless.handler.binding.model.HandlerType;
 
-final class ConfigRequestImpl implements ConfigRequest
+final class HandlerRequestImpl implements HandlerRequest
 {
 	private final HandlerType handler;
 	private final String handlerPath;
 
-	ConfigRequestImpl(@JsonProperty("handler") final HandlerType handler,
+	HandlerRequestImpl(@JsonProperty("handler") final HandlerType handler,
 			@Nullable @JsonProperty("handlerPath") final String handlerPath)
 	{
 		this.handler = checkNotNull(handler);

@@ -216,23 +216,6 @@ public final class TargetWrapper
 		}
 	}
 
-	public TargetWrapper withPlusEscapedSlashSeparatedSegments(final String path)
-	{
-		TargetWrapper result = this;
-		if (path.startsWith("/") || path.endsWith("/"))
-		{
-			throw new IllegalArgumentException("Relative path must not start or end with slash");
-		}
-		if (!path.isEmpty())
-		{
-			for (final String seg : path.split("\\/"))
-			{
-				result = result.withSegment("+" + seg);
-			}
-		}
-		return result;
-	}
-
 	public TargetWrapper withSlashSeparatedSegments(final String path)
 	{
 		TargetWrapper result = this;
@@ -244,7 +227,7 @@ public final class TargetWrapper
 		{
 			for (final String seg : path.split("\\/"))
 			{
-				result = result.withSegment("+" + seg);
+				result = result.withSegment(seg);
 			}
 		}
 		return result;

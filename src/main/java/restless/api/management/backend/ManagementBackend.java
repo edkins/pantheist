@@ -4,8 +4,8 @@ import java.net.URI;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import restless.api.management.model.ConfigRequest;
 import restless.api.management.model.CreateConfigRequest;
+import restless.api.management.model.HandlerRequest;
 import restless.handler.binding.backend.PossibleData;
 import restless.handler.binding.backend.PossibleEmpty;
 import restless.handler.binding.model.ConfigId;
@@ -16,11 +16,12 @@ public interface ManagementBackend
 {
 	URI createConfig(CreateConfigRequest request);
 
-	ConfigId configId(String configId);
+	@Deprecated
+	ConfigId lookupConfigId(String path);
 
 	PathSpec literalPath(String path);
 
-	PossibleEmpty putConfig(ConfigId path, ConfigRequest config);
+	PossibleEmpty putConfig(ConfigId path, HandlerRequest config);
 
 	PossibleEmpty putData(PathSpec path, String data);
 

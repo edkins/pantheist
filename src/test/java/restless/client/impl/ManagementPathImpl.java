@@ -26,7 +26,7 @@ final class ManagementPathImpl implements ManagementPath
 	@Override
 	public ManagementData data(final String path)
 	{
-		return new ManagementDataImpl(target.withPlusEscapedSlashSeparatedSegments(path).withSegment("data"));
+		return new ManagementDataImpl(target.withSegment("data").withSlashSeparatedSegments(path));
 	}
 
 	@Override

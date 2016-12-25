@@ -65,4 +65,7 @@ public interface PathSpec
 	 */
 	@JsonIgnore
 	String literalString();
+
+	@JsonIgnore
+	PathSpec plus(PathSpecSegment segment);
 }

@@ -11,8 +11,8 @@ import javax.ws.rs.core.UriBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 
-import restless.api.management.model.ConfigRequest;
 import restless.api.management.model.CreateConfigRequest;
+import restless.api.management.model.HandlerRequest;
 import restless.common.util.OtherCollectors;
 import restless.glue.nginx.filesystem.NginxFilesystemGlue;
 import restless.handler.binding.backend.BindingStore;
@@ -61,7 +61,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	}
 
 	@Override
-	public ConfigId configId(final String path)
+	public ConfigId lookupConfigId(final String path)
 	{
 		final PathSpec pathSpec = pathSpec(path);
 		return bindingStore
@@ -100,7 +100,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	}
 
 	@Override
-	public PossibleEmpty putConfig(final ConfigId pathSpec, final ConfigRequest config)
+	public PossibleEmpty putConfig(final ConfigId pathSpec, final HandlerRequest config)
 	{
 		switch (config.handler()) {
 		case filesystem:
@@ -223,9 +223,12 @@ final class ManagementBackendImpl implements ManagementBackend
 	public PathSpec literalPath(final String path)
 	{
 		final ImmutableList.Builder<PathSpecSegment> builder = ImmutableList.builder();
-		for (final String seg : path.split("\\/"))
+		if (!path.isEmpty())
 		{
-			builder.add(segment(seg));
+			for (final String seg : path.split("\\/"))
+			{
+				builder.add(bindingFactory.literal(seg));
+			}
 		}
 		return bindingFactory.pathSpec(builder.build());
 	}
@@ -233,24 +236,14 @@ final class ManagementBackendImpl implements ManagementBackend
 	@Override
 	public URI createConfig(final CreateConfigRequest request)
 	{
-		final ConfigId configId = bindingStore.createConfig(pathSpecWithoutPluses(request.pathSpec()));
+		final PathSpec pathSpec = literalPath(request.pathSpec()).plus(bindingFactory.star());
+		final ConfigId configId = bindingStore.createConfig(pathSpec);
 		return managementUriBuilder().path("config").path(configId.toString()).build();
 	}
 
 	private UriBuilder managementUriBuilder()
 	{
 		return UriBuilder.fromUri("http://localhost").port(config.managementPort());
-	}
-
-	private PathSpec pathSpecWithoutPluses(final String path)
-	{
-		final ImmutableList.Builder<PathSpecSegment> builder = ImmutableList.builder();
-		for (final String seg : path.split("\\/"))
-		{
-			builder.add(bindingFactory.literal(seg));
-		}
-		builder.add(bindingFactory.star());
-		return bindingFactory.pathSpec(builder.build());
 	}
 
 	private PathSpec pathSpec(final String path)

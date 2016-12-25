@@ -24,10 +24,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.api.management.backend.ManagementBackend;
-import restless.api.management.model.ConfigRequest;
 import restless.api.management.model.CreateConfigRequest;
+import restless.api.management.model.HandlerRequest;
 import restless.handler.binding.backend.PossibleData;
 import restless.handler.binding.backend.PossibleEmpty;
+import restless.handler.binding.model.BindingModelFactory;
 import restless.handler.binding.model.Schema;
 
 /**
@@ -46,12 +47,16 @@ public final class ManagementResourceImpl implements ManagementResource
 {
 	private static final Logger LOGGER = LogManager.getLogger(ManagementResourceImpl.class);
 	private final ManagementBackend backend;
+	private final BindingModelFactory bindingModelFactory;
 	private final ObjectMapper objectMapper;
 
 	@Inject
-	ManagementResourceImpl(final ManagementBackend backend, final ObjectMapper objectMapper)
+	ManagementResourceImpl(final ManagementBackend backend,
+			final BindingModelFactory bindingModelFactory,
+			final ObjectMapper objectMapper)
 	{
 		this.backend = checkNotNull(backend);
+		this.bindingModelFactory = checkNotNull(bindingModelFactory);
 		this.objectMapper = checkNotNull(objectMapper);
 	}
 
@@ -96,17 +101,17 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles setting the handler
 	 */
 	@PUT
-	@Path("{path:([+*][^/]*[/])*}configx")
+	@Path("config/{configId}/handler")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response putConfig(@PathParam("path") final String path, final String configJson)
+	public Response putConfig(@PathParam("configId") final String configId, final String handlerJson)
 	{
-		LOGGER.info("PUT {}config", path);
+		LOGGER.info("PUT config/{}/handler {}", configId, handlerJson);
 
 		try
 		{
-			final ConfigRequest request = objectMapper.readValue(configJson, ConfigRequest.class);
+			final HandlerRequest request = objectMapper.readValue(handlerJson, HandlerRequest.class);
 
-			final PossibleEmpty result = backend.putConfig(backend.configId(path), request);
+			final PossibleEmpty result = backend.putConfig(bindingModelFactory.configId(configId), request);
 
 			return possibleEmptyResponse(result);
 		}
@@ -124,11 +129,11 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles the data management function (PUT)
 	 */
 	@PUT
-	@Path("{path:([+*][^/]*[/])*}data")
+	@Path("data/{path:.*}")
 	@Consumes(MediaType.TEXT_PLAIN)
 	public Response putData(@PathParam("path") final String path, final String data)
 	{
-		LOGGER.info("PUT {}data", path);
+		LOGGER.info("PUT data/{}", path);
 
 		try
 		{
@@ -146,11 +151,11 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles the data management function (GET)
 	 */
 	@GET
-	@Path("{path:([+*][^/]*[/])*}data")
+	@Path("data/{path:.*}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response getData(@PathParam("path") final String path)
 	{
-		LOGGER.info("GET {}data", path);
+		LOGGER.info("GET data/{}", path);
 
 		try
 		{
@@ -168,16 +173,16 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles the schema management function (PUT)
 	 */
 	@PUT
-	@Path("{path:([+*][^/]*[/])*}schema")
+	@Path("config/{configId}/schema")
 	@Consumes("application/schema+json")
-	public Response putSchema(@PathParam("path") final String path, final String data)
+	public Response putSchema(@PathParam("configId") final String configId, final String data)
 	{
-		LOGGER.info("PUT {}schema", path);
+		LOGGER.info("PUT config/{configId}/schema (json-schema)", configId);
 
 		try
 		{
 			final JsonNode jsonNode = objectMapper.readValue(data, JsonNode.class);
-			final PossibleEmpty result = backend.putJsonSchema(backend.configId(path), jsonNode);
+			final PossibleEmpty result = backend.putJsonSchema(bindingModelFactory.configId(configId), jsonNode);
 
 			return possibleEmptyResponse(result);
 		}
@@ -195,14 +200,14 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles the schema management function (GET)
 	 */
 	@GET
-	@Path("{path:([+*][^/]*[/])*}schema")
-	public Response getSchema(@PathParam("path") final String path)
+	@Path("config/{configId}/schema")
+	public Response getSchema(@PathParam("configId") final String configId)
 	{
-		LOGGER.info("GET {}schema", path);
+		LOGGER.info("GET config/{configId}/schema", configId);
 
 		try
 		{
-			final Schema schema = backend.getSchema(backend.configId(path));
+			final Schema schema = backend.getSchema(bindingModelFactory.configId(configId));
 			return Response.ok(schema.contentAsString(), schema.httpContentType()).build();
 		}
 		catch (final RuntimeException ex)
@@ -215,15 +220,15 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles the jersey-file management function (PUT)
 	 */
 	@PUT
-	@Path("{path:([+*][^/]*[/])*}jersey-file")
+	@Path("config/{configId}/jersey-file")
 	@Consumes("text/plain")
-	public Response putJerseyFile(@PathParam("path") final String path, final String data)
+	public Response putJerseyFile(@PathParam("configId") final String configId, final String data)
 	{
-		LOGGER.info("PUT {}jersey-file", path);
+		LOGGER.info("PUT config/{configId}/jersey-file", configId);
 
 		try
 		{
-			final PossibleEmpty result = backend.putJerseyFile(backend.configId(path), data);
+			final PossibleEmpty result = backend.putJerseyFile(bindingModelFactory.configId(configId), data);
 			return possibleEmptyResponse(result);
 		}
 		catch (final RuntimeException ex)
@@ -236,15 +241,15 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles the jersey-file management function (GET)
 	 */
 	@GET
-	@Path("{path:([+*][^/]*[/])*}jersey-file")
+	@Path("config/{configId}/jersey-file")
 	@Produces("text/plain")
-	public Response getJerseyFile(@PathParam("path") final String path)
+	public Response getJerseyFile(@PathParam("configId") final String configId)
 	{
-		LOGGER.info("GET {}jersey-file", path);
+		LOGGER.info("GET config/{configId}/jersey-file", configId);
 
 		try
 		{
-			final PossibleData result = backend.getJerseyFile(backend.configId(path));
+			final PossibleData result = backend.getJerseyFile(bindingModelFactory.configId(configId));
 			return possibleDataResponse(result);
 		}
 		catch (final RuntimeException ex)

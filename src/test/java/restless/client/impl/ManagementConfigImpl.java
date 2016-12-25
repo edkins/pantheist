@@ -24,8 +24,7 @@ final class ManagementConfigImpl implements ManagementConfig
 		map.put("pathSpec", path);
 		final TargetWrapper resultPath = target.withSegment("config").createObjectAsJsonWithPostRequest(map);
 
-		final TargetWrapper newTarget = target.withPlusEscapedSlashSeparatedSegments(path).withSegment("*");
-		return new ManagementConfigPointImpl(newTarget);
+		return new ManagementConfigPointImpl(resultPath);
 	}
 
 }

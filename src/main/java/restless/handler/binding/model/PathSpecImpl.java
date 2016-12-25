@@ -143,4 +143,10 @@ final class PathSpecImpl implements PathSpec
 		return sb.toString();
 	}
 
+	@Override
+	public PathSpec plus(final PathSpecSegment segment)
+	{
+		return modelFactory.pathSpec(Make.list(segments, segment));
+	}
+
 }
