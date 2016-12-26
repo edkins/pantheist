@@ -26,12 +26,6 @@ final class ConfigIdImpl implements ConfigId
 	}
 
 	@Override
-	public String nameHint()
-	{
-		return id;
-	}
-
-	@Override
 	public int hashCode()
 	{
 		return Objects.hashCode(id);

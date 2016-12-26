@@ -25,10 +25,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.api.management.backend.ManagementBackend;
 import restless.api.management.model.CreateConfigRequest;
-import restless.api.management.model.HandlerRequest;
 import restless.handler.binding.backend.PossibleData;
 import restless.handler.binding.backend.PossibleEmpty;
 import restless.handler.binding.model.BindingModelFactory;
+import restless.handler.binding.model.Handler;
 import restless.handler.binding.model.Schema;
 
 /**
@@ -109,7 +109,7 @@ public final class ManagementResourceImpl implements ManagementResource
 
 		try
 		{
-			final HandlerRequest request = objectMapper.readValue(handlerJson, HandlerRequest.class);
+			final Handler request = objectMapper.readValue(handlerJson, Handler.class);
 
 			final PossibleEmpty result = backend.putConfig(bindingModelFactory.configId(configId), request);
 

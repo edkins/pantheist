@@ -48,16 +48,10 @@ final class FilesystemManagementFunctionsImpl implements ManagementFunctions
 	public PossibleEmpty putString(final String data)
 	{
 		final FilesystemSnapshot snapshot = store.snapshot();
-		if (snapshot.parentDirectoryExists(path))
-		{
-			snapshot.isFile(path); // throws an exception if it exists but is not a regular file
-			snapshot.writeSingle(path, file -> FileUtils.writeStringToFile(file, data, StandardCharsets.UTF_8));
-			return PossibleEmpty.ok();
-		}
-		else
-		{
-			return PossibleEmpty.parentDoesNotExist();
-		}
+		snapshot.willNeedDirectory(path.parent());
+		snapshot.isFile(path); // throws an exception if it exists but is not a regular file
+		snapshot.writeSingle(path, file -> FileUtils.writeStringToFile(file, data, StandardCharsets.UTF_8));
+		return PossibleEmpty.ok();
 	}
 
 }

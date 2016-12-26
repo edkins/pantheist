@@ -20,4 +20,12 @@ public class OtherPreconditions
 		return arg;
 	}
 
+	public static void nullIff(final String handlerPath, final boolean shouldBeNull)
+	{
+		if ((handlerPath == null) != shouldBeNull)
+		{
+			throw new IllegalArgumentException("Wrong nullness");
+		}
+	}
+
 }

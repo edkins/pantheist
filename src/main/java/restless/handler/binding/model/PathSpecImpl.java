@@ -114,11 +114,6 @@ final class PathSpecImpl implements PathSpec
 		{
 			return PathSpecClassification.PREFIX;
 		}
-		else if (Make.init(segments).stream().allMatch(PathSpecSegment::literal)
-				&& Make.last(segments).type().equals(PathSpecSegmentType.star))
-		{
-			return PathSpecClassification.PREFIX_STAR;
-		}
 		else
 		{
 			return PathSpecClassification.OTHER;

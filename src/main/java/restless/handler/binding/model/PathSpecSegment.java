@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
 		@JsonSubTypes.Type(value = PathSpecSegmentLiteralImpl.class, name = "literal"),
-		@JsonSubTypes.Type(value = PathSpecSegmentStarImpl.class, name = "star") })
+		@JsonSubTypes.Type(value = PathSpecSegmentMultiImpl.class, name = "multi") })
 public interface PathSpecSegment
 {
 	PathSpecSegmentType type();

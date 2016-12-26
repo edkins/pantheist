@@ -50,6 +50,15 @@ public interface FilesystemSnapshot
 	boolean parentDirectoryExists(FsPath path);
 
 	/**
+	 * This will record the location of any missing directories leading up to path, which will get created
+	 * when you call write().
+	 *
+	 * This calls isDir() internally, so will throw an exception if any level is blocked by the presence of
+	 * a regular file.
+	 */
+	void willNeedDirectory(FsPath path);
+
+	/**
 	 * Calls the supplied function, which is assumed to write to a bunch of files.
 	 *
 	 * A conflict will be detected if:
@@ -59,6 +68,8 @@ public interface FilesystemSnapshot
 	 * - the file has been observed to exist as part of this snapshot and is now deleted.
 	 *
 	 * It's also invalid if you try to access a file you haven't previously checked the state of.
+	 *
+	 * Before running fn, this method will create any missing directories discovered by willNeedDirectory().
 	 *
 	 * @throws FsConflictException
 	 * 		if someone else wrote to or deleted any of the files since the snapshot time

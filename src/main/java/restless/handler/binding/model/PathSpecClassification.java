@@ -4,6 +4,5 @@ public enum PathSpecClassification
 {
 	EXACT,
 	PREFIX,
-	PREFIX_STAR,
 	OTHER;
 }

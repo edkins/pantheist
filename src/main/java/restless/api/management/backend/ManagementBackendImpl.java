@@ -12,8 +12,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 
 import restless.api.management.model.CreateConfigRequest;
-import restless.api.management.model.HandlerRequest;
-import restless.common.util.OtherCollectors;
 import restless.glue.nginx.filesystem.NginxFilesystemGlue;
 import restless.handler.binding.backend.BindingStore;
 import restless.handler.binding.backend.ManagementFunctions;
@@ -24,11 +22,11 @@ import restless.handler.binding.model.Binding;
 import restless.handler.binding.model.BindingMatch;
 import restless.handler.binding.model.BindingModelFactory;
 import restless.handler.binding.model.ConfigId;
+import restless.handler.binding.model.Handler;
 import restless.handler.binding.model.PathSpec;
 import restless.handler.binding.model.PathSpecSegment;
 import restless.handler.binding.model.Schema;
 import restless.handler.filesystem.backend.FilesystemStore;
-import restless.handler.filesystem.backend.FsPath;
 import restless.handler.java.backend.JavaStore;
 import restless.system.config.RestlessConfig;
 
@@ -60,65 +58,20 @@ final class ManagementBackendImpl implements ManagementBackend
 		this.config = checkNotNull(config);
 	}
 
-	@Override
-	public ConfigId lookupConfigId(final String path)
-	{
-		final PathSpec pathSpec = pathSpec(path);
-		return bindingStore
-				.snapshot()
-				.stream()
-				.filter(b -> b.pathSpec().equals(pathSpec))
-				.collect(OtherCollectors.toOptional())
-				.get()
-				.configId();
-	}
-
-	private PathSpecSegment segment(final String seg)
-	{
-		if (seg.startsWith("+"))
-		{
-			return bindingFactory.literal(seg.substring(1));
-		}
-		else if (seg.equals("*"))
-		{
-			return bindingFactory.star();
-		}
-		else
-		{
-			throw new UnsupportedOperationException("Currently only literal path segments supported");
-		}
-	}
-
-	private Binding changeFilesystemHandler(final FsPath bucket, final Binding b)
+	private Binding changeHandler(final Handler handler, final Binding b)
 	{
 		return bindingFactory.binding(
 				b.pathSpec(),
-				bindingFactory.filesystem(bucket),
+				handler,
 				b.schema(),
 				b.jerseyClass(),
 				b.configId());
 	}
 
 	@Override
-	public PossibleEmpty putConfig(final ConfigId pathSpec, final HandlerRequest config)
+	public PossibleEmpty putConfig(final ConfigId pathSpec, final Handler handler)
 	{
-		switch (config.handler()) {
-		case filesystem:
-		{
-			final FsPath bucket = filesystem.newBucket(pathSpec.nameHint());
-			bindingStore.changeConfig(pathSpec, b -> changeFilesystemHandler(bucket, b));
-			break;
-		}
-		case resource_files:
-		{
-			final FsPath bucket = filesystem.systemBucket().segment("resource-files")
-					.slashSeparatedSegments(config.handlerPath());
-			bindingStore.changeConfig(pathSpec, b -> changeFilesystemHandler(bucket, b));
-			break;
-		}
-		default:
-			throw new UnsupportedOperationException("Unknown handler type: " + config.handler());
-		}
+		bindingStore.changeConfig(pathSpec, b -> changeHandler(handler, b));
 		restartServers();
 		return PossibleEmpty.ok();
 	}
@@ -131,7 +84,7 @@ final class ManagementBackendImpl implements ManagementBackend
 		{
 			return schemaValidation
 					.validate(match.get().binding().schema(), data)
-					.then(() -> functionsFor(match.get()).putString(data));
+					.then(() -> functionsFor(match.get(), path).putString(data));
 		}
 		else
 		{
@@ -145,7 +98,7 @@ final class ManagementBackendImpl implements ManagementBackend
 		final Optional<BindingMatch> match = bindingStore.lookup(path);
 		if (match.isPresent())
 		{
-			return functionsFor(match.get()).getString();
+			return functionsFor(match.get(), path).getString();
 		}
 		else
 		{
@@ -167,14 +120,12 @@ final class ManagementBackendImpl implements ManagementBackend
 		return bindingFactory.binding(b.pathSpec(), b.handler(), schema, b.jerseyClass(), b.configId());
 	}
 
-	private ManagementFunctions functionsFor(final BindingMatch match)
+	private ManagementFunctions functionsFor(final BindingMatch match, final PathSpec path)
 	{
 		final Binding binding = match.binding();
 		switch (binding.handler().type()) {
 		case filesystem:
-			final FsPath path = binding.handler().filesystemBucket()
-					.withPathSegments(match.pathMatch().nonLiteralChunk());
-			return filesystem.manage(path);
+			return filesystem.manage(filesystem.srvBucket().withPathSegments(path.segments()));
 		default:
 			throw new UnsupportedOperationException("Unrecognized handler: " + binding.handler());
 		}
@@ -236,7 +187,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	@Override
 	public URI createConfig(final CreateConfigRequest request)
 	{
-		final PathSpec pathSpec = literalPath(request.pathSpec()).plus(bindingFactory.star());
+		final PathSpec pathSpec = literalPath(request.pathSpec()).plus(bindingFactory.multi());
 		final ConfigId configId = bindingStore.createConfig(pathSpec);
 		return managementUriBuilder().path("config").path(configId.toString()).build();
 	}
@@ -244,16 +195,6 @@ final class ManagementBackendImpl implements ManagementBackend
 	private UriBuilder managementUriBuilder()
 	{
 		return UriBuilder.fromUri("http://localhost").port(config.managementPort());
-	}
-
-	private PathSpec pathSpec(final String path)
-	{
-		final ImmutableList.Builder<PathSpecSegment> builder = ImmutableList.builder();
-		for (final String seg : path.split("\\/"))
-		{
-			builder.add(segment(seg));
-		}
-		return bindingFactory.pathSpec(builder.build());
 	}
 
 }

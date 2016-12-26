@@ -8,8 +8,6 @@ import javax.inject.Named;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.assistedinject.Assisted;
 
-import restless.handler.filesystem.backend.FsPath;
-
 public interface BindingModelFactory
 {
 	PathSpec pathSpec(List<PathSpecSegment> segments);
@@ -18,9 +16,6 @@ public interface BindingModelFactory
 
 	@Named("literal")
 	PathSpecSegment literal(String value);
-
-	@Named("star")
-	PathSpecSegment star();
 
 	@Named("multi")
 	PathSpecSegment multi();
@@ -32,11 +27,7 @@ public interface BindingModelFactory
 			@Nullable @Assisted("jerseyClass") String jerseyClass,
 			ConfigId configId);
 
-	@Named("empty")
-	Handler emptyHandler();
-
-	@Named("filesystem")
-	Handler filesystem(FsPath bucket);
+	Handler handler(HandlerType type, @Nullable @Assisted("handlerPath") String handlerPath);
 
 	@Named("empty")
 	Schema emptySchema();

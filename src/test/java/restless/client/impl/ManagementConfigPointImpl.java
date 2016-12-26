@@ -21,7 +21,7 @@ final class ManagementConfigPointImpl implements ManagementConfigPoint
 	public void bindToFilesystem()
 	{
 		final Map<String, Object> map = new HashMap<>();
-		map.put("handler", "filesystem");
+		map.put("type", "filesystem");
 		target.withSegment("handler").putObjectAsJson(map);
 	}
 
@@ -29,7 +29,7 @@ final class ManagementConfigPointImpl implements ManagementConfigPoint
 	public void bindToResourceFiles(final String resourcePath)
 	{
 		final Map<String, Object> map = new HashMap<>();
-		map.put("handler", "resource_files");
+		map.put("type", "resource_files");
 		map.put("handlerPath", resourcePath);
 		target.withSegment("handler").putObjectAsJson(map);
 	}

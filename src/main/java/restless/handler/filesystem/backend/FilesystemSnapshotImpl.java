@@ -6,8 +6,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
@@ -28,6 +30,7 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 	//State
 	private final Map<FsPath, FileState> knownFileStates;
 	private boolean written;
+	private final List<FsPath> directoriesToCreate;
 
 	@Inject
 	private FilesystemSnapshotImpl(@FilesystemLock final Lock lock, final RestlessConfig config)
@@ -37,6 +40,7 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 		this.timestamp = System.currentTimeMillis();
 		this.knownFileStates = new HashMap<>();
 		this.written = false;
+		this.directoriesToCreate = new ArrayList<>();
 	}
 
 	@Override
@@ -150,7 +154,9 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 				internalCheckFileState(path);
 			}
 
-			fn.process(this);
+			final FsPathMapping map = this;
+			createMissingDirectories(directoriesToCreate, map);
+			fn.process(map);
 		}
 		catch (final IOException ex)
 		{
@@ -159,6 +165,18 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 		finally
 		{
 			lock.unlock();
+		}
+	}
+
+	// This is really just a convenience function, so I've made it static to avoid exposing
+	// internals of FilesystemSnapshotImpl. It has access to the same FsPathMapping that the
+	// user-supplied function would have.
+	private static void createMissingDirectories(final List<FsPath> directoriesToCreate,
+			final FsPathMapping map)
+	{
+		for (final FsPath path : directoriesToCreate)
+		{
+			map.get(path).mkdir();
 		}
 	}
 
@@ -217,6 +235,17 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 		{
 			throw new IllegalStateException("Did not previously check state of " + path);
 		}
+	}
+
+	@Override
+	public void willNeedDirectory(final FsPath path)
+	{
+		path.leadingPortions().forEach(dir -> {
+			if (!directoriesToCreate.contains(dir) && !isDir(dir))
+			{
+				directoriesToCreate.add(dir);
+			}
+		});
 	}
 
 }

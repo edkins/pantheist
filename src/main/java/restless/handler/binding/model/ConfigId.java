@@ -9,7 +9,4 @@ public interface ConfigId
 	@JsonValue
 	@Override
 	String toString();
-
-	@Deprecated
-	String nameHint();
 }

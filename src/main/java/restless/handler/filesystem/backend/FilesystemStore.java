@@ -27,11 +27,7 @@ public interface FilesystemStore
 	 */
 	FsPath systemBucket();
 
-	/**
-	 * Create a new directory with a name similar to the one specified, and
-	 * return its path.
-	 */
-	FsPath newBucket(String nameHint);
-
 	FsPath rootPath();
+
+	FsPath srvBucket();
 }

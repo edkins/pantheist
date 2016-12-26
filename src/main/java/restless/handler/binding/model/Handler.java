@@ -1,22 +1,22 @@
 package restless.handler.binding.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import javax.annotation.Nullable;
 
-import restless.handler.filesystem.backend.FsPath;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({
-		@JsonSubTypes.Type(value = HandlerEmptyImpl.class, name = "empty"),
-		@JsonSubTypes.Type(value = HandlerFilesystemImpl.class, name = "filesystem") })
+@JsonDeserialize(as = HandlerImpl.class)
 public interface Handler
 {
+	@JsonProperty("type")
 	HandlerType type();
 
 	/**
-	 * @throws UnsupportedOperationException if not a filesystem binding
+	 * Where relevant, this refers to some path that the resources will be bound to.
+	 *
+	 * Used for: resource_files
 	 */
-	@JsonIgnore
-	FsPath filesystemBucket();
+	@Nullable
+	@JsonProperty("handlerPath")
+	String handlerPath();
 }

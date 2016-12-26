@@ -106,19 +106,9 @@ final class FilesystemStoreImpl implements FilesystemStore
 	}
 
 	@Override
-	public FsPath newBucket(final String nameHint)
+	public FsPath srvBucket()
 	{
-		OtherPreconditions.checkNotNullOrEmpty(nameHint);
-		final FilesystemSnapshot snapshot = snapshot();
-		for (int i = 0;; i++)
-		{
-			final FsPath candidate = fromBucketName(nameHint + i);
-			if (!snapshot.isDir(candidate))
-			{
-				snapshot.writeSingle(candidate, File::mkdir);
-				return candidate;
-			}
-		}
+		return fromBucketName("srv");
 	}
 
 	@Override

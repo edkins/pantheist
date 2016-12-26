@@ -15,6 +15,8 @@ import restless.handler.binding.model.Binding;
 import restless.handler.binding.model.BindingMatch;
 import restless.handler.binding.model.BindingModelFactory;
 import restless.handler.binding.model.ConfigId;
+import restless.handler.binding.model.Handler;
+import restless.handler.binding.model.HandlerType;
 import restless.handler.binding.model.PathSpec;
 import restless.handler.binding.model.PathSpecMatch;
 import restless.handler.filesystem.backend.FilesystemStore;
@@ -113,6 +115,11 @@ final class BindingStoreImpl implements BindingStore
 
 	private Binding emptyBinding(final PathSpec pathSpec, final ConfigId configId)
 	{
-		return modelFactory.binding(pathSpec, modelFactory.emptyHandler(), modelFactory.emptySchema(), null, configId);
+		return modelFactory.binding(pathSpec, emptyHandler(), modelFactory.emptySchema(), null, configId);
+	}
+
+	private Handler emptyHandler()
+	{
+		return modelFactory.handler(HandlerType.empty, null);
 	}
 }

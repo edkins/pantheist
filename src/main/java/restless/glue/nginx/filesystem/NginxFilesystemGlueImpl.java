@@ -7,7 +7,10 @@ import javax.inject.Inject;
 import restless.handler.binding.backend.BindingStore;
 import restless.handler.binding.model.Binding;
 import restless.handler.binding.model.BindingModelFactory;
+import restless.handler.binding.model.Handler;
 import restless.handler.binding.model.PathSpec;
+import restless.handler.filesystem.backend.FilesystemStore;
+import restless.handler.filesystem.backend.FsPath;
 import restless.handler.nginx.manage.NginxService;
 import restless.handler.nginx.model.NginxConfig;
 import restless.handler.nginx.model.NginxLocation;
@@ -18,56 +21,72 @@ final class NginxFilesystemGlueImpl implements NginxFilesystemGlue
 	private final NginxService nginxService;
 	private final BindingStore bindingStore;
 	private final BindingModelFactory bindingFactory;
+	FilesystemStore filesystemStore;
 
 	@Inject
 	private NginxFilesystemGlueImpl(
 			final NginxService nginxService,
 			final BindingStore bindingStore,
-			final BindingModelFactory bindingFactory)
+			final BindingModelFactory bindingFactory,
+			final FilesystemStore filesystemStore)
 	{
 		this.nginxService = checkNotNull(nginxService);
 		this.bindingStore = checkNotNull(bindingStore);
 		this.bindingFactory = checkNotNull(bindingFactory);
+		this.filesystemStore = checkNotNull(filesystemStore);
 	}
 
 	@Override
 	public NginxConfig nginxConf()
 	{
 		final NginxConfig nginx = nginxService.newConfig();
+		nginx.http().root().giveDirPath(filesystemStore.srvBucket());
+
 		final NginxServer server = nginx.httpServer();
 
 		for (final Binding binding : bindingStore.snapshot())
 		{
-			switch (binding.handler().type()) {
-			case filesystem:
-				addFilesystemLocation(server, binding);
-				break;
-			default:
-				throw new UnsupportedOperationException("Unrecognized handler: " + binding.handler());
-			}
+			addBindingLocation(server, binding);
 		}
 		return nginx;
 	}
 
-	private void addFilesystemLocation(final NginxServer server, final Binding binding)
+	private void addBindingLocation(final NginxServer server, final Binding binding)
 	{
-		final NginxLocation location;
 		final PathSpec path = binding.pathSpec();
+		final NginxLocation location;
+		switch (binding.handler().type()) {
+		case empty:
+			// ignore it
+			break;
+		case filesystem:
+			addLocationForPath(server, path); // no further configuration required - files will be served relative to root
+			break;
+		case resource_files:
+			location = addLocationForPath(server, path);
+			location.alias().giveDirPath(resourceFsPath(binding.handler()));
+			break;
+		default:
+			throw new UnsupportedOperationException("Unrecognized handler: " + binding.handler());
+		}
+	}
+
+	private FsPath resourceFsPath(final Handler handler)
+	{
+		return filesystemStore.systemBucket().segment("resource-files")
+				.slashSeparatedSegments(handler.handlerPath());
+	}
+
+	private NginxLocation addLocationForPath(final NginxServer server, final PathSpec path)
+	{
 		switch (path.classify()) {
 		case EXACT:
-			location = server.addLocationEquals(path.literalString());
-			break;
+			return server.addLocationEquals(path.literalString());
 		case PREFIX:
-			location = server.addLocation(path.minus(bindingFactory.multi()).literalString());
-			break;
-		case PREFIX_STAR:
-			// TODO: this is not correct. It will match anything in the directory, not just one level deep as requested.
-			location = server.addLocation(path.minus(bindingFactory.star()).literalString());
-			break;
+			return server.addLocation(path.minus(bindingFactory.multi()).literalString());
 		default:
 			throw new UnsupportedOperationException("Cannot handle this kind of path");
 		}
-		location.alias().giveDirPath(binding.handler().filesystemBucket());
 	}
 
 	@Override

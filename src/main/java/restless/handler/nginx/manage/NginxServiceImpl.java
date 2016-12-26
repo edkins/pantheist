@@ -181,7 +181,6 @@ final class NginxServiceImpl implements NginxService
 
 		nginx.pid().giveFilePath(sys("nginx.pid"));
 		nginx.error_log().giveFilePath(sys("nginx-error.log"));
-		nginx.http().root().giveDirPath(filesystemStore.rootPath());
 		nginx.http().access_log().giveFilePath(sys("nginx-access.log"));
 		nginx.http().charset().giveValue("utf-8");
 		nginx.http().addServer(config.mainPort());
