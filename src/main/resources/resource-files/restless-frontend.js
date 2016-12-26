@@ -27,7 +27,7 @@ var Restless = {};
 // TranslationStore
 //      translate(uri)          returns translated URI
 //      relevantRules(uri,pres) returns collection of mappings relevant to URI, presented as 'sortBySequence', 'sortByName' or 'mapByName'
-//      addRule(name,matchUri,mapsToUri,matchDescendants)   tries to add a rule. Returns undefined if successful, an error message on failure.
+//      addRule(matchUri,mapsToUri)   tries to add a rule. Returns undefined if successful, an error message on failure.
 //      putRules(rules)         accepts a list, returns a promise
 // translationRule
 //      name
@@ -37,28 +37,26 @@ var Restless = {};
 //      appliesTo(uri)          return whether this rule directly applies to the given URI
 //      relevantTo(uri)         return whether this rule applies to the given URI or to one of its descendants.
 //      translate(uri)          translate the given uri, if possible.
-//      conflictsWith(name,matchUri)    returns true if adding another rule with the given name or matchUri would cause a conflict
 //
 // Schema: most fields are optional and may be missing.
 //
 // {
-//    "clientUri": "client:{path}"             untranslated client URI that can be used in a call to Restless.node(uri)
-//    "serverUrl": "http://{host}/{path}"      URL to access the corresponding resource on the server
+//    "clientUri": "restless:path"             untranslated client URI that can be used in a call to Restless.node(uri)
+//    "serverUrl": "http://host/path"          URL to access the corresponding resource on the server
 //    "childResources": [                      A list of known child resources
 //        {
 //           "sequence": 0,                    the place in the list where this appeared
 //           "name": "{name}",                 identifier which must be unique, nonempty and not contain slashes
-//           "clientUri": "client:{path+name}" uri to locate it under, should equal the parent clientUri together with the "name" field
+//           "clientUri": "restless:path"      uri to locate it under, should equal the parent clientUri together with the "name" field
 //        }
 //    ],
 //    "translationRules: [                     a list of relevant translation rules.
 //        {
 //           "sequence": 0,                    the place in the list where this appeared. Higher numbers will be applied in preference.
-//           "name": "{name}",                 a unique name for this rule
-//           "owner": "client:{path}",         which resource owns this rule. This is where you must issue patch requests if you want the rule changed or deleted.
-//           "matchUri": "client:{prefix}",    uri prefix to match
+//           "owner": "restless:path",         which resource owns this rule. This is where you must issue patch requests if you want the rule changed or deleted.
+//           "matchUri": "restless:prefix",    uri prefix to match
 //           "matchDescendants": true,         whether descendants are matched also
-//           "mapsToUri": "{sc}:{prefix}",     uri prefix to map it to.
+//           "mapsToUri": "scheme:prefix",     uri prefix to map it to.
 //           "applied": true                   whether this rule is directly applied to the resource in question
 //        }
 //    ]
@@ -256,48 +254,11 @@ Restless._isEqualTo = function(value,name,expected)
 	}
 };
 
-Restless._noFieldsExcept = function(obj,name,fields)
-{
-	Restless._nonEmptyString(name,'_noFieldsExcept.name');
-	Restless._isArrayOf(fields,'_noFieldsExcept.fields', Restless._nonEmptyString);
-	
-	for (var field in obj)
-	{
-		if (fields.indexOf(field) === -1)
-		{
-			throw name + ': unexpected field ' + field;
-		}
-	}
-};
-
-Restless._selectFields = function(inputObj,fields,sequence,functions)
-{
-	var result = {};
-	for (var i = 0; i < fields.length; i++)
-	{
-		var field = fields[i];
-		if (field === 'sequence' && sequence !== undefined)
-		{
-			result[field] = sequence;
-		}
-		else if (field in functions)
-		{
-			result[field] = functions[field](inputObj);
-		}
-		else
-		{
-			result[field] = inputObj[field];
-		}
-	}
-	return result;
-};
-
-Restless._presentList = function(inputList,presentation,fields,functions)
+Restless._presentList = function(inputList,presentation,fn)
 {
 	Restless._isArrayOf(inputList,'inputList', Restless._isObject);
 	Restless._nonEmptyString(presentation,'presentation');
-	Restless._isArrayOf(fields,'fields', Restless._nonEmptyString);
-	Restless._isMapOf(functions,'functions', Restless._isFunction);
+	Restless._isFunction(fn,'fn');
 
 	var map = {};
 	var list = [];
@@ -307,13 +268,13 @@ Restless._presentList = function(inputList,presentation,fields,functions)
 	case 'sortBySequence':
 		for (var i = 0; i < inputList.length; i++)
 		{
-			list.push(Restless._selectFields(inputList[i],fields,i,functions));
+			list.push(fn(inputList[i],i));
 		}
 		return list;
 	case 'sortByName':
 		for (var i = 0; i < inputList.length; i++)
 		{
-			list.push(Restless._selectFields(inputList[i],fields,i,functions));
+			list.push(fn(inputList[i],i));
 		}
 		list.sort( function(x,y)
 			{
@@ -324,7 +285,7 @@ Restless._presentList = function(inputList,presentation,fields,functions)
 	case 'mapByName':
 		for (var i = 0; i < inputList.length; i++)
 		{
-			map[inputList[i].name] = Restless._selectFields(inputList[i],fields,i,functions);
+			map[inputList[i].name] = fn(inputList[i],i);
 		}
 		return map;
 	default:
@@ -414,9 +375,14 @@ Restless._splitByField = function(data,name,catchAll,fieldTargets)
 //
 ///////////////////////
 
-Restless.HttpService = function()
+Restless.HttpService = function(matchUri)
 {
-	this.homeUri = undefined;
+	Restless._isString(matchUri,'matchUri');
+	if (!matchUri.startsWith('http://'))
+	{
+		throw 'matchUri must start http:// for http service';
+	}
+	this.homeUri = matchUri;
 	this.matchUri = 'http://';
 };
 
@@ -510,28 +476,14 @@ Restless.ErrorNode.prototype.put = function(data)
 Restless.TranslationStore = function(fromPrefix)
 {
 	this._mappings = [];
-	this._fromPrefixes = [];
-	this._toPrefixes = [];
-	this.matchUri = 'internal:translation-store/';
-	this.homeUri = 'internal:translation-store/';
+	this.matchUri = 'restless:internal/translation-store/';
+	this.homeUri = 'restless:internal/translation-store/';
 };
 
 Restless.TranslationStore.prototype.appliesTo = function(uri)
 {
 	Restless._isString(uri,'uri');
 	return Restless._uriPrefix(uri, this.matchUri);
-}
-
-Restless.TranslationStore.prototype.addFromPrefix = function(uri)
-{
-	Restless._nonEmptyString(uri,'uri');
-	this._fromPrefixes.push(uri);
-}
-
-Restless.TranslationStore.prototype.addToPrefix = function(uri)
-{
-	Restless._nonEmptyString(uri,'uri');
-	this._toPrefixes.push(uri);
 }
 
 Restless.TranslationStore.prototype._findAppliedRule = function(uri)
@@ -573,65 +525,25 @@ Restless.TranslationStore.prototype.relevantRules = function(uri,presentation)
 	return Restless._presentList(
 		filteredList,
 		presentation,
-		['sequence','name','owner','matchUri','mapsToUri','matchDescendants','applied'],
-		{
-			applied: function(r)
-				{
-					return r === appliedRule;
-				}
+		function(r,i) {
+			return {
+				sequence: i,
+				matchUri: r.matchPattern.stringForm,
+				mapsToUri: r.mapsToPattern.stringForm,
+				applied: r === appliedRule
+			};
 		});
 };
 
-Restless.TranslationStore.prototype._canAcceptMatchUri = function(matchUri)
+Restless.TranslationStore.prototype.addRule = function(matchUri,mapsToUri)
 {
 	Restless._nonEmptyString(matchUri,'matchUri');
-	for (var i = 0; i < this._fromPrefixes.length; i++)
-	{
-		if (Restless._uriPrefix(matchUri, this._fromPrefixes[i]))
-		{
-			return true;
-		}
-	}
-	return false;
-};
-
-Restless.TranslationStore.prototype._canAcceptMapsToUri = function(mapsToUri)
-{
 	Restless._nonEmptyString(mapsToUri,'mapsToUri');
-	for (var i = 0; i < this._toPrefixes.length; i++)
-	{
-		if (Restless._uriPrefix(mapsToUri, this._toPrefixes[i]))
-		{
-			return true;
-		}
-	}
-	return false;
-};
-
-Restless.TranslationStore.prototype.addRule = function(name,matchUri,mapsToUri,matchDescendants)
-{
-	Restless._nonEmptyString(name,'name');
-	Restless._nonEmptyString(matchUri,'matchUri');
-	Restless._nonEmptyString(mapsToUri,'mapsToUri');
-	Restless._isBoolean(matchDescendants,'matchDescendants');
 	
-	// Only accept rules that map from a valid namespace to a valid namespace
-	if (!this._canAcceptMatchUri(matchUri))
-	{
-		return "can't accept matchUri";
-	}
-	if (!this._canAcceptMapsToUri(mapsToUri))
-	{
-		return "can't accept mapsToUri";
-	}
-	for (var i = 0; i < this._mappings.length; i++)
-	{
-		if (this._mappings[i].conflictsWith(name,matchUri))
-		{
-			return "conflicts with previous mapping";
-		}
-	}
-	this._mappings.push( new Restless.TranslationRule(name,matchUri,mapsToUri,matchDescendants) );
+	var matchPattern = Restless.uriPatternFromString(matchUri);
+	var mapsToPattern = Restless.uriPatternFromString(mapsToUri);
+	
+	this._mappings.push( new Restless.TranslationRule(matchPattern,mapsToPattern) );
 	return undefined;
 };
 
@@ -650,7 +562,7 @@ Restless.TranslationStore.prototype.putRules = function(rules)
 	for (var i = 0; i < rules.length; i++)
 	{
 		var rule = rules[i];
-		var err = experimentalStore.addRule(rule.name, rule.matchUri, rule.mapsToUri, rule.matchDescendants);
+		var err = experimentalStore.addRule(rule.matchUri, rule.mapsToUri);
 		if (err !== undefined)
 		{
 			return Promise.reject('Failed to add rule ' + rule.name + ': ' + err);
@@ -663,7 +575,7 @@ Restless.TranslationStore.prototype.putRules = function(rules)
 
 ///////////////////////
 //
-// Private: TranslationLayer
+// TranslationLayer
 //
 ///////////////////////
 
@@ -673,15 +585,15 @@ Restless.TranslationLayer = function(translationStore,underlyingServices)
 	Restless._isArrayOf(underlyingServices,'underlyingServices',Restless._isService);
 	this._translationStore = translationStore;
 	this._underlyingServices = underlyingServices;
-	this.matchUri = 'client:';
-	this.homeUri = 'client:';
+	this.matchUri = 'restless:';
+	this.homeUri = 'restless:';
 };
 
 Restless.TranslationLayer.prototype.appliesTo = function(uri)
 {
 	Restless._isString(uri,'uri');
-	return Restless._uriPrefix(uri, this.matchUri);
-}
+	return Restless._uriPrefix(uri,this.matchUri);
+};
 
 Restless.TranslationLayer.prototype._findService = function(uri)
 {
@@ -693,15 +605,6 @@ Restless.TranslationLayer.prototype._findService = function(uri)
 		}
 	}
 	return undefined;
-};
-
-Restless.TranslationLayer.prototype.addPrefixesToStore = function()
-{
-	this._translationStore.addFromPrefix(this.matchUri);
-	for (var i = 0; i < this._underlyingServices.length; i++)
-	{
-		this._translationStore.addToPrefix(this._underlyingServices[i].matchUri);
-	}
 };
 
 Restless.TranslationLayer.prototype.get = function(uri)
@@ -764,51 +667,306 @@ Restless.TranslationLayer.prototype.getzzz = function(uri)
 //
 ///////////////////////
 
-Restless.TranslationRule = function(name,matchUri,mapsToUri,matchDescendants)
+Restless._isUriPattern = function(uriPattern,name)
 {
-	Restless._nonEmptyString(name,'name');
-	Restless._nonEmptyString(matchUri,'matchUri');
-	Restless._nonEmptyString(mapsToUri,'mapsToUri');
-	Restless._isBoolean(matchDescendants,'matchDescendants');
-	this.name = name;
-	this.owner = matchUri;
-	this.matchUri = matchUri;
-	this.mapsToUri = mapsToUri;
-	this.matchDescendants = matchDescendants;
+	Restless._nonEmptyString(name,'_isUriPattern.name');
+	Restless._hasField(uriPattern,'uriPattern','UriPattern','match',Restless._isFunction);
+	Restless._hasField(uriPattern,'uriPattern','UriPattern','toUri',Restless._isFunction);
+	Restless._hasField(uriPattern,'uriPattern','UriPattern','hasPrefix',Restless._isFunction);
+	Restless._hasField(uriPattern,'uriPattern','UriPattern','stringForm',Restless._isString);
+};
+
+Restless._isUriPatternSegment = function(segment,name)
+{
+	Restless._nonEmptyString(name,'_isUriPatternSegment.name');
+	Restless._hasField(segment,'segment','UriPatternSegment','match',Restless._isFunction);
+	Restless._hasField(segment,'segment','UriPatternSegment','stringForm',Restless._isString);
+};
+
+Restless.TranslationRule = function(matchPattern,mapsToPattern)
+{
+	Restless._isUriPattern(matchPattern,'matchPattern');
+	Restless._isUriPattern(mapsToPattern,'mapsToPattern');
+	this.matchPattern = matchPattern;
+	this.mapsToPattern = mapsToPattern;
 };
 
 Restless.TranslationRule.prototype.appliesTo = function(uri)
 {
 	Restless._nonEmptyString(uri,'uri');
-	if (this.matchDescendants)
-	{
-		return Restless._uriPrefix(uri, this.matchUri);
-	}
-	else
-	{
-		return Restless._uriEqual(uri, this.matchUri);
-	}
+	return this.matchPattern.match(uri) !== undefined;
 };
 
 Restless.TranslationRule.prototype.relevantTo = function(uri)
 {
 	Restless._nonEmptyString(uri,'uri');
-	return this.appliesTo(uri) || Restless._uriPrefix(this.matchUri, uri);
+	return this.appliesTo(uri) || this.matchPattern.hasPrefix(uri);
 };
 
 Restless.TranslationRule.prototype.translate = function(uri)
 {
 	Restless._nonEmptyString(uri,'uri');
-	if (this.appliesTo(uri))
+	var match = this.matchPattern.match(uri);
+	if (match !== undefined)
 	{
-		return this.mapsToUri + uri.substring(this.matchUri.length);
+		return this.mapsToPattern.toUri(match);
 	}
 	return undefined;
 };
 
-Restless.TranslationRule.prototype.conflictsWith = function(name,matchUri)
+///////////////////////
+//
+// UriPattern
+//
+///////////////////////
+
+Restless.LiteralSegment = function(segment)
 {
-	return this.name === name || this.matchUri === matchUri;
+	Restless._isString(segment,'segment');
+	
+	this.segment = segment;
+	this.isLiteral = true;
+};
+
+Restless.LiteralSegment.prototype.match = function(segments)
+{
+	Restless._isArrayOf(segments,'segments',Restless._isString);
+	if (segments.length >= 1 && this.segment === segments[0])
+	{
+		return {count:1, capture:undefined};
+	}
+	return undefined;
+};
+
+Object.defineProperty(Restless.LiteralSegment.prototype, 'stringForm', {
+	get: function()
+	{
+		return this.segment;
+	}
+});
+
+Restless.MatchSingleSegment = function()
+{
+	this.isLiteral = false;
+};
+
+Restless.MatchSingleSegment.prototype.match = function(segments)
+{
+	Restless._isArrayOf(segments,'segments',Restless._isString);
+	if (segments.length >= 1)
+	{
+		return {count:1, capture:segment};
+	}
+	return undefined;
+};
+
+Restless.MatchSingleSegment.prototype.stringForm = function()
+{
+	return "{}";
+};
+
+Restless.UriPattern = function(scheme,authority,segments)
+{
+	Restless._nonEmptyString(scheme,'scheme');
+	Restless._stringOrUndefined(authority,'authority');
+	Restless._isArrayOf(segments,'segments',Restless._isUriPatternSegment);
+	this.scheme = scheme;
+	this.authority = authority;
+	this.segments = segments;
+};
+
+Restless.UriPattern.prototype.match = function(uri)
+{
+	Restless._isString(uri,'uri');
+	
+	var uriComponents = Restless.splitUri(uri);
+	if (uriComponents.scheme !== this.scheme)
+	{
+		return undefined;
+	}
+	
+	var segments = uriComponents.path.split('/');
+	
+	var j = 0;
+	var result = [];
+	for (var i = 0; i < this.segments.length; i++)
+	{
+		var match = this.segments[i].match(segments.slice(j))
+		if (match === undefined)
+		{
+			return undefined;
+		}
+		if (match.capture !== undefined)
+		{
+			result.push(match.capture);
+		}
+		j += match.count;
+	}
+	if (j !== segments.length)
+	{
+		return undefined;
+	}
+	return result;
+};
+
+Restless.UriPattern.prototype._schemeAndAuthority = function()
+{
+	if (this.authority === undefined)
+	{
+		return this.scheme + ':';
+	}
+	else
+	{
+		return this.scheme + '://' + this.authority;
+	}
+};
+
+Restless.UriPattern.prototype.toUri = function(capturedItems)
+{
+	if (capturedItems.length !== 0)
+	{
+		throw 'Dealing with captured items is not handled yet';
+	}
+	return this._schemeAndAuthority() + this.segments.map(
+		function(seg)
+		{
+			if (!seg.isLiteral())
+			{
+				throw 'Dealing with non-literal not handled yet';
+			}
+			return seg.segment;
+		}).join('/');
+};
+
+Restless.UriPattern.prototype.hasPrefix = function(prefix)
+{
+	Restless._isString(prefix,'prefix');
+	var uriComponents = Restless.splitUri(prefix);
+	if (uriComponents.scheme !== this.scheme)
+	{
+		return false;
+	}
+	if (uriComponents.query !== undefined || uriComponents.fragment !== undefined)
+	{
+		return false;
+	}
+	var segments = uriComponents.path.split('/');
+	for (var i = 0; i < segments.length; i++)
+	{
+		// Special treatment for empty segment at the end of prefix.
+		if (i === segments.length - 1 && segments[i] === '')
+		{
+			if (i >= this.segments.length)
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if (i >= this.segments.length || !this.segments[i].isLiteral || this.segments[i].segment !== segments[i])
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+};
+
+Object.defineProperty(Restless.UriPattern.prototype, 'stringForm', {
+	get: function()
+	{
+		return this._schemeAndAuthority() + this.segments.map(s => s.stringForm).join('/');
+	}
+});
+
+Restless.patternSegmentFromString = function(segment)
+{
+	Restless._isString(segment,'segment');
+	
+	var literalRegex = /^[a-zA-Z0-9-._~]*$/;
+	if (literalRegex.test(segment))
+	{
+		return new Restless.LiteralSegment(segment);
+	}
+};
+
+Restless.splitUri = function(uri)
+{
+	Restless._isString(uri,'uri');
+	
+	// taken from rfc3986, with the slashes escaped.
+	var uriRegex = /^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
+	
+	var match = uri.match(uriRegex);
+	
+	if (match === undefined)
+	{
+		// Not sure it's possible to fail to match, but just in case.
+		return {
+			scheme: undefined,
+			authority: undefined,
+			path: undefined,
+			query: undefined,
+			fragment: undefined
+		};
+	}
+	
+	return {
+		scheme: match[2].toLowerCase(),
+		authority: match[4],
+		path: match[5],
+		query: match[7],
+		fragment: match[9]
+	};
+};
+
+Restless.uriPatternFromString = function(patternString)
+{
+	Restless._nonEmptyString(patternString,'patternString');
+	
+	var uriComponents = Restless.splitUri(patternString);
+	if (uriComponents.scheme === undefined || uriComponents.query !== undefined || uriComponents.fragment !== undefined)
+	{
+		throw 'Invalid uri pattern string: ' + patternString;
+	}
+	
+	var segments = uriComponents.path.split('/').map(Restless.patternSegmentFromString);
+	return new Restless.UriPattern(uriComponents.scheme, uriComponents.authority, segments);
+};
+
+Restless.uriAddSegment = function(uri,segment)
+{
+	Restless._nonEmptyString(segment,'segment');
+	var segmentRegex = /^[a-zA-Z0-9.-_~]+$/;
+	if (!segmentRegex.test(segment))
+	{
+		throw 'Invalid segment for uriAddSegment: ' + segment;
+	}
+	
+	var uriComponents = Restless.splitUri(uri);
+	if (uriComponents.scheme === undefined || uriComponents.query !== undefined || uriComponents.fragment !== undefined)
+	{
+		throw 'Invalid uri for uriAddSegment: ' + uri;
+	}
+	
+	var path;
+	if (uriComponents.path.endsWith('/') || (uriComponents.path === '' && uriComponents.authority === undefined))
+	{
+		path = uriComponents.path + segment;
+	}
+	else
+	{
+		path = uriComponents.path + '/' + segment;
+	}
+	
+	if (uriComponents.authority === undefined)
+	{
+		return uriComponents.scheme + ':' + path;
+	}
+	else
+	{
+		return uriComponents.scheme + '://' + uriComponents.authority + path;
+	}
 };
 
 /////////////
@@ -840,20 +998,22 @@ Restless.node = function(uri)
 	}
 	else
 	{
-		return new Restless.ErrorNode('Service name not recognized');
+		return new Restless.ErrorNode('Main service does not apply to this uri');
 	}
 };
 
 Restless.initialize = function(rootUrl)
 {
+	Restless._nonEmptyString(rootUrl,'rootUrl');
 	Restless._knownNodes = {};
 	var httpService = new Restless.HttpService(rootUrl);
 	var translationStore = new Restless.TranslationStore();
 	var translationLayer = new Restless.TranslationLayer(translationStore, [httpService]);
 
-	translationLayer.addPrefixesToStore();
+	var serverUri = Restless.uriAddSegment(translationLayer.homeUri, 'server');
 
-	Restless._isService(translationLayer,'mainService');
+	translationStore.addRule(serverUri, httpService.homeUri);
 
+	Restless._isService(translationLayer,'translationLayer');
 	Restless._mainService = translationLayer;
 };

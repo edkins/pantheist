@@ -1,2 +1,0 @@
-curl localhost:3301/+resources/*/config -XPUT -d'{"handler":"resource_files","handlerPath":""}' -HContent-Type:application/json
-curl 127.0.0.1:3300/resources/example-client.html

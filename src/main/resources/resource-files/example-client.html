@@ -1,7 +1,7 @@
 <html>
 <head>
 <script src="/resources/restless-frontend.js"></script>
-<script src="/resources/ace-builds/src-noconflict/ace.js"></script>
+<script src="/third-party/ace-builds/src-noconflict/ace.js"></script>
 <script>
 	var editor = undefined;
 
@@ -96,6 +96,7 @@
 	    editor.setTheme("ace/theme/chrome");
 	    editor.getSession().setMode("ace/mode/json");
 	    editor.setShowPrintMargin(false);
+	    editor.$blockScrolling = Infinity;
 	}
 	
 	window.onload = function()
@@ -104,13 +105,14 @@
 		{
 			setupAce();
 
-			Restless.initialize();
+			Restless.initialize('http://127.0.0.1:3301');
 			document.getElementById('btnGet').onclick = clickGet;
 			document.getElementById('btnPut').onclick = clickPut;
 			document.getElementById('btnHome').onclick = clickHome;
+			clickHome();
 			
 		} catch(e) {
-			msg('Initialization error: ' + e);
+			showError(e);
 		}
 	}
 </script>
@@ -123,7 +125,7 @@
 </head>
 <body>
 	<p>
-		<input type="text" id="inputUri" value="client:" autocomplete="off">
+		<input type="text" id="inputUri" autocomplete="off">
 		<input type="button" value="Get" id="btnGet">
 		<input type="button" value="Put" id="btnPut">
 		<input type="button" value="Home" id="btnHome">

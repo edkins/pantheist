@@ -1,4 +1,0 @@
-set -e
-curl localhost:3301/config -d'{"pathSpec":"resources"}' -HContent-Type:application/json -D-
-curl localhost:3301/config/0/handler -XPUT -d'{"type":"filesystem"}' -HContent-Type:application/json
-curl 127.0.0.1:3300/resources/example-client.html

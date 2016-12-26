@@ -221,6 +221,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	{
 		if (bindingStore.deleteConfig(configId))
 		{
+			restartServers();
 			return PossibleEmpty.ok();
 		}
 		else

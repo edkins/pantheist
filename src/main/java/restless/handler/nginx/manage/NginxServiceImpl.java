@@ -52,7 +52,7 @@ final class NginxServiceImpl implements NginxService
 			if (runningProcess.isPresent())
 			{
 				final Process process = new ProcessBuilder(config.nginxExecutable(), "-c",
-						nginxConf().getAbsolutePath(), "-s", "hup").start();
+						nginxConf().getAbsolutePath(), "-s", "reload").start();
 				final int exitCode = process.waitFor();
 				if (exitCode != 0)
 				{
