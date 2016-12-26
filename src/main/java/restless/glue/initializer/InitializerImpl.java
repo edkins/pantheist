@@ -47,6 +47,7 @@ final class InitializerImpl implements Initializer
 		try
 		{
 			LOGGER.info("Data dir is {}", config.dataDir());
+
 			filesystem.initialize();
 			bindingStore.initialize();
 			server.start();

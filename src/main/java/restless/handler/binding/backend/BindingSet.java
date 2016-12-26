@@ -16,6 +16,9 @@ interface BindingSet
 	@JsonProperty("bindings")
 	List<Binding> bindings();
 
+	@JsonProperty("counter")
+	int counter();
+
 	/**
 	 * Creates a new binding, and fails if one already exists with this id.
 	 */

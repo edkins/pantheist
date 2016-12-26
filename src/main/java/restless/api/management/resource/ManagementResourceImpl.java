@@ -84,6 +84,7 @@ public final class ManagementResourceImpl implements ManagementResource
 			final CreateConfigRequest request = objectMapper.readValue(requestJson, CreateConfigRequest.class);
 
 			final URI newUri = backend.createConfig(request);
+			LOGGER.info("Created {}", newUri);
 
 			return Response.created(newUri).build();
 		}

@@ -88,4 +88,10 @@ final class BindingSetImpl implements BindingSet
 		return configId;
 	}
 
+	@Override
+	public int counter()
+	{
+		return counter;
+	}
+
 }

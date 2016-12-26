@@ -1,5 +1,4 @@
 set -e
-curl localhost:3301/+resources/*/config -XPUT -d'{"handler":"filesystem"}' -HContent-Type:application/json
-cp src/main/resources/resource-files/restless-frontend.js data/resources_X0
-cp src/main/resources/resource-files/example-client.html data/resources_X0
+curl localhost:3301/config -d'{"pathSpec":"resources"}' -HContent-Type:application/json -D-
+curl localhost:3301/config/0/handler -XPUT -d'{"type":"filesystem"}' -HContent-Type:application/json
 curl 127.0.0.1:3300/resources/example-client.html
