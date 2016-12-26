@@ -37,5 +37,10 @@ interface BindingSet
 	@JsonIgnore
 	Optional<Binding> get(ConfigId configId);
 
+	/**
+	 * Remove the given config id, if present.
+	 */
+	void remove(ConfigId configId);
+
 	ConfigId nextUnusedId();
 }

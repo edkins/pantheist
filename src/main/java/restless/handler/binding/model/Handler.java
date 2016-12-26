@@ -14,7 +14,7 @@ public interface Handler
 	/**
 	 * Where relevant, this refers to some path that the resources will be bound to.
 	 *
-	 * Used for: resource_files
+	 * Used for: resource_files, external_files
 	 */
 	@Nullable
 	@JsonProperty("handlerPath")

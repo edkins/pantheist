@@ -20,4 +20,9 @@ public class ManagementUnexpectedResponseException extends RuntimeException
 	{
 		super(e);
 	}
+
+	public ManagementUnexpectedResponseException(final ResponseType responseType)
+	{
+		super("Unexpected response type: " + responseType);
+	}
 }

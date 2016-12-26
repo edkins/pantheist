@@ -94,4 +94,17 @@ final class BindingSetImpl implements BindingSet
 		return counter;
 	}
 
+	@Override
+	public void remove(final ConfigId configId)
+	{
+		for (int i = 0; i < bindings.size(); i++)
+		{
+			if (bindings.get(i).configId().equals(configId))
+			{
+				bindings.remove(i);
+				return;
+			}
+		}
+	}
+
 }

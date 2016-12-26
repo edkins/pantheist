@@ -29,7 +29,7 @@ final class ManagementDataImpl implements ManagementData
 	@Override
 	public ResponseType getResponseType()
 	{
-		return target.getTextPlainResponseType();
+		return target.getResponseType("text/plain");
 	}
 
 	@Override

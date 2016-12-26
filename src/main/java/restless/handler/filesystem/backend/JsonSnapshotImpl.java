@@ -87,6 +87,10 @@ final class JsonSnapshotImpl<T> implements JsonSnapshot<T>
 	@Override
 	public void writeMutable()
 	{
+		if (!value.isPresent())
+		{
+			throw new IllegalStateException("Attempted writeMutable() without having called read()");
+		}
 		write(value.get());
 	}
 

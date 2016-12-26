@@ -37,4 +37,10 @@ public interface NginxVar
 	 * lie within the data directory.
 	 */
 	void giveFilePath(FsPath path);
+
+	/**
+	 * Set explicitly to a path on your filesystem. Must start with a slash. Will append
+	 * a slash if there's not one already there.
+	 */
+	void giveAbsoluteDirPath(String handlerPath);
 }

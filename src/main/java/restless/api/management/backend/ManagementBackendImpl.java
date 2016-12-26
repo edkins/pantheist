@@ -3,6 +3,7 @@ package restless.api.management.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -10,8 +11,12 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
+import restless.api.management.model.ApiManagementModelFactory;
 import restless.api.management.model.CreateConfigRequest;
+import restless.api.management.model.ListConfigItem;
+import restless.api.management.model.ListConfigResponse;
 import restless.glue.nginx.filesystem.NginxFilesystemGlue;
 import restless.handler.binding.backend.BindingStore;
 import restless.handler.binding.backend.ManagementFunctions;
@@ -39,6 +44,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	private final SchemaValidation schemaValidation;
 	private final JavaStore javaStore;
 	private final RestlessConfig config;
+	private final ApiManagementModelFactory modelFactory;
 
 	@Inject
 	ManagementBackendImpl(final BindingModelFactory bindingFactory,
@@ -47,7 +53,8 @@ final class ManagementBackendImpl implements ManagementBackend
 			final NginxFilesystemGlue nginxFilesystemGlue,
 			final SchemaValidation schemaValidation,
 			final JavaStore javaStore,
-			final RestlessConfig config)
+			final RestlessConfig config,
+			final ApiManagementModelFactory modelFactory)
 	{
 		this.bindingFactory = checkNotNull(bindingFactory);
 		this.bindingStore = checkNotNull(bindingStore);
@@ -56,6 +63,7 @@ final class ManagementBackendImpl implements ManagementBackend
 		this.schemaValidation = checkNotNull(schemaValidation);
 		this.javaStore = checkNotNull(javaStore);
 		this.config = checkNotNull(config);
+		this.modelFactory = checkNotNull(modelFactory);
 	}
 
 	private Binding changeHandler(final Handler handler, final Binding b)
@@ -189,12 +197,48 @@ final class ManagementBackendImpl implements ManagementBackend
 	{
 		final PathSpec pathSpec = literalPath(request.pathSpec()).plus(bindingFactory.multi());
 		final ConfigId configId = bindingStore.createConfig(pathSpec);
+		return urlForConfigId(configId);
+	}
+
+	private URI urlForConfigId(final ConfigId configId)
+	{
 		return managementUriBuilder().path("config").path(configId.toString()).build();
 	}
 
 	private UriBuilder managementUriBuilder()
 	{
 		return UriBuilder.fromUri("http://localhost").port(config.managementPort());
+	}
+
+	@Override
+	public boolean configExists(final ConfigId configId)
+	{
+		return bindingStore.has(configId);
+	}
+
+	@Override
+	public PossibleEmpty deleteConfig(final ConfigId configId)
+	{
+		if (bindingStore.deleteConfig(configId))
+		{
+			return PossibleEmpty.ok();
+		}
+		else
+		{
+			return PossibleEmpty.doesNotExist();
+		}
+	}
+
+	private ListConfigItem makeListConfigItem(final Binding binding)
+	{
+		return modelFactory.listConfigItem(urlForConfigId(binding.configId()).toString());
+	}
+
+	@Override
+	public ListConfigResponse listConfig()
+	{
+		final List<ListConfigItem> list = Lists.transform(bindingStore.listBindings(), this::makeListConfigItem);
+		return modelFactory.listConfigResponse(list);
 	}
 
 }

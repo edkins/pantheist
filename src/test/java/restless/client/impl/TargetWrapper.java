@@ -7,12 +7,12 @@ import java.io.InputStream;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import restless.api.management.model.ListConfigResponse;
 import restless.client.api.ManagementClientException;
 import restless.client.api.ManagementResourceNotFoundException;
 import restless.client.api.ManagementUnexpectedResponseException;
@@ -45,9 +45,9 @@ public final class TargetWrapper
 		return getString("text/plain");
 	}
 
-	public ResponseType getTextPlainResponseType()
+	public ResponseType getResponseType(final String contentType)
 	{
-		final Response response = target.request(MediaType.TEXT_PLAIN).get();
+		final Response response = target.request(contentType).get();
 		return responseType(response);
 	}
 
@@ -231,5 +231,29 @@ public final class TargetWrapper
 			}
 		}
 		return result;
+	}
+
+	public void delete()
+	{
+		final Response response = target.request().delete();
+		expectNoContent(response, "DELETE");
+	}
+
+	public ListConfigResponse getJson(final Class<ListConfigResponse> clazz)
+	{
+		final String json = getString("application/json");
+		try
+		{
+			return objectMapper.readValue(json, clazz);
+		}
+		catch (final IOException e)
+		{
+			throw new ManagementUnexpectedResponseException(e);
+		}
+	}
+
+	public String url()
+	{
+		return target.getUri().toString();
 	}
 }

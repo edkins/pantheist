@@ -312,6 +312,24 @@ final class NginxConfigImpl implements NginxConfig
 			giveValue(path.in(restlessConfig.dataDir()).getAbsolutePath());
 		}
 
+		@Override
+		public void giveAbsoluteDirPath(final String handlerPath)
+		{
+			OtherPreconditions.checkNotNullOrEmpty(handlerPath);
+			if (!handlerPath.startsWith("/"))
+			{
+				throw new IllegalArgumentException("Filesystem path must start with slash");
+			}
+			else if (handlerPath.endsWith("/"))
+			{
+				giveValue(handlerPath);
+			}
+			else
+			{
+				giveValue(handlerPath + "/");
+			}
+		}
+
 	}
 
 	private static final String check(final String value)

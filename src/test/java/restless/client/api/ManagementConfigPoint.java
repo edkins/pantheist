@@ -18,6 +18,13 @@ public interface ManagementConfigPoint
 	void bindToResourceFiles(String resourcePath);
 
 	/**
+	 * Binds this resource to somewhere else on the filesystem
+	 *
+	 * @param absolutePath Absolute path on the filesystem, starting with slash.
+	 */
+	void bindToExternalFiles(String absolutePath);
+
+	/**
 	 * Returns a path to the schema api for this resource. This can be used for
 	 * setting validation on json documents. If a schema is set, any future data put
 	 * will be validated against the supplied schema.
@@ -33,4 +40,16 @@ public interface ManagementConfigPoint
 	 * @return jersey-file api
 	 */
 	ManagementData jerseyFile();
+
+	/**
+	 * Return whether this configuration point can be found.
+	 */
+	boolean exists();
+
+	/**
+	 * Delete this configuration point.
+	 */
+	void delete();
+
+	String url();
 }

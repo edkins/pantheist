@@ -18,7 +18,7 @@ import restless.testhelpers.session.MainRule;
 public abstract class BaseTest
 {
 	@Rule
-	public final MainRule sessionRule = MainRule.forNewTest(Interaction.api());
+	public final MainRule mainRule = MainRule.forNewTest(Interaction.api());
 
 	protected ManagementPath manage;
 
@@ -27,14 +27,18 @@ public abstract class BaseTest
 	@Before
 	public void setup()
 	{
-		manage = sessionRule.actions().manage();
-		mainApi = sessionRule.actions().main();
+		manage = mainRule.actions().manage();
+		mainApi = mainRule.actions().main();
 	}
 
 	protected String resource(final String resourcePath)
 	{
 		try (InputStream input = BaseTest.class.getResourceAsStream(resourcePath))
 		{
+			if (input == null)
+			{
+				throw new IllegalArgumentException("Resource does not exist: " + resourcePath);
+			}
 			return IOUtils.toString(input, StandardCharsets.UTF_8);
 		}
 		catch (final IOException e)

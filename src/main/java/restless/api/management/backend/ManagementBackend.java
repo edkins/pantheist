@@ -5,6 +5,7 @@ import java.net.URI;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import restless.api.management.model.CreateConfigRequest;
+import restless.api.management.model.ListConfigResponse;
 import restless.handler.binding.backend.PossibleData;
 import restless.handler.binding.backend.PossibleEmpty;
 import restless.handler.binding.model.ConfigId;
@@ -18,17 +19,23 @@ public interface ManagementBackend
 
 	PathSpec literalPath(String path);
 
-	PossibleEmpty putConfig(ConfigId path, Handler handler);
+	ListConfigResponse listConfig();
+
+	boolean configExists(ConfigId configId);
+
+	PossibleEmpty putConfig(ConfigId configId, Handler handler);
 
 	PossibleEmpty putData(PathSpec path, String data);
 
 	PossibleData getData(PathSpec path);
 
-	PossibleEmpty putJsonSchema(ConfigId pathSpec, JsonNode schema);
+	PossibleEmpty putJsonSchema(ConfigId configId, JsonNode schema);
 
-	Schema getSchema(ConfigId pathSpec);
+	Schema getSchema(ConfigId configId);
 
-	PossibleEmpty putJerseyFile(ConfigId pathSpec, String code);
+	PossibleEmpty putJerseyFile(ConfigId configId, String code);
 
-	PossibleData getJerseyFile(ConfigId pathSpec);
+	PossibleData getJerseyFile(ConfigId configId);
+
+	PossibleEmpty deleteConfig(ConfigId configId);
 }

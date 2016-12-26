@@ -1,5 +1,7 @@
 package restless.client.api;
 
+import restless.api.management.model.ListConfigResponse;
+
 public interface ManagementConfig
 {
 	/**
@@ -10,4 +12,9 @@ public interface ManagementConfig
 	 * @param path to bind
 	 */
 	ManagementConfigPoint create(String path);
+
+	/**
+	 * List all the configs.
+	 */
+	ListConfigResponse list();
 }

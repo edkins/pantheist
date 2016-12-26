@@ -3,6 +3,7 @@ package restless.system.main;
 import com.google.inject.PrivateModule;
 
 import restless.api.management.backend.ApiManagementBackendModule;
+import restless.api.management.model.ApiManagementModelModule;
 import restless.api.management.resource.ApiManagementResourceModule;
 import restless.glue.initializer.GlueInitializerModule;
 import restless.glue.initializer.Initializer;
@@ -25,6 +26,7 @@ public class AllRestlessModule extends PrivateModule
 	{
 		expose(Initializer.class);
 		install(new ApiManagementBackendModule());
+		install(new ApiManagementModelModule());
 		install(new ApiManagementResourceModule());
 		install(new GlueInitializerModule());
 		install(new GlueNginxFilesystemModule());

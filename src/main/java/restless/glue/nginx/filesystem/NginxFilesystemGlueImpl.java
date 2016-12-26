@@ -44,7 +44,7 @@ final class NginxFilesystemGlueImpl implements NginxFilesystemGlue
 
 		final NginxServer server = nginx.httpServer();
 
-		for (final Binding binding : bindingStore.snapshot())
+		for (final Binding binding : bindingStore.listBindings())
 		{
 			addBindingLocation(server, binding);
 		}
@@ -65,6 +65,10 @@ final class NginxFilesystemGlueImpl implements NginxFilesystemGlue
 		case resource_files:
 			location = addLocationForPath(server, path);
 			location.alias().giveDirPath(resourceFsPath(binding.handler()));
+			break;
+		case external_files:
+			location = addLocationForPath(server, path);
+			location.alias().giveAbsoluteDirPath(binding.handler().handlerPath());
 			break;
 		default:
 			throw new UnsupportedOperationException("Unrecognized handler: " + binding.handler());

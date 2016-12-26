@@ -86,7 +86,7 @@ final class BindingStoreImpl implements BindingStore
 	}
 
 	@Override
-	public List<Binding> snapshot()
+	public List<Binding> listBindings()
 	{
 		return file().read().bindings();
 	}
@@ -121,5 +121,28 @@ final class BindingStoreImpl implements BindingStore
 	private Handler emptyHandler()
 	{
 		return modelFactory.handler(HandlerType.empty, null);
+	}
+
+	@Override
+	public boolean has(final ConfigId configId)
+	{
+		return file().read().get(configId).isPresent();
+	}
+
+	@Override
+	public boolean deleteConfig(final ConfigId configId)
+	{
+		final JsonSnapshot<BindingSet> file = file();
+		final BindingSet bindingSet = file.read();
+		if (bindingSet.get(configId).isPresent())
+		{
+			bindingSet.remove(configId);
+			file.writeMutable();
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 }

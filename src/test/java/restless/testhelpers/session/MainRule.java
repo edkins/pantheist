@@ -1,7 +1,13 @@
 package restless.testhelpers.session;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.util.Random;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -18,6 +24,7 @@ import restless.testhelpers.selenium.SeleniumInfo;
 
 public class MainRule implements TestRule
 {
+	private static final Logger LOGGER = LogManager.getLogger(MainRule.class);
 	private final TestSession session;
 
 	private MainRule(final TestSession session)
@@ -84,5 +91,24 @@ public class MainRule implements TestRule
 	public Statement apply(final Statement base, final Description description)
 	{
 		return createRuleChain().apply(base, description);
+	}
+
+	private String randomChars(final int count)
+	{
+		final Random r = new Random();
+		final StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < count; i++)
+		{
+			sb.append((char) (r.nextInt(26) + 'a'));
+		}
+		return sb.toString();
+	}
+
+	public File createTempDir()
+	{
+		final File dir = new File(session.dataDir(), "tempdir-" + randomChars(6));
+		assertTrue("Could not create dir", dir.mkdir());
+		LOGGER.info("Created a temp directory {}", dir.getAbsolutePath());
+		return dir;
 	}
 }

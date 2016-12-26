@@ -7,6 +7,7 @@ import java.net.URI;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.api.management.backend.ManagementBackend;
 import restless.api.management.model.CreateConfigRequest;
+import restless.api.management.model.ListConfigResponse;
 import restless.handler.binding.backend.PossibleData;
 import restless.handler.binding.backend.PossibleEmpty;
 import restless.handler.binding.model.BindingModelFactory;
@@ -70,6 +72,30 @@ public final class ManagementResourceImpl implements ManagementResource
 	}
 
 	/**
+	 * Lists all the configs.
+	 */
+	@GET
+	@Path("config")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response listConfigs()
+	{
+		LOGGER.info("GET config");
+
+		try
+		{
+			final ListConfigResponse response = backend.listConfig();
+			final String responseJson = objectMapper.writeValueAsString(response);
+			LOGGER.info("Returned {} items.", response.childResources().size());
+
+			return Response.ok(responseJson).build();
+		}
+		catch (final RuntimeException | JsonProcessingException e)
+		{
+			return unexpectedErrorResponse(e);
+		}
+	}
+
+	/**
 	 * Handles creating new config
 	 */
 	@POST
@@ -99,12 +125,61 @@ public final class ManagementResourceImpl implements ManagementResource
 	}
 
 	/**
+	 * Returns information about the configuration point
+	 */
+	@GET
+	@Path("config/{configId}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getConfig(@PathParam("configId") final String configId)
+	{
+		try
+		{
+			if (backend.configExists(bindingModelFactory.configId(configId)))
+			{
+				return Response.ok("{}").build();
+			}
+			else
+			{
+				return msgResponse(404, "NO_SUCH_CONFIG_ID");
+			}
+		}
+		catch (final RuntimeException e)
+		{
+			return unexpectedErrorResponse(e);
+		}
+	}
+
+	/**
+	 * Deletse a configuration point
+	 */
+	@DELETE
+	@Path("config/{configId}")
+	public Response deleteConfig(@PathParam("configId") final String configId)
+	{
+		try
+		{
+			final PossibleEmpty result = backend.deleteConfig(bindingModelFactory.configId(configId));
+
+			return possibleEmptyResponse(result);
+		}
+		catch (final RuntimeException e)
+		{
+			return unexpectedErrorResponse(e);
+		}
+	}
+
+	private Response msgResponse(final int status, final String msg)
+	{
+		return Response.status(404).entity(msg).build();
+	}
+
+	/**
 	 * Handles setting the handler
 	 */
 	@PUT
 	@Path("config/{configId}/handler")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response putConfig(@PathParam("configId") final String configId, final String handlerJson)
+	public Response putHandler(@PathParam("configId") final String configId, final String handlerJson)
 	{
 		LOGGER.info("PUT config/{}/handler {}", configId, handlerJson);
 
@@ -132,7 +207,7 @@ public final class ManagementResourceImpl implements ManagementResource
 	@PUT
 	@Path("data/{path:.*}")
 	@Consumes(MediaType.TEXT_PLAIN)
-	public Response putData(@PathParam("path") final String path, final String data)
+	public Response getHandler(@PathParam("path") final String path, final String data)
 	{
 		LOGGER.info("PUT data/{}", path);
 
