@@ -1,6 +1,6 @@
 'use strict';
 
-var Restless = {};
+var Restless = Restless || {};
 
 ///////////////////////
 //
@@ -83,182 +83,15 @@ Restless._initializationCheck = function()
 {
 	if (Restless._mainService === undefined)
 	{
-		throw 'Not initialized';
-	}
-};
-
-// May return:
-//   undefined
-//   number
-//   empty string
-//   string
-//   function
-//   boolean
-//   null
-//   array
-//   object
-Restless._describe = function(thing)
-{
-	if (thing === null)
-	{
-		return 'null';
-	}
-	else if (thing === '')
-	{
-		return 'empty string';
-	}
-	else if (Array.isArray(thing))
-	{
-		return 'array';
-	}
-	else
-	{
-		return typeof thing;
-	}
-};
-
-Restless._nonEmptyString = function(str,name)
-{
-	if (typeof name !== 'string' || name === '')
-	{
-		throw '_nonEmptyString.name: expecting nonempty string, was ' + Restless._describe(name);
-	}
-
-	if (typeof str !== 'string' || str === '')
-	{
-		throw name + ': expecting nonempty string, was ' + Restless._describe(str);
-	}
-};
-
-Restless._isString = function(str,name)
-{
-	Restless._nonEmptyString(name,'_isString.name');
-
-	if (typeof str !== 'string')
-	{
-		throw name + ': expecting string, was ' + Restless._describe(str);
-	}
-};
-
-Restless._stringOrUndefined = function(str,name)
-{
-	Restless._nonEmptyString(name,'_stringOrUndefined.name');
-
-	if (str !== undefined && typeof str !== 'string')
-	{
-		throw name + ': expecting string or undefined, was ' + Restless._describe(str);
-	}
-};
-
-Restless._isArrayOf = function(array,name,valueChecker)
-{
-	Restless._nonEmptyString(name,'_isArrayOf.name');
-	Restless._isFunction(valueChecker,'_isArrayOf.valueChecker');
-
-	if (!Array.isArray(array))
-	{
-		throw name + ': expecting array, was ' + Restless._describe(array);
-	}
-	for (var i = 0; i < array.length; i++)
-	{
-		valueChecker(array[i], name + '[' + i + ']');
-	}
-};
-
-Restless._isMap = function(map,name)
-{
-	Restless._nonEmptyString(name,'_isMap.name');
-
-	if (typeof map !== 'object' || Array.isArray(map))
-	{
-		throw name + ': expecting map, was ' + Restless._describe(map);
-	}
-};
-
-Restless._isMapOf = function(map,name,valueChecker)
-{
-	Restless._nonEmptyString(name,'_isMapOf.name');
-	Restless._isFunction(valueChecker,'_isMapOf.valueChecker');
-
-	Restless._isMap(map,name);
-	for (var key in map)
-	{
-		Restless._nonEmptyString(key, name + ' keys');
-		valueChecker(map[key], name + '.' + key);
-	}
-};
-
-Restless._isFunction = function(fn,name)
-{
-	Restless._nonEmptyString(name,'_isFunction.name');
-
-	if (typeof fn !== 'function')
-	{
-		throw name + ': expection function, was ' + Restless._describe(fn);
-	}
-};
-
-Restless._isBoolean = function(bool,name)
-{
-	Restless._nonEmptyString(name,'_isBoolean.name');
-
-	if (typeof bool !== 'boolean')
-	{
-		throw name + ': expecting boolean, was ' + Restless._describe(bool);
-	}
-};
-
-Restless._isObject = function(obj,name)
-{
-	Restless._nonEmptyString(name,'_isObject.name');
-
-	if (typeof obj !== 'object')
-	{
-		throw name + ': expecting ' + type + ', was ' + Restless._describe(obj);
-	}
-};
-
-Restless._hasField = function(obj,name,type,field,checker)
-{
-	Restless._nonEmptyString(name,'_hasField.name');
-	Restless._nonEmptyString(field,'_hasField.field');
-	Restless._nonEmptyString(type,'_hasField.type');
-	Restless._isFunction(checker,'_hasField.checker');
-
-	Restless._isObject(obj,name);
-	if (!(field in obj))
-	{
-		throw name + ': expecting ' + type + ', was missing ' + field;
-	}
-	checker(obj[field], type + ' ' + name + '.' + field);
-};
-
-Restless._isService = function(service,name)
-{
-	Restless._nonEmptyString(name,'_isService.name');
-
-	Restless._hasField(service,name,'service','homeUri',Restless._stringOrUndefined);
-	Restless._hasField(service,name,'service','matchUri',Restless._nonEmptyString);
-	Restless._hasField(service,name,'service','appliesTo',Restless._isFunction);
-	Restless._hasField(service,name,'service','get',Restless._isFunction);
-	Restless._hasField(service,name,'service','put',Restless._isFunction);
-};
-
-Restless._isEqualTo = function(value,name,expected)
-{
-	Restless._nonEmptyString(name,'_isEqualTo.name');
-	
-	if (value !== expected)
-	{
-		throw name + ': expecting ' + expected + ', was ' + value;
+		Restless.err('Not initialized');
 	}
 };
 
 Restless._presentList = function(inputList,presentation,fn)
 {
-	Restless._isArrayOf(inputList,'inputList', Restless._isObject);
-	Restless._nonEmptyString(presentation,'presentation');
-	Restless._isFunction(fn,'fn');
+	Restless.ArrayOf(Restless.Object).check(inputList,'inputList');
+	Restless.NonEmptyString.check(presentation,'presentation');
+	Restless.Function.check(fn,'fn');
 
 	var map = {};
 	var list = [];
@@ -289,20 +122,20 @@ Restless._presentList = function(inputList,presentation,fn)
 		}
 		return map;
 	default:
-		throw 'Unknown presentation: ' + presentation;
+		Restless.err('Unknown presentation: {}', presentation);
 	}
 };
 
 Restless._justScheme = function(uri)
 {
-	Restless._nonEmptyString(uri,'uri');
+	Restless.NonEmptyString.check(uri,'uri');
 	var i = uri.indexOf(':');
 	return (i !== -1 && i === uri.length - 1);
 }
 
 Restless._uriTidy = function(uri)
 {
-	Restless._nonEmptyString(uri,'uri');
+	Restless.NonEmptyString.check(uri,'uri');
 	if (!Restless._justScheme(uri) && !uri.endsWith('/'))
 	{
 		return uri + '/';
@@ -328,9 +161,9 @@ Restless._uriEqual = function(uri,uri2)
 
 Restless._splitByField = function(data,name,catchAll,fieldTargets)
 {
-	Restless._nonEmptyString(name,'name');
-	Restless._stringOrUndefined(catchAll,'catchAll');
-	Restless._isMapOf(fieldTargets, 'fieldTargets', Restless._nonEmptyString);
+	Restless.NonEmptyString.check(name,'name');
+	Restless.StringOrUndefined.check(catchAll,'catchAll');
+	Restless.MapOf(Restless.NonEmptyString).check(fieldTargets, 'fieldTargets');
 
 	if (typeof(data) !== 'object')
 	{
@@ -371,24 +204,41 @@ Restless._splitByField = function(data,name,catchAll,fieldTargets)
 
 ///////////////////////
 //
+// Service interface
+//
+///////////////////////
+
+Restless.Service = Restless.Object
+	.withTypeName('Service')
+	.withField('homeUri', Restless.StringOrUndefined)
+	.withField('matchUri', Restless.NonEmptyString)
+	.withMethod('appliesTo')
+	.withMethod('get')
+	.withMethod('put');
+
+///////////////////////
+//
 // HttpService
 //
 ///////////////////////
 
-Restless.HttpService = function(matchUri)
-{
-	Restless._isString(matchUri,'matchUri');
-	if (!matchUri.startsWith('http://'))
-	{
-		throw 'matchUri must start http:// for http service';
-	}
-	this.homeUri = matchUri;
-	this.matchUri = 'http://';
-};
+Restless.HttpService = Restless.Service
+	.withTypeName('HttpService')
+	.withConstructor(
+		function(matchUri)
+		{
+			Restless.String.check(matchUri,'matchUri');
+			if (!matchUri.startsWith('http://'))
+			{
+				Restless.err('matchUri must start http:// for http service');
+			}
+			this.homeUri = matchUri;
+			this.matchUri = 'http://';
+		});
 
 Restless.HttpService.prototype.appliesTo = function(uri)
 {
-	Restless._isString(uri,'uri');
+	Restless.String.check(uri,'uri');
 	return Restless._uriPrefix(uri, this.matchUri);
 }
 
@@ -424,15 +274,30 @@ Restless.HttpService.prototype.put = function(url,data)
 
 ///////////////////////
 //
+// Uri
+//
+///////////////////////
+
+Restless.registerSimpleType('Uri',
+	function(value,name)
+	{
+		Restless.NonEmptyString.check(value,name);
+		var uriComponents = Restless.splitUri(value);
+		return uriComponents.scheme !== undefined;
+	}
+);
+
+///////////////////////
+//
 // Node
 //
 ///////////////////////
 
-Restless.Node = function(service,uri)
-{
-	this.service = service;
-	this.uri = uri;
-};
+Restless.Node = Restless.Object
+	.withTypeName('Node')
+	.withField('service', Restless.Service)
+	.withField('uri', Restless.Uri)
+	.withStandardConstructor();
 
 Restless.Node.prototype.get = function()
 {
@@ -473,22 +338,27 @@ Restless.ErrorNode.prototype.put = function(data)
 //
 ///////////////////////
 
-Restless.TranslationStore = function(fromPrefix)
-{
-	this._mappings = [];
-	this.matchUri = 'restless:internal/translation-store/';
-	this.homeUri = 'restless:internal/translation-store/';
-};
+Restless.TranslationStore = Restless.Object
+	.withTypeName('TranslationStore')
+	.withField('matchUri', Restless.Uri)
+	.withField('homeUri', Restless.Uri)
+	.withConstructor(
+		function()
+		{
+			this._mappings = [];
+			this.matchUri = 'restless:internal/translation-store/';
+			this.homeUri = 'restless:internal/translation-store/';
+		});
 
 Restless.TranslationStore.prototype.appliesTo = function(uri)
 {
-	Restless._isString(uri,'uri');
+	Restless.String.check(uri,'uri');
 	return Restless._uriPrefix(uri, this.matchUri);
 }
 
 Restless.TranslationStore.prototype._findAppliedRule = function(uri)
 {
-	Restless._nonEmptyString(uri,'uri');
+	Restless.NonEmptyString.check(uri,'uri');
 	
 	// The last one in the list that matches is the one that applies.
 	// So traverse the list backwards.
@@ -514,8 +384,8 @@ Restless.TranslationStore.prototype.translate = function(uri)
 
 Restless.TranslationStore.prototype.relevantRules = function(uri,presentation)
 {
-	Restless._nonEmptyString(uri,'uri');
-	Restless._nonEmptyString(presentation,'presentation');
+	Restless.NonEmptyString.check(uri,'uri');
+	Restless.NonEmptyString.check(presentation,'presentation');
 	
 	var appliedRule = this._findAppliedRule(uri);
 	var filteredList = this._mappings.filter(function(m)
@@ -537,11 +407,11 @@ Restless.TranslationStore.prototype.relevantRules = function(uri,presentation)
 
 Restless.TranslationStore.prototype.addRule = function(matchUri,mapsToUri)
 {
-	Restless._nonEmptyString(matchUri,'matchUri');
-	Restless._nonEmptyString(mapsToUri,'mapsToUri');
+	Restless.NonEmptyString.check(matchUri,'matchUri');
+	Restless.NonEmptyString.check(mapsToUri,'mapsToUri');
 	
-	var matchPattern = Restless.uriPatternFromString(matchUri);
-	var mapsToPattern = Restless.uriPatternFromString(mapsToUri);
+	var matchPattern = Restless.UriPattern.fromString(matchUri);
+	var mapsToPattern = Restless.UriPattern.fromString(mapsToUri);
 	
 	this._mappings.push( new Restless.TranslationRule(matchPattern,mapsToPattern) );
 	return undefined;
@@ -581,17 +451,19 @@ Restless.TranslationStore.prototype.putRules = function(rules)
 
 Restless.TranslationLayer = function(translationStore,underlyingServices)
 {
-	Restless._isObject(translationStore,'translationStore');
-	Restless._isArrayOf(underlyingServices,'underlyingServices',Restless._isService);
+	Restless.Object.check(translationStore,'translationStore');
+	Restless.ArrayOf(Restless.Service).check(underlyingServices,'underlyingServices');
 	this._translationStore = translationStore;
 	this._underlyingServices = underlyingServices;
 	this.matchUri = 'restless:';
 	this.homeUri = 'restless:';
+
+	Restless.Service.check(this,'TranslationLayer.constructor');
 };
 
 Restless.TranslationLayer.prototype.appliesTo = function(uri)
 {
-	Restless._isString(uri,'uri');
+	Restless.String.check(uri,'uri');
 	return Restless._uriPrefix(uri,this.matchUri);
 };
 
@@ -623,7 +495,7 @@ Restless.TranslationLayer.prototype.get = function(uri)
 
 Restless.TranslationLayer.prototype.put = function(uri,data)
 {
-	Restless._nonEmptyString(uri,'uri');
+	Restless.NonEmptyString.check(uri,'uri');
 	var translationStore = this._translationStore;
 
 	if (!this.appliesTo(uri))
@@ -663,74 +535,29 @@ Restless.TranslationLayer.prototype.getzzz = function(uri)
 
 ///////////////////////
 //
-// TranslationRule
-//
-///////////////////////
-
-Restless._isUriPattern = function(uriPattern,name)
-{
-	Restless._nonEmptyString(name,'_isUriPattern.name');
-	Restless._hasField(uriPattern,'uriPattern','UriPattern','match',Restless._isFunction);
-	Restless._hasField(uriPattern,'uriPattern','UriPattern','toUri',Restless._isFunction);
-	Restless._hasField(uriPattern,'uriPattern','UriPattern','hasPrefix',Restless._isFunction);
-	Restless._hasField(uriPattern,'uriPattern','UriPattern','stringForm',Restless._isString);
-};
-
-Restless._isUriPatternSegment = function(segment,name)
-{
-	Restless._nonEmptyString(name,'_isUriPatternSegment.name');
-	Restless._hasField(segment,'segment','UriPatternSegment','match',Restless._isFunction);
-	Restless._hasField(segment,'segment','UriPatternSegment','stringForm',Restless._isString);
-};
-
-Restless.TranslationRule = function(matchPattern,mapsToPattern)
-{
-	Restless._isUriPattern(matchPattern,'matchPattern');
-	Restless._isUriPattern(mapsToPattern,'mapsToPattern');
-	this.matchPattern = matchPattern;
-	this.mapsToPattern = mapsToPattern;
-};
-
-Restless.TranslationRule.prototype.appliesTo = function(uri)
-{
-	Restless._nonEmptyString(uri,'uri');
-	return this.matchPattern.match(uri) !== undefined;
-};
-
-Restless.TranslationRule.prototype.relevantTo = function(uri)
-{
-	Restless._nonEmptyString(uri,'uri');
-	return this.appliesTo(uri) || this.matchPattern.hasPrefix(uri);
-};
-
-Restless.TranslationRule.prototype.translate = function(uri)
-{
-	Restless._nonEmptyString(uri,'uri');
-	var match = this.matchPattern.match(uri);
-	if (match !== undefined)
-	{
-		return this.mapsToPattern.toUri(match);
-	}
-	return undefined;
-};
-
-///////////////////////
-//
 // UriPattern
 //
 ///////////////////////
 
-Restless.LiteralSegment = function(segment)
-{
-	Restless._isString(segment,'segment');
-	
-	this.segment = segment;
-	this.isLiteral = true;
-};
+Restless.UriPatternSegment = Restless.Object
+	.withTypeName('UriPatternSegment')
+	.withMethod('match')
+	.withField('stringForm',Restless.String)
+	.withField('isLiteral',Restless.Boolean)
+
+Restless.LiteralSegment = Restless.UriPatternSegment
+	.withTypeName('LiteralSegment')
+	.withField('segment',Restless.String)
+	.withConstructor(
+		function(segment)
+		{
+			this.segment = segment;
+			this.isLiteral = true;
+		});
 
 Restless.LiteralSegment.prototype.match = function(segments)
 {
-	Restless._isArrayOf(segments,'segments',Restless._isString);
+	Restless.ArrayOf(Restless.String).check(segments,'segments');
 	if (segments.length >= 1 && this.segment === segments[0])
 	{
 		return {count:1, capture:undefined};
@@ -745,14 +572,17 @@ Object.defineProperty(Restless.LiteralSegment.prototype, 'stringForm', {
 	}
 });
 
-Restless.MatchSingleSegment = function()
-{
-	this.isLiteral = false;
-};
+Restless.MatchSingleSegment = Restless.UriPatternSegment
+	.withTypeName('MatchSingleSegment')
+	.withConstructor(
+		function()
+		{
+			this.isLiteral = false;
+		});
 
 Restless.MatchSingleSegment.prototype.match = function(segments)
 {
-	Restless._isArrayOf(segments,'segments',Restless._isString);
+	Restless.ArrayOf(Restless.String).check(segments,'segments');
 	if (segments.length >= 1)
 	{
 		return {count:1, capture:segment};
@@ -765,19 +595,20 @@ Restless.MatchSingleSegment.prototype.stringForm = function()
 	return "{}";
 };
 
-Restless.UriPattern = function(scheme,authority,segments)
-{
-	Restless._nonEmptyString(scheme,'scheme');
-	Restless._stringOrUndefined(authority,'authority');
-	Restless._isArrayOf(segments,'segments',Restless._isUriPatternSegment);
-	this.scheme = scheme;
-	this.authority = authority;
-	this.segments = segments;
-};
+Restless.UriPattern = Restless.Object
+	.withTypeName('UriPattern')
+	.withField('scheme', Restless.NonEmptyString)
+	.withField('authority', Restless.StringOrUndefined)
+	.withField('segments', Restless.ArrayOf(Restless.UriPatternSegment))
+	.withMethod('match')
+	.withMethod('toUri')
+	.withMethod('hasPrefix')
+	.withProperty('stringForm',Restless.NonEmptyString)
+	.withStandardConstructor();
 
 Restless.UriPattern.prototype.match = function(uri)
 {
-	Restless._isString(uri,'uri');
+	Restless.String.check(uri,'uri');
 	
 	var uriComponents = Restless.splitUri(uri);
 	if (uriComponents.scheme !== this.scheme)
@@ -825,14 +656,14 @@ Restless.UriPattern.prototype.toUri = function(capturedItems)
 {
 	if (capturedItems.length !== 0)
 	{
-		throw 'Dealing with captured items is not handled yet';
+		Restless.err('Dealing with captured items is not handled yet');
 	}
 	return this._schemeAndAuthority() + this.segments.map(
 		function(seg)
 		{
 			if (!seg.isLiteral())
 			{
-				throw 'Dealing with non-literal not handled yet';
+				Restless.err('Dealing with non-literal not handled yet');
 			}
 			return seg.segment;
 		}).join('/');
@@ -840,7 +671,7 @@ Restless.UriPattern.prototype.toUri = function(capturedItems)
 
 Restless.UriPattern.prototype.hasPrefix = function(prefix)
 {
-	Restless._isString(prefix,'prefix');
+	Restless.String.check(prefix,'prefix');
 	var uriComponents = Restless.splitUri(prefix);
 	if (uriComponents.scheme !== this.scheme)
 	{
@@ -879,20 +710,24 @@ Object.defineProperty(Restless.UriPattern.prototype, 'stringForm', {
 	}
 });
 
-Restless.patternSegmentFromString = function(segment)
+Restless.UriPatternSegment.fromString = function(segment)
 {
-	Restless._isString(segment,'segment');
+	Restless.String.check(segment,'segment');
 	
 	var literalRegex = /^[a-zA-Z0-9-._~]*$/;
 	if (literalRegex.test(segment))
 	{
 		return new Restless.LiteralSegment(segment);
 	}
+	else
+	{
+		Restless.err('Invalid uri segment: {}', segment);
+	}
 };
 
 Restless.splitUri = function(uri)
 {
-	Restless._isString(uri,'uri');
+	Restless.String.check(uri,'uri');
 	
 	// taken from rfc3986, with the slashes escaped.
 	var uriRegex = /^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
@@ -920,33 +755,33 @@ Restless.splitUri = function(uri)
 	};
 };
 
-Restless.uriPatternFromString = function(patternString)
+Restless.UriPattern.fromString = function(patternString)
 {
-	Restless._nonEmptyString(patternString,'patternString');
+	Restless.NonEmptyString.check(patternString,'patternString');
 	
 	var uriComponents = Restless.splitUri(patternString);
 	if (uriComponents.scheme === undefined || uriComponents.query !== undefined || uriComponents.fragment !== undefined)
 	{
-		throw 'Invalid uri pattern string: ' + patternString;
+		Restless.err('Invalid uri pattern string: {}', patternString);
 	}
 	
-	var segments = uriComponents.path.split('/').map(Restless.patternSegmentFromString);
+	var segments = uriComponents.path.split('/').map(Restless.UriPatternSegment.fromString);
 	return new Restless.UriPattern(uriComponents.scheme, uriComponents.authority, segments);
 };
 
 Restless.uriAddSegment = function(uri,segment)
 {
-	Restless._nonEmptyString(segment,'segment');
+	Restless.NonEmptyString.check(segment,'segment');
 	var segmentRegex = /^[a-zA-Z0-9.-_~]+$/;
 	if (!segmentRegex.test(segment))
 	{
-		throw 'Invalid segment for uriAddSegment: ' + segment;
+		Restless.err('Invalid segment for uriAddSegment: {}', segment);
 	}
 	
 	var uriComponents = Restless.splitUri(uri);
 	if (uriComponents.scheme === undefined || uriComponents.query !== undefined || uriComponents.fragment !== undefined)
 	{
-		throw 'Invalid uri for uriAddSegment: ' + uri;
+		Restless.err('Invalid uri for uriAddSegment: {}', uri);
 	}
 	
 	var path;
@@ -967,6 +802,41 @@ Restless.uriAddSegment = function(uri,segment)
 	{
 		return uriComponents.scheme + '://' + uriComponents.authority + path;
 	}
+};
+
+///////////////////////
+//
+// TranslationRule
+//
+///////////////////////
+
+Restless.TranslationRule = Restless.Object
+	.withTypeName('TranslationRule')
+	.withField('matchPattern', Restless.UriPattern)
+	.withField('mapsToPattern', Restless.UriPattern)
+	.withStandardConstructor();
+
+Restless.TranslationRule.prototype.appliesTo = function(uri)
+{
+	Restless.NonEmptyString.check(uri,'uri');
+	return this.matchPattern.match(uri) !== undefined;
+};
+
+Restless.TranslationRule.prototype.relevantTo = function(uri)
+{
+	Restless.NonEmptyString.check(uri,'uri');
+	return this.appliesTo(uri) || this.matchPattern.hasPrefix(uri);
+};
+
+Restless.TranslationRule.prototype.translate = function(uri)
+{
+	Restless.NonEmptyString.check(uri,'uri');
+	var match = this.matchPattern.match(uri);
+	if (match !== undefined)
+	{
+		return this.mapsToPattern.toUri(match);
+	}
+	return undefined;
 };
 
 /////////////
@@ -1004,7 +874,7 @@ Restless.node = function(uri)
 
 Restless.initialize = function(rootUrl)
 {
-	Restless._nonEmptyString(rootUrl,'rootUrl');
+	Restless.NonEmptyString.check(rootUrl,'rootUrl');
 	Restless._knownNodes = {};
 	var httpService = new Restless.HttpService(rootUrl);
 	var translationStore = new Restless.TranslationStore();
@@ -1014,6 +884,5 @@ Restless.initialize = function(rootUrl)
 
 	translationStore.addRule(serverUri, httpService.homeUri);
 
-	Restless._isService(translationLayer,'translationLayer');
 	Restless._mainService = translationLayer;
 };
