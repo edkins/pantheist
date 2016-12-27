@@ -4,6 +4,5 @@ public enum HandlerType
 {
 	empty,
 	filesystem,
-	resource_files,
 	external_files;
 }

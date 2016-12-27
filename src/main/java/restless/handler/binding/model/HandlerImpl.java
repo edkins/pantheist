@@ -19,8 +19,7 @@ final class HandlerImpl implements Handler
 	HandlerImpl(@Assisted @JsonProperty("type") final HandlerType type,
 			@Nullable @Assisted("handlerPath") @JsonProperty("handlerPath") final String handlerPath)
 	{
-		OtherPreconditions.nullIff(handlerPath,
-				type != HandlerType.resource_files && type != HandlerType.external_files);
+		OtherPreconditions.nullIff(handlerPath, type != HandlerType.external_files);
 
 		this.type = checkNotNull(type);
 		this.handlerPath = handlerPath;

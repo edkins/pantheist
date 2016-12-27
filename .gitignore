@@ -4,7 +4,9 @@
 /.settings/
 /bin/
 /build/
-/data/
+/data/system/nginx-access.log
+/data/system/nginx-error.log
+/data/system/nginx.pid
 /dump/
 /src/experiment
 /third-party/

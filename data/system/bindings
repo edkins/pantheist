@@ -1,0 +1,1 @@
+{"bindings":[{"handler":{"type":"filesystem","handlerPath":null},"pathSpec":{"segments":[{"type":"literal","value":"resources"},{"type":"multi"}]},"schema":{"type":"empty"},"jerseyClass":null,"configId":"0"}],"counter":1}

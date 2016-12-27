@@ -11,13 +11,6 @@ public interface ManagementConfigPoint
 	void bindToFilesystem();
 
 	/**
-	 * Binds this resource to one of the resource files.
-	 *
-	 * @param resourcePath subset of resource files to expose, or "" if you want them all.
-	 */
-	void bindToResourceFiles(String resourcePath);
-
-	/**
 	 * Binds this resource to somewhere else on the filesystem
 	 *
 	 * @param absolutePath Absolute path on the filesystem, starting with slash.

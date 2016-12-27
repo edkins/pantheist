@@ -1,3 +1,0 @@
-This is an example resource file.
-
-It will be copied into system/resource-files, but only during testing.

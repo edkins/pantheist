@@ -62,10 +62,6 @@ final class NginxFilesystemGlueImpl implements NginxFilesystemGlue
 		case filesystem:
 			addLocationForPath(server, path); // no further configuration required - files will be served relative to root
 			break;
-		case resource_files:
-			location = addLocationForPath(server, path);
-			location.alias().giveDirPath(resourceFsPath(binding.handler()));
-			break;
 		case external_files:
 			location = addLocationForPath(server, path);
 			location.alias().giveAbsoluteDirPath(binding.handler().handlerPath());

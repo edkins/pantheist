@@ -12,8 +12,11 @@ import org.openqa.selenium.WebDriver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
+import com.google.inject.Guice;
 
 import restless.common.util.MutableOptional;
+import restless.system.config.RestlessConfig;
+import restless.system.config.SystemConfigModule;
 import restless.testhelpers.selenium.SeleniumInfo;
 
 public final class TestSessionImpl implements TestSession
@@ -126,6 +129,12 @@ public final class TestSessionImpl implements TestSession
 	public int mainPort()
 	{
 		return mainPort.get();
+	}
+
+	@Override
+	public File originalDataDir()
+	{
+		return Guice.createInjector(new SystemConfigModule()).getInstance(RestlessConfig.class).dataDir();
 	}
 
 }

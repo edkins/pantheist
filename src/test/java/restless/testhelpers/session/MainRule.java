@@ -16,6 +16,7 @@ import org.junit.runners.model.Statement;
 import restless.client.api.ManagementClient;
 import restless.client.impl.ManagementClientImpl;
 import restless.testhelpers.app.AppRule;
+import restless.testhelpers.app.DataFileImportRule;
 import restless.testhelpers.app.TempDirRule;
 import restless.testhelpers.app.WaitForServerRule;
 import restless.testhelpers.selenium.NavigateToHomeRule;
@@ -38,6 +39,7 @@ public class MainRule implements TestRule
 				.outerRule(SessionClearingRule.forTest(session))
 				.around(new ErrorLoggingRule())
 				.around(TempDirRule.forTest(session))
+				.around(DataFileImportRule.forTest(session))
 				.around(AppRule.forTest(session))
 				.around(WaitForServerRule.forTest(session))
 				.around(navigateToHomeRule())

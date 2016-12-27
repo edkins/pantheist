@@ -1,5 +1,6 @@
 package restless.tests;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -53,10 +54,9 @@ public class FilesystemTest extends BaseTest
 	@Test
 	public void resourceFile_isServed() throws Exception
 	{
-		manage.config().create("my-resources").bindToResourceFiles("");
-
-		final String contents = mainApi.withSegment("my-resources").withSegment("example-resource.txt").getTextPlain();
-		assertThat(contents, is(resource("/resource-files/example-resource.txt")));
+		final String contents = mainApi.withSegment("resources").withSegment("example-client.html")
+				.getString("text/html");
+		assertThat(contents, containsString("<html>"));
 	}
 
 	@Test
@@ -87,8 +87,8 @@ public class FilesystemTest extends BaseTest
 		final ManagementConfigPoint configPoint1 = manage.config().create("my-binding");
 		final ManagementConfigPoint configPoint2 = manage.config().create("my-other-binding");
 		final List<ListConfigItem> list = manage.config().list().childResources();
-		assertThat(list.size(), is(2));
-		assertThat(list.get(0).url(), is(configPoint1.url()));
-		assertThat(list.get(1).url(), is(configPoint2.url()));
+		assertThat(list.size(), is(3));
+		assertThat(list.get(1).url(), is(configPoint1.url()));
+		assertThat(list.get(2).url(), is(configPoint2.url()));
 	}
 }

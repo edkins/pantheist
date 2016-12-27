@@ -59,6 +59,9 @@ final class NginxServiceImpl implements NginxService
 					throw new NginxServiceException("Non-zero exit code trying to tell nginx to reload configuration");
 				}
 				LOGGER.info("nginx config reloaded");
+
+				// Give it some time to process it.
+				Thread.sleep(500);
 			}
 			else
 			{

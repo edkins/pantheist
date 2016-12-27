@@ -28,15 +28,6 @@ final class ManagementConfigPointImpl implements ManagementConfigPoint
 	}
 
 	@Override
-	public void bindToResourceFiles(final String resourcePath)
-	{
-		final Map<String, Object> map = new HashMap<>();
-		map.put("type", "resource_files");
-		map.put("handlerPath", resourcePath);
-		target.withSegment("handler").putObjectAsJson(map);
-	}
-
-	@Override
 	public void bindToExternalFiles(final String absolutePath)
 	{
 		final Map<String, Object> map = new HashMap<>();
