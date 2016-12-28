@@ -1,7 +1,8 @@
 package restless.handler.nginx.manage;
 
-import restless.common.util.ListView;
-import restless.common.util.OptView;
+import java.util.List;
+import java.util.Optional;
+
 import restless.common.util.Possible;
 
 public interface NginxService
@@ -14,7 +15,7 @@ public interface NginxService
 
 	Possible<Void> deleteLocationAndRestart(int port, String location);
 
-	Possible<ListView<String>> listLocations(int port);
+	Possible<List<String>> listLocations(int port);
 
-	Possible<Void> putAndRestart(int port, String location, OptView<String> alias);
+	Possible<Void> putAndRestart(int port, String location, Optional<String> alias);
 }

@@ -4,16 +4,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.Assisted;
 
-import restless.common.util.MutableByKey;
-import restless.common.util.MutableListView;
-import restless.common.util.OptView;
+import restless.common.util.Make;
 import restless.common.util.OtherPreconditions;
-import restless.common.util.View;
 
 final class NginxCollectionImpl implements NginxCollection
 {
@@ -21,70 +22,113 @@ final class NginxCollectionImpl implements NginxCollection
 	private final String nlIndent;
 
 	// State
-	private final MutableByKey<String, NginxDirective> contents;
+	private final List<NginxDirective> contents;
 
 	@Inject
 	NginxCollectionImpl(final NginxNodeFactory nodeFactory,
-			@Assisted final List<NginxDirective> list,
+			@Assisted final List<NginxDirective> contents,
 			@Assisted("nlIndent") final String nlIndent)
 	{
 		this.nodeFactory = checkNotNull(nodeFactory);
 		this.nlIndent = OtherPreconditions.checkNotNullOrEmpty(nlIndent);
-		this.contents = View.mutableCopy(list).organizeByKey(NginxDirective::name);
+		this.contents = contents;
 	}
 
 	@Override
 	public NginxDirective getOrCreateSimple(final String name)
 	{
-		return contents.getWithCreator(name, this::createSimple);
+		return byName(name)
+				.orElseGet(() -> {
+					final NginxDirective item = createSimple(name);
+					contents.add(item);
+					return item;
+				});
+	}
+
+	private Optional<NginxDirective> byName(final String name)
+	{
+		return Make.theOnly(getAll(name));
 	}
 
 	private NginxDirective createSimple(final String name)
 	{
-		return nodeFactory.directive(nameAndParams(name),
+		return nodeFactory.directive(nameAndParams(name, ImmutableList.of()),
 				nodeFactory.noBlock(";" + nlIndent));
 	}
 
 	@Override
 	public NginxDirective getOrCreateBlock(final String name)
 	{
-		return contents.getWithCreator(name, this::createBlock);
+		return byName(name)
+				.orElseGet(() -> {
+					final NginxDirective item = createBlock(name, new ArrayList<>());
+					contents.add(item);
+					return item;
+				});
 	}
 
-	private NginxDirective createBlock(final String name)
+	private NginxDirective createBlock(final String name, final List<String> params)
 	{
-		return nodeFactory.directive(nameAndParams(name),
+		return nodeFactory.directive(nameAndParams(name, params),
 				nodeFactory.block("{" + nlIndent, new ArrayList<>(), "}" + nlIndent));
 	}
 
-	private NginxNameAndParameters nameAndParams(final String name)
+	private NginxNameAndParameters nameAndParams(final String name, final List<String> params)
 	{
-		return nodeFactory.nameAndParameters(name, " ", new ArrayList<>());
+		final ArrayList<NginxWord> words = new ArrayList<>();
+		if (!params.isEmpty())
+		{
+			for (int i = 0; i < params.size() - 1; i++)
+			{
+				words.add(nodeFactory.word(params.get(i), " "));
+			}
+			words.add(nodeFactory.word(Make.last(params), ""));
+		}
+		return nodeFactory.nameAndParameters(name, " ", words);
 	}
 
 	@Override
-	public OptView<String> lookup(final String name)
+	public Optional<String> lookup(final String name)
 	{
-		return contents.optGet(name).optMap(d -> d.parameters().basic().list().failIfMultiple());
+		return byName(name)
+				.flatMap(d -> Make.theOnly(d.parameters()));
 	}
 
 	@Override
-	public NginxDirective addBlock(final String name)
+	public NginxDirective addBlock(final String name, final List<String> parameters)
 	{
-		final NginxDirective block = createBlock(name);
-		contents.list().basic().insertAtEnd(block);
+		final NginxDirective block = createBlock(name, parameters);
+		contents.add(block);
 		return block;
 	}
 
 	@Override
-	public MutableByKey<String, NginxDirective> byName()
+	public List<NginxDirective> list()
 	{
-		return contents;
+		return ImmutableList.copyOf(contents);
 	}
 
 	@Override
-	public MutableListView<NginxDirective> list()
+	public List<NginxDirective> getAll(final String name)
 	{
-		return contents.list();
+		return contents.stream().filter(hasName(name)).collect(Collectors.toList());
+	}
+
+	private Predicate<NginxDirective> hasName(final String name)
+	{
+		OtherPreconditions.checkNotNullOrEmpty(name);
+		return d -> name.equals(d.name());
+	}
+
+	@Override
+	public boolean deleteAllByName(final String name)
+	{
+		return contents.removeIf(hasName(name));
+	}
+
+	@Override
+	public boolean removeIf(final Predicate<NginxDirective> predicate)
+	{
+		return contents.removeIf(predicate);
 	}
 }

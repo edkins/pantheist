@@ -6,18 +6,17 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.google.common.collect.Lists;
 import com.google.inject.assistedinject.Assisted;
 
-import restless.common.util.MutableListView;
 import restless.common.util.OtherPreconditions;
-import restless.common.util.View;
 
 final class NginxNameAndParametersImpl implements NginxNameAndParameters
 {
 	private final NginxNodeFactory nodeFactory;
 	private final String name;
 	private final String ws;
-	final MutableListView<NginxWord> parameters;
+	private final List<NginxWord> parameters;
 
 	@Inject
 	private NginxNameAndParametersImpl(
@@ -29,19 +28,14 @@ final class NginxNameAndParametersImpl implements NginxNameAndParameters
 		this.nodeFactory = checkNotNull(nodeFactory);
 		this.ws = checkNotNull(ws);
 		this.name = OtherPreconditions.checkNotNullOrEmpty(name);
-		this.parameters = View.mutableCopy(parameters);
-	}
-
-	private NginxWord withOneSpace(final String word)
-	{
-		return nodeFactory.word(word, " ");
+		this.parameters = checkNotNull(parameters);
 	}
 
 	@Override
 	public StringBuilder toStringBuilder(final StringBuilder sb)
 	{
 		sb.append(name).append(ws);
-		parameters.basic().list().forEach(p -> p.toStringBuilder(sb));
+		parameters.forEach(p -> p.toStringBuilder(sb));
 		return sb;
 	}
 
@@ -52,15 +46,22 @@ final class NginxNameAndParametersImpl implements NginxNameAndParameters
 	}
 
 	@Override
-	public MutableListView<String> parameters()
+	public List<String> parameters()
 	{
-		return parameters.translate(NginxWord::value, this::withOneSpace);
+		return Lists.transform(parameters, NginxWord::value);
 	}
 
 	@Override
 	public String toString()
 	{
 		return toStringBuilder(new StringBuilder()).toString();
+	}
+
+	@Override
+	public void setSingleParameter(final String value)
+	{
+		parameters.clear();
+		parameters.add(nodeFactory.word(value, ""));
 	}
 
 }

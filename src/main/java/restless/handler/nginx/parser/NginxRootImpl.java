@@ -40,7 +40,7 @@ final class NginxRootImpl implements NginxRoot
 	private StringBuilder toStringBuilder(final StringBuilder sb)
 	{
 		sb.append(ws);
-		contents.list().basic().list().forEach(i -> i.toStringBuilder(sb));
+		contents.list().forEach(i -> i.toStringBuilder(sb));
 		return sb;
 	}
 }

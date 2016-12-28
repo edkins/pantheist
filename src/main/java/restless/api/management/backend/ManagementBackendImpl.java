@@ -3,6 +3,7 @@ package restless.api.management.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.UriBuilder;
@@ -10,13 +11,14 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.common.collect.Lists;
+
 import restless.api.management.model.ApiManagementModelFactory;
 import restless.api.management.model.CreateConfigRequest;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
 import restless.common.util.Escapers;
 import restless.common.util.FailureReason;
-import restless.common.util.ListView;
 import restless.common.util.Possible;
 import restless.common.util.View;
 import restless.handler.filesystem.backend.FilesystemStore;
@@ -58,7 +60,7 @@ final class ManagementBackendImpl implements ManagementBackend
 		try
 		{
 			final int port = Integer.parseInt(serverId);
-			return nginxService.putAndRestart(port, locationId, View.nullable(request.alias()));
+			return nginxService.putAndRestart(port, locationId, Optional.ofNullable(request.alias()));
 		}
 		catch (final NumberFormatException e)
 		{
@@ -154,14 +156,13 @@ final class ManagementBackendImpl implements ManagementBackend
 		try
 		{
 			final int port = Integer.parseInt(serverId);
-			final Possible<ListView<String>> locations = nginxService.listLocations(port);
+			final Possible<List<String>> locations = nginxService.listLocations(port);
 			if (!locations.isPresent())
 			{
 				return locations.coerce();
 			}
-			final List<ListConfigItem> list = locations.get()
-					.map(loc -> makeListConfigItem(serverId, loc))
-					.toList();
+			final List<ListConfigItem> list = Lists.transform(locations.get(),
+					loc -> makeListConfigItem(serverId, loc));
 			return View.ok(modelFactory.listConfigResponse(list));
 		}
 		catch (final NumberFormatException e)

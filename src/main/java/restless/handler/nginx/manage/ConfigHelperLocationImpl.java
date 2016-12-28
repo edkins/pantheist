@@ -2,7 +2,9 @@ package restless.handler.nginx.manage;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import restless.common.util.OptView;
+import java.util.Optional;
+
+import restless.common.util.Make;
 import restless.handler.nginx.parser.NginxDirective;
 
 final class ConfigHelperLocationImpl implements ConfigHelperLocation
@@ -28,19 +30,19 @@ final class ConfigHelperLocationImpl implements ConfigHelperLocation
 	@Override
 	public String location()
 	{
-		return directive.parameters().basic().list().failIfMultiple().get();
+		return Make.theOnly(directive.parameters()).get();
 	}
 
 	@Override
-	public void setAlias(final OptView<String> alias)
+	public void setAlias(final Optional<String> alias)
 	{
 		if (alias.isPresent())
 		{
-			directive.contents().getOrCreateSimple("alias").parameters().setSingle(alias.get());
+			directive.contents().getOrCreateSimple("alias").setSingleParameter(alias.get());
 		}
 		else
 		{
-			directive.contents().byName().deleteByKey("alias");
+			directive.contents().deleteAllByName("alias");
 		}
 	}
 

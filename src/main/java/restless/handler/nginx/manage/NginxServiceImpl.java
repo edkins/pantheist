@@ -6,17 +6,18 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
+import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import restless.common.util.Embedded;
+import com.google.common.collect.Lists;
+
 import restless.common.util.FailureReason;
-import restless.common.util.ListView;
 import restless.common.util.MutableOpt;
-import restless.common.util.OptView;
 import restless.common.util.Possible;
 import restless.common.util.View;
 import restless.handler.filesystem.backend.FilesystemStore;
@@ -73,7 +74,7 @@ final class NginxServiceImpl implements NginxService
 				}
 
 				final ConfigHelper helper = helperFactory.helper();
-				helper.servers().keys().forEach(this::willNeedPort);
+				helper.servers().keySet().forEach(this::willNeedPort);
 
 				final Process process = new ProcessBuilder(
 						config.nginxExecutable(),
@@ -185,65 +186,70 @@ final class NginxServiceImpl implements NginxService
 	@Override
 	public boolean hasLocation(final int port, final String location)
 	{
-		return helperFactory
+		final ConfigHelperServer server = helperFactory
 				.helper()
 				.servers()
-				.optGet(port)
-				.optMap(s -> s.locations().optGet(location))
-				.isPresent();
+				.get(port);
+		if (server == null)
+		{
+			return false;
+		}
+		return server.locations().containsKey(location);
 	}
 
 	@Override
 	public Possible<Void> deleteLocationAndRestart(final int port, final String location)
 	{
 		final ConfigHelper helper = helperFactory.helper();
-		final OptView<ConfigHelperServer> server = helper
+		final ConfigHelperServer server = helper
 				.servers()
-				.optGet(port);
-		if (!server.isPresent())
+				.get(port);
+		if (server == null)
 		{
 			return FailureReason.PARENT_DOES_NOT_EXIST.happened();
 		}
-		final Embedded<ConfigHelperLocation> loc = server.get().locations().getEmbedded(location);
-		if (!loc.opt().isPresent())
+
+		if (server.removeLocation(location))
+		{
+			helper.write();
+			startOrRestart();
+			return View.noContent();
+		}
+		else
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
 		}
-		loc.delete();
-		helper.write();
-		startOrRestart();
-		return View.noContent();
 	}
 
 	@Override
-	public Possible<ListView<String>> listLocations(final int port)
+	public Possible<List<String>> listLocations(final int port)
 	{
-		final OptView<ConfigHelperServer> server = helperFactory
+		final ConfigHelperServer server = helperFactory
 				.helper()
 				.servers()
-				.optGet(port);
-		if (!server.isPresent())
+				.get(port);
+		if (server == null)
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
 		}
-		return View.ok(server.get().locations().keys());
+		return View.ok(Lists.transform(server.locationList(), ConfigHelperLocation::location));
 	}
 
 	@Override
-	public Possible<Void> putAndRestart(final int port, final String location, final OptView<String> alias)
+	public Possible<Void> putAndRestart(final int port, final String location, final Optional<String> alias)
 	{
 		if (!location.startsWith("/") || !location.endsWith("/"))
 		{
 			return FailureReason.BAD_LOCATION.happened();
 		}
 		final ConfigHelper helper = helperFactory.helper();
-		final OptView<ConfigHelperServer> server = helper.servers()
-				.optGet(port);
-		if (!server.isPresent())
+		final ConfigHelperServer server = helper.servers()
+				.get(port);
+		if (server == null)
 		{
 			return FailureReason.PARENT_DOES_NOT_EXIST.happened();
 		}
-		server.get().getOrCreateLocation(location).setAlias(alias);
+		server.getOrCreateLocation(location).setAlias(alias);
 		helper.write();
 		startOrRestart();
 		return View.noContent();

@@ -31,7 +31,7 @@ final class NginxBlockImpl implements NginxBlock
 	public StringBuilder toStringBuilder(final StringBuilder sb)
 	{
 		sb.append(delim1);
-		contents.list().basic().list().forEach(d -> d.toStringBuilder(sb));
+		contents.list().forEach(d -> d.toStringBuilder(sb));
 		return sb.append(delim2);
 	}
 

@@ -30,6 +30,6 @@ public enum FailureReason
 	 */
 	public <T> Possible<T> happened()
 	{
-		return FailureImpl.of(this);
+		return PossibleFailureImpl.of(this);
 	}
 }

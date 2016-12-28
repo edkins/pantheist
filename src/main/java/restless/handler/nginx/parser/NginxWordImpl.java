@@ -24,6 +24,15 @@ final class NginxWordImpl implements NginxWord
 	{
 		this.ws = checkNotNull(ws);
 		this.word = OtherPreconditions.checkNotNullOrEmpty(word);
+		checkWord(word);
+	}
+
+	private void checkWord(final String word)
+	{
+		if (!PATTERN.matcher(word).matches())
+		{
+			throw new IllegalArgumentException("NginxWordImpl: not a valid word " + word);
+		}
 	}
 
 	@Override
@@ -42,10 +51,7 @@ final class NginxWordImpl implements NginxWord
 	public void setValue(final String newValue)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(newValue);
-		if (!PATTERN.matcher(newValue).matches())
-		{
-			throw new IllegalArgumentException("NginxWordImpl: not a valid word " + newValue);
-		}
+		checkWord(newValue);
 		this.word = newValue;
 	}
 

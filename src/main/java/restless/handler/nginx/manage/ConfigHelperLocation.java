@@ -1,6 +1,7 @@
 package restless.handler.nginx.manage;
 
-import restless.common.util.OptView;
+import java.util.Optional;
+
 import restless.handler.nginx.parser.NginxDirective;
 
 public interface ConfigHelperLocation
@@ -9,5 +10,5 @@ public interface ConfigHelperLocation
 
 	NginxDirective directive();
 
-	void setAlias(OptView<String> alias);
+	void setAlias(Optional<String> alias);
 }

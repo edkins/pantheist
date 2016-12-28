@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -22,6 +23,22 @@ public class Make
 	private Make()
 	{
 		throw new UnsupportedOperationException();
+	}
+
+	public static <T> Optional<T> theOnly(final List<T> xs)
+	{
+		if (xs.isEmpty())
+		{
+			return Optional.empty();
+		}
+		else if (xs.size() == 1)
+		{
+			return Optional.of(xs.get(0));
+		}
+		else
+		{
+			throw new IllegalStateException("Multiple items matched");
+		}
 	}
 
 	public static <T> ImmutableList<T> list(final List<T> xs, final T x)
@@ -186,5 +203,15 @@ public class Make
 		return x -> {
 			throw new IllegalStateException(message);
 		};
+	}
+
+	public static <K, T> Map<K, T> byKey(final List<T> list, final Function<T, K> keyGetter)
+	{
+		final ImmutableMap.Builder<K, T> builder = ImmutableMap.builder();
+		for (final T x : list)
+		{
+			builder.put(keyGetter.apply(x), x);
+		}
+		return builder.build();
 	}
 }

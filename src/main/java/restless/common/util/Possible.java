@@ -4,7 +4,7 @@ import java.util.NoSuchElementException;
 import java.util.function.Function;
 
 /**
- * This is like OptView, but provides more information about why something is missing.
+ * This is like Optional, but provides more information about why something is missing.
  */
 public interface Possible<T>
 {

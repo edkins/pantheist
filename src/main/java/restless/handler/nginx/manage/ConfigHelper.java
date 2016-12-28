@@ -1,6 +1,7 @@
 package restless.handler.nginx.manage;
 
-import restless.common.util.MutableByKey;
+import java.util.List;
+import java.util.Map;
 
 interface ConfigHelper
 {
@@ -8,5 +9,7 @@ interface ConfigHelper
 
 	String absolutePath();
 
-	MutableByKey<Integer, ConfigHelperServer> servers();
+	List<ConfigHelperServer> serverList();
+
+	Map<Integer, ConfigHelperServer> servers();
 }

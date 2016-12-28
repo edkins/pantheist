@@ -2,11 +2,11 @@ package restless.handler.nginx.parser;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import com.google.inject.assistedinject.Assisted;
-
-import restless.common.util.MutableListView;
 
 final class NginxDirectiveImpl implements NginxDirective
 {
@@ -42,7 +42,7 @@ final class NginxDirectiveImpl implements NginxDirective
 	}
 
 	@Override
-	public MutableListView<String> parameters()
+	public List<String> parameters()
 	{
 		return nameAndParameters.parameters();
 	}
@@ -51,5 +51,11 @@ final class NginxDirectiveImpl implements NginxDirective
 	public String toString()
 	{
 		return toStringBuilder(new StringBuilder()).toString();
+	}
+
+	@Override
+	public void setSingleParameter(final String value)
+	{
+		nameAndParameters.setSingleParameter(value);
 	}
 }

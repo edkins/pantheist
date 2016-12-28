@@ -4,18 +4,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.function.Function;
 
-final class FailureImpl<T> implements Possible<T>
+final class PossibleFailureImpl<T> implements Possible<T>
 {
 	private final FailureReason reason;
 
-	private FailureImpl(final FailureReason reason)
+	private PossibleFailureImpl(final FailureReason reason)
 	{
 		this.reason = checkNotNull(reason);
 	}
 
 	static <T> Possible<T> of(final FailureReason reason)
 	{
-		return new FailureImpl<>(reason);
+		return new PossibleFailureImpl<>(reason);
 	}
 
 	@Override

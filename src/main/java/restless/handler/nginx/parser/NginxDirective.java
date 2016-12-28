@@ -1,6 +1,6 @@
 package restless.handler.nginx.parser;
 
-import restless.common.util.MutableListView;
+import java.util.List;
 
 public interface NginxDirective
 {
@@ -8,7 +8,9 @@ public interface NginxDirective
 
 	String name();
 
-	MutableListView<String> parameters();
+	List<String> parameters();
+
+	void setSingleParameter(String value);
 
 	NginxCollection contents();
 }

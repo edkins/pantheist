@@ -2,8 +2,14 @@ package restless.handler.nginx.manage;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import restless.common.util.MutableByKey;
-import restless.common.util.OptView;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.google.common.collect.ImmutableList;
+
 import restless.handler.nginx.parser.NginxDirective;
 
 final class ConfigHelperServerImpl implements ConfigHelperServer
@@ -26,7 +32,7 @@ final class ConfigHelperServerImpl implements ConfigHelperServer
 	}
 
 	@Override
-	public OptView<Integer> port()
+	public Optional<Integer> port()
 	{
 		return directive.contents()
 				.lookup("listen")
@@ -35,14 +41,25 @@ final class ConfigHelperServerImpl implements ConfigHelperServer
 	}
 
 	@Override
-	public MutableByKey<String, ConfigHelperLocation> locations()
+	public Map<String, ConfigHelperLocation> locations()
+	{
+		return locationStream()
+				.collect(Collectors.toMap(l -> l.location(), l -> l));
+	}
+
+	@Override
+	public List<ConfigHelperLocation> locationList()
+	{
+		return locationStream().collect(Collectors.toList());
+	}
+
+	private Stream<ConfigHelperLocation> locationStream()
 	{
 		return directive
 				.contents()
-				.byName()
 				.getAll("location")
-				.translate(ConfigHelperLocationImpl::of, ConfigHelperLocation::directive)
-				.organizeByKey(ConfigHelperLocation::location);
+				.stream()
+				.map(ConfigHelperLocationImpl::of);
 	}
 
 	@Override
@@ -54,16 +71,20 @@ final class ConfigHelperServerImpl implements ConfigHelperServer
 	@Override
 	public ConfigHelperLocation getOrCreateLocation(final String location)
 	{
-		final OptView<ConfigHelperLocation> loc = locations().optGet(location);
-		if (loc.isPresent())
+		final ConfigHelperLocation loc = locations().get(location);
+		if (loc == null)
 		{
-			return loc.get();
+			return ConfigHelperLocationImpl.of(directive.contents().addBlock("location", ImmutableList.of(location)));
 		}
 		else
 		{
-			final ConfigHelperLocation loc2 = ConfigHelperLocationImpl.of(directive.contents().addBlock("location"));
-			loc2.directive().parameters().setSingle(location);
-			return loc2;
+			return loc;
 		}
+	}
+
+	@Override
+	public boolean removeLocation(final String location)
+	{
+		return directive.contents().removeIf(d -> ConfigHelperLocationImpl.of(d).location().equals(location));
 	}
 }
