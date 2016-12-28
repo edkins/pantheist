@@ -6,8 +6,6 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import restless.handler.binding.model.PathSpecSegment;
-
 @JsonDeserialize(as = FsPathImpl.class)
 public interface FsPath
 {
@@ -55,8 +53,6 @@ public interface FsPath
 	FsPath parent();
 
 	List<FsPathSegment> segments();
-
-	FsPath withPathSegments(List<PathSpecSegment> segments);
 
 	/**
 	 * Return a list of all the leading portions of this path, starting with the

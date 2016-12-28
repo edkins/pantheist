@@ -28,7 +28,6 @@ import restless.api.management.model.ListConfigResponse;
 import restless.common.util.Escapers;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
-import restless.handler.binding.model.BindingModelFactory;
 
 /**
  * Path segments may be:
@@ -50,7 +49,6 @@ public final class ManagementResourceImpl implements ManagementResource
 
 	@Inject
 	ManagementResourceImpl(final ManagementBackend backend,
-			final BindingModelFactory bindingModelFactory,
 			final ObjectMapper objectMapper)
 	{
 		this.backend = checkNotNull(backend);

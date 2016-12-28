@@ -7,7 +7,6 @@ import restless.api.management.model.ApiManagementModelModule;
 import restless.api.management.resource.ApiManagementResourceModule;
 import restless.glue.initializer.GlueInitializerModule;
 import restless.glue.initializer.Initializer;
-import restless.handler.binding.model.HandlerBindingModelModule;
 import restless.handler.filesystem.backend.HandlerFilesystemBackendModule;
 import restless.handler.java.backend.HandlerJavaBackendModule;
 import restless.handler.nginx.manage.HandlerNginxManageModule;
@@ -28,7 +27,6 @@ public class AllRestlessModule extends PrivateModule
 		install(new ApiManagementModelModule());
 		install(new ApiManagementResourceModule());
 		install(new GlueInitializerModule());
-		install(new HandlerBindingModelModule());
 		install(new HandlerFilesystemBackendModule());
 		install(new HandlerJavaBackendModule());
 		install(new HandlerNginxManageModule());

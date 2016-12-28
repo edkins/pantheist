@@ -10,17 +10,23 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
 import restless.common.util.Make;
+import restless.common.util.MakeList;
 import restless.common.util.OtherCollectors;
 import restless.common.util.OtherPreconditions;
-import restless.handler.binding.model.PathSpecSegment;
 
 final class FsPathImpl implements FsPath
 {
+	private static final MakeList<FsPathSegment, FsPath> MAKE_FS_PATH = Make.wrappedList(FsPathImpl::fromSegments);
 	private final ImmutableList<FsPathSegment> segments;
 
 	private FsPathImpl(final List<FsPathSegment> segments)
 	{
 		this.segments = ImmutableList.copyOf(segments);
+	}
+
+	private static FsPath fromSegments(final List<FsPathSegment> segments)
+	{
+		return new FsPathImpl(segments);
 	}
 
 	@Override
@@ -82,28 +88,21 @@ final class FsPathImpl implements FsPath
 	@Override
 	public FsPath tail()
 	{
-		if (segments.isEmpty())
-		{
-			throw new IllegalStateException("tail: empty path");
-		}
-		return new FsPathImpl(Make.tail(segments));
+		return MAKE_FS_PATH.tail().from(segments);
 	}
 
 	@Override
 	public File in(final File directory)
 	{
-		File result = directory;
-		for (final FsPathSegment segment : segments)
-		{
-			result = new File(result, segment.toString());
-		}
-		return result;
+		return Make.<File>single()
+				.<FsPathSegment>snowball(directory, (f, seg) -> new File(f, seg.toString()))
+				.from(segments);
 	}
 
 	@Override
 	public FsPath segment(final FsPathSegment seg)
 	{
-		return new FsPathImpl(Make.list(segments, seg));
+		return MAKE_FS_PATH.from(segments, seg);
 	}
 
 	@Override
@@ -121,36 +120,13 @@ final class FsPathImpl implements FsPath
 	@Override
 	public FsPath parent()
 	{
-		if (segments.isEmpty())
-		{
-			throw new IllegalStateException("parent: empty path");
-		}
-		return new FsPathImpl(Make.init(segments));
+		return MAKE_FS_PATH.init().from(segments);
 	}
 
 	@Override
 	public List<FsPathSegment> segments()
 	{
 		return segments;
-	}
-
-	@Override
-	public FsPath withPathSegments(final List<PathSpecSegment> segments)
-	{
-		FsPath result = this;
-		for (final PathSpecSegment seg : segments)
-		{
-			if (seg.literal())
-			{
-				// Note that some paths won't be allowed here, eg ..
-				result = result.segment(seg.literalValue());
-			}
-			else
-			{
-				throw new UnsupportedOperationException("Can only construct filesystem paths from literal paths");
-			}
-		}
-		return result;
 	}
 
 	@Override

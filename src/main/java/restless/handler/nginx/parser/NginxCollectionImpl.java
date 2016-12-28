@@ -47,7 +47,7 @@ final class NginxCollectionImpl implements NginxCollection
 
 	private Optional<NginxDirective> byName(final String name)
 	{
-		return Make.theOnly(getAll(name));
+		return Make.<NginxDirective>failIfMultiple().from(getAll(name));
 	}
 
 	private NginxDirective createSimple(final String name)
@@ -91,7 +91,7 @@ final class NginxCollectionImpl implements NginxCollection
 	public Optional<String> lookup(final String name)
 	{
 		return byName(name)
-				.flatMap(d -> Make.theOnly(d.parameters()));
+				.map(d -> Make.<String>theOnly().from(d.parameters()));
 	}
 
 	@Override

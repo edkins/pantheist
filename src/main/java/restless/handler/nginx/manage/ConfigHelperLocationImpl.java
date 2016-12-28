@@ -30,7 +30,7 @@ final class ConfigHelperLocationImpl implements ConfigHelperLocation
 	@Override
 	public String location()
 	{
-		return Make.theOnly(directive.parameters()).get();
+		return Make.<String>theOnly().from(directive.parameters());
 	}
 
 	@Override
