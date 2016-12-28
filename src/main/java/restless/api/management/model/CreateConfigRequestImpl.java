@@ -1,22 +1,22 @@
 package restless.api.management.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nullable;
 
-import restless.common.util.OtherPreconditions;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 final class CreateConfigRequestImpl implements CreateConfigRequest
 {
-	private final String pathSpec;
+	private final String alias;
 
-	private CreateConfigRequestImpl(@JsonProperty("pathSpec") final String pathSpec)
+	private CreateConfigRequestImpl(@Nullable @JsonProperty("alias") final String alias)
 	{
-		this.pathSpec = OtherPreconditions.checkNotNullOrEmpty(pathSpec);
+		this.alias = alias;
 	}
 
 	@Override
-	public String pathSpec()
+	public String alias()
 	{
-		return pathSpec;
+		return alias;
 	}
 
 }

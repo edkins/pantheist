@@ -2,16 +2,13 @@ package restless.handler.filesystem.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.nio.charset.StandardCharsets;
-
-import org.apache.commons.io.FileUtils;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import restless.common.util.MutableOptional;
+import restless.common.util.MutableOpt;
+import restless.common.util.View;
 import restless.handler.filesystem.except.FsParseException;
 import restless.handler.filesystem.except.FsUnexpectedStateException;
 
@@ -23,7 +20,7 @@ final class JsonSnapshotImpl<T> implements JsonSnapshot<T>
 	private final Class<T> clazz;
 
 	// State
-	MutableOptional<T> value;
+	MutableOpt<T> value;
 
 	JsonSnapshotImpl(final FilesystemSnapshot snapshot,
 			final ObjectMapper objectMapper,
@@ -34,7 +31,7 @@ final class JsonSnapshotImpl<T> implements JsonSnapshot<T>
 		this.path = checkNotNull(path);
 		this.objectMapper = checkNotNull(objectMapper);
 		this.clazz = checkNotNull(clazz);
-		this.value = MutableOptional.empty();
+		this.value = View.mutableOpt();
 	}
 
 	@Override
@@ -60,7 +57,7 @@ final class JsonSnapshotImpl<T> implements JsonSnapshot<T>
 						throw new FsParseException(e);
 					}
 				});
-				value.add(result);
+				value.supply(result);
 			}
 			else
 			{
@@ -76,7 +73,7 @@ final class JsonSnapshotImpl<T> implements JsonSnapshot<T>
 		try
 		{
 			final String data = objectMapper.writeValueAsString(value);
-			snapshot.writeSingle(path, file -> FileUtils.writeStringToFile(file, data, StandardCharsets.UTF_8));
+			snapshot.writeSingleText(path, data);
 		}
 		catch (final JsonProcessingException e)
 		{

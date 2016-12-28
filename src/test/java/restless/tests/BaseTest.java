@@ -10,7 +10,8 @@ import org.junit.Rule;
 
 import com.google.common.base.Throwables;
 
-import restless.client.api.ManagementPath;
+import restless.client.api.ManagementPathRoot;
+import restless.client.api.ManagementPathServer;
 import restless.client.impl.TargetWrapper;
 import restless.testhelpers.selenium.Interaction;
 import restless.testhelpers.session.MainRule;
@@ -20,14 +21,17 @@ public abstract class BaseTest
 	@Rule
 	public final MainRule mainRule = MainRule.forNewTest(Interaction.api());
 
-	protected ManagementPath manage;
-
 	protected TargetWrapper mainApi;
+
+	protected ManagementPathRoot manage;
+
+	protected ManagementPathServer mmain;
 
 	@Before
 	public void setup()
 	{
 		manage = mainRule.actions().manage();
+		mmain = mainRule.actions().manageMainServer();
 		mainApi = mainRule.actions().main();
 	}
 

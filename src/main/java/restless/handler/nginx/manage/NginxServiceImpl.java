@@ -6,49 +6,49 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
-import java.nio.charset.StandardCharsets;
 
 import javax.inject.Inject;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import restless.common.util.MutableOptional;
+import restless.common.util.Embedded;
+import restless.common.util.FailureReason;
+import restless.common.util.ListView;
+import restless.common.util.MutableOpt;
+import restless.common.util.OptView;
+import restless.common.util.Possible;
+import restless.common.util.View;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
-import restless.handler.nginx.model.NginxConfig;
-import restless.handler.nginx.model.NginxModelFactory;
 import restless.system.config.RestlessConfig;
 
 final class NginxServiceImpl implements NginxService
 {
 	private static final Logger LOGGER = LogManager.getLogger(NginxServiceImpl.class);
 	private final RestlessConfig config;
-	private final NginxModelFactory modelFactory;
 	private final FilesystemStore filesystemStore;
+	private final ConfigHelperFactory helperFactory;
 
 	// State
-	MutableOptional<Process> runningProcess;
+	MutableOpt<Process> runningProcess;
 
 	@Inject
 	NginxServiceImpl(final RestlessConfig config,
-			final NginxModelFactory modelFactory,
-			final FilesystemStore filesystemStore)
+			final FilesystemStore filesystemStore,
+			final ConfigHelperFactory helperFactory)
 	{
 		this.config = checkNotNull(config);
-		this.modelFactory = checkNotNull(modelFactory);
 		this.filesystemStore = checkNotNull(filesystemStore);
-		this.runningProcess = MutableOptional.empty();
+		this.runningProcess = View.mutableOpt();
+		this.helperFactory = checkNotNull(helperFactory);
 	}
 
 	@Override
-	public void configureAndStart(final NginxConfig nginx)
+	public void startOrRestart()
 	{
 		try
 		{
-			FileUtils.writeStringToFile(nginxConf(), nginx.toString(), StandardCharsets.UTF_8);
-
 			if (runningProcess.isPresent())
 			{
 				final Process process = new ProcessBuilder(config.nginxExecutable(), "-c",
@@ -72,14 +72,14 @@ final class NginxServiceImpl implements NginxService
 					LOGGER.info("pidfile has gone now, we assume it's stopped.");
 				}
 
-				for (final int port : nginx.ports())
-				{
-					willNeedPort(port);
-				}
+				final ConfigHelper helper = helperFactory.helper();
+				helper.servers().keys().forEach(this::willNeedPort);
 
-				final Process process = new ProcessBuilder(config.nginxExecutable(), "-c",
-						nginxConf().getAbsolutePath()).start();
-				runningProcess.add(process);
+				final Process process = new ProcessBuilder(
+						config.nginxExecutable(),
+						"-c",
+						helper.absolutePath()).start();
+				runningProcess.supply(process);
 				LOGGER.info("nginx started on port {} with pid {}", config.mainPort(), getPidOfProcess(process));
 			}
 		}
@@ -177,22 +177,75 @@ final class NginxServiceImpl implements NginxService
 		}
 	}
 
-	@Override
-	public NginxConfig newConfig()
-	{
-		final NginxConfig nginx = modelFactory.newConfig();
-
-		nginx.pid().giveFilePath(sys("nginx.pid"));
-		nginx.error_log().giveFilePath(sys("nginx-error.log"));
-		nginx.http().access_log().giveFilePath(sys("nginx-access.log"));
-		nginx.http().charset().giveValue("utf-8");
-		nginx.http().addServer(config.mainPort());
-		return nginx;
-	}
-
 	private FsPath sys(final String name)
 	{
 		return filesystemStore.systemBucket().segment(name);
 	}
 
+	@Override
+	public boolean hasLocation(final int port, final String location)
+	{
+		return helperFactory
+				.helper()
+				.servers()
+				.optGet(port)
+				.optMap(s -> s.locations().optGet(location))
+				.isPresent();
+	}
+
+	@Override
+	public Possible<Void> deleteLocationAndRestart(final int port, final String location)
+	{
+		final ConfigHelper helper = helperFactory.helper();
+		final OptView<ConfigHelperServer> server = helper
+				.servers()
+				.optGet(port);
+		if (!server.isPresent())
+		{
+			return FailureReason.PARENT_DOES_NOT_EXIST.happened();
+		}
+		final Embedded<ConfigHelperLocation> loc = server.get().locations().getEmbedded(location);
+		if (!loc.opt().isPresent())
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
+		loc.delete();
+		helper.write();
+		startOrRestart();
+		return View.noContent();
+	}
+
+	@Override
+	public Possible<ListView<String>> listLocations(final int port)
+	{
+		final OptView<ConfigHelperServer> server = helperFactory
+				.helper()
+				.servers()
+				.optGet(port);
+		if (!server.isPresent())
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
+		return View.ok(server.get().locations().keys());
+	}
+
+	@Override
+	public Possible<Void> putAndRestart(final int port, final String location, final OptView<String> alias)
+	{
+		if (!location.startsWith("/") || !location.endsWith("/"))
+		{
+			return FailureReason.BAD_LOCATION.happened();
+		}
+		final ConfigHelper helper = helperFactory.helper();
+		final OptView<ConfigHelperServer> server = helper.servers()
+				.optGet(port);
+		if (!server.isPresent())
+		{
+			return FailureReason.PARENT_DOES_NOT_EXIST.happened();
+		}
+		server.get().getOrCreateLocation(location).setAlias(alias);
+		helper.write();
+		startOrRestart();
+		return View.noContent();
+	}
 }

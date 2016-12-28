@@ -19,6 +19,7 @@ import restless.client.api.ManagementUnexpectedResponseException;
 import restless.client.api.ManagementUnsupportedException;
 import restless.client.api.ResponseType;
 import restless.common.util.DummyException;
+import restless.common.util.Escapers;
 import restless.common.util.OtherPreconditions;
 
 public final class TargetWrapper
@@ -38,6 +39,12 @@ public final class TargetWrapper
 	{
 		OtherPreconditions.checkNotNullOrEmpty(segment);
 		return new TargetWrapper(targetRoot, target.path(segment), objectMapper);
+	}
+
+	public TargetWrapper withEscapedSegment(final String segment)
+	{
+		OtherPreconditions.checkNotNullOrEmpty(segment);
+		return new TargetWrapper(targetRoot, target.path(Escapers.url(segment)), objectMapper);
 	}
 
 	public String getTextPlain()
@@ -255,5 +262,24 @@ public final class TargetWrapper
 	public String url()
 	{
 		return target.getUri().toString();
+	}
+
+	public boolean exists(final String contentType)
+	{
+		final ResponseType responseType = getResponseType(contentType);
+		switch (responseType) {
+		case OK:
+			return true;
+		case NOT_FOUND:
+			return false;
+		default:
+			throw new ManagementUnexpectedResponseException(responseType);
+		}
+	}
+
+	public ResponseType postResponseType(final String data, final String contentType)
+	{
+		final Response response = target.request().post(Entity.entity(data, contentType));
+		return responseType(response);
 	}
 }

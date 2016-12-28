@@ -19,8 +19,10 @@ import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 
+import restless.common.util.FailureReason;
 import restless.common.util.OtherPreconditions;
-import restless.handler.binding.backend.PossibleData;
+import restless.common.util.Possible;
+import restless.common.util.View;
 import restless.handler.filesystem.backend.FilesystemSnapshot;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
@@ -36,34 +38,29 @@ final class JavaStoreImpl implements JavaStore
 		this.filesystem = checkNotNull(filesystem);
 	}
 
-	private FsPath bucket()
+	private FsPath pathToType(final String pkg, final String file)
 	{
-		return filesystem.systemBucket().segment("java");
-	}
+		OtherPreconditions.checkNotNullOrEmpty(pkg);
+		OtherPreconditions.checkNotNullOrEmpty(file);
+		if (pkg.startsWith(".") || pkg.contains("..") || pkg.endsWith(".") || pkg.contains("/"))
+		{
+			throw new IllegalArgumentException("Bad pkg: " + pkg);
+		}
+		if (file.contains(".") || file.contains("/"))
+		{
+			throw new IllegalArgumentException("Bad filename: " + file);
+		}
 
-	private FsPath pathToType(final String typeName)
-	{
-		OtherPreconditions.checkNotNullOrEmpty(typeName);
-		FsPath path = bucket();
-		if (typeName.startsWith(".") || typeName.contains("..") || typeName.endsWith("."))
+		FsPath path = filesystem.systemBucket().segment("java");
+		for (final String seg : pkg.split("\\."))
 		{
-			throw new IllegalArgumentException("Bad type name: " + typeName);
+			path = path.segment(seg);
 		}
-		final String[] segments = typeName.split("\\.");
-		for (int i = 0; i < segments.length; i++)
-		{
-			String segment = segments[i];
-			if (i == segments.length - 1)
-			{
-				segment = segment + ".java";
-			}
-			path = path.segment(segment);
-		}
-		return path;
+		return path.segment(file + ".java");
 	}
 
 	@Override
-	public PossibleData storeJava(final String code)
+	public Possible<Void> putJava(final String pkg, final String file, final String code)
 	{
 		try
 		{
@@ -74,7 +71,7 @@ final class JavaStoreImpl implements JavaStore
 			if (!packageDeclaration.isPresent())
 			{
 				LOGGER.warn("Java code has no package declaration");
-				return PossibleData.requestFailedSchema();
+				return FailureReason.REQUEST_FAILED_SCHEMA.happened();
 			}
 
 			final NodeList<TypeDeclaration<?>> types = compilationUnit.getTypes();
@@ -82,17 +79,27 @@ final class JavaStoreImpl implements JavaStore
 			{
 				LOGGER.warn(
 						"Java code does not contain a unique type declaration. We need this to determine where the file gets put");
-				return PossibleData.requestFailedSchema();
+				return FailureReason.REQUEST_FAILED_SCHEMA.happened();
 			}
 
-			final String typeName = packageDeclaration.get().getPackageName() + "." + types.get(0).getNameAsString();
-			final FsPath filePath = pathToType(typeName);
+			if (!pkg.equals(packageDeclaration.get().getPackageName()))
+			{
+				LOGGER.warn("Wrong package. Request said " + pkg + ", java code said " + packageDeclaration.get());
+				return FailureReason.REQUEST_FAILED_SCHEMA.happened();
+			}
+			if (!file.equals(types.get(0).getNameAsString()))
+			{
+				LOGGER.warn(
+						"Wrong type name. Request said " + file + ", java code said " + types.get(0).getNameAsString());
+				return FailureReason.REQUEST_FAILED_SCHEMA.happened();
+			}
+			final FsPath filePath = pathToType(pkg, file);
 
 			final FilesystemSnapshot snapshot = filesystem.snapshot();
 
 			if (snapshot.isFile(filePath))
 			{
-				return PossibleData.alreadyExists();
+				return FailureReason.ALREADY_EXISTS.happened();
 			}
 
 			filePath.parent().leadingPortions().forEach(dirPath -> snapshot.isDir(dirPath));
@@ -104,29 +111,29 @@ final class JavaStoreImpl implements JavaStore
 				}
 				FileUtils.write(map.get(filePath), code, StandardCharsets.UTF_8);
 			});
-			return PossibleData.of(typeName);
+			return View.noContent();
 		}
 		catch (final ParseProblemException e)
 		{
 			LOGGER.catching(e);
-			return PossibleData.requestHasInvalidSyntax();
+			return FailureReason.REQUEST_HAS_INVALID_SYNTAX.happened();
 		}
 	}
 
 	@Override
-	public PossibleData getJava(final String qualifiedTypeName)
+	public Possible<String> getJava(final String pkg, final String file)
 	{
-		final FsPath filePath = pathToType(qualifiedTypeName);
+		final FsPath filePath = pathToType(pkg, file);
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
 		if (snapshot.isFile(filePath))
 		{
 			final String data = snapshot.read(filePath,
 					inputStream -> IOUtils.toString(inputStream, StandardCharsets.UTF_8));
-			return PossibleData.of(data);
+			return View.ok(data);
 		}
 		else
 		{
-			return PossibleData.doesNotExist();
+			return FailureReason.DOES_NOT_EXIST.happened();
 		}
 	}
 }

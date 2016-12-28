@@ -144,4 +144,13 @@ final class PathSpecImpl implements PathSpec
 		return modelFactory.pathSpec(Make.list(segments, segment));
 	}
 
+	@Override
+	public String literalStringNoLeadingOrTrailingSlashes()
+	{
+		return segments.stream()
+				.map(PathSpecSegment::escapedLiteralValue)
+				.reduce(OtherCollectors.join("/"))
+				.orElse("");
+	}
+
 }

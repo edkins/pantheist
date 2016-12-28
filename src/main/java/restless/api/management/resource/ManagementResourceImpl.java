@@ -3,7 +3,6 @@ package restless.api.management.resource;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
-import java.net.URI;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -21,17 +20,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.api.management.backend.ManagementBackend;
 import restless.api.management.model.CreateConfigRequest;
 import restless.api.management.model.ListConfigResponse;
-import restless.handler.binding.backend.PossibleData;
-import restless.handler.binding.backend.PossibleEmpty;
+import restless.common.util.Escapers;
+import restless.common.util.FailureReason;
+import restless.common.util.Possible;
 import restless.handler.binding.model.BindingModelFactory;
-import restless.handler.binding.model.Handler;
-import restless.handler.binding.model.Schema;
 
 /**
  * Path segments may be:
@@ -49,7 +46,6 @@ public final class ManagementResourceImpl implements ManagementResource
 {
 	private static final Logger LOGGER = LogManager.getLogger(ManagementResourceImpl.class);
 	private final ManagementBackend backend;
-	private final BindingModelFactory bindingModelFactory;
 	private final ObjectMapper objectMapper;
 
 	@Inject
@@ -58,7 +54,6 @@ public final class ManagementResourceImpl implements ManagementResource
 			final ObjectMapper objectMapper)
 	{
 		this.backend = checkNotNull(backend);
-		this.bindingModelFactory = checkNotNull(bindingModelFactory);
 		this.objectMapper = checkNotNull(objectMapper);
 	}
 
@@ -72,22 +67,28 @@ public final class ManagementResourceImpl implements ManagementResource
 	}
 
 	/**
-	 * Lists all the configs.
+	 * Lists all the locations for a particular server.
 	 */
 	@GET
-	@Path("config")
+	@Path("server/{serverId}/location")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response listConfigs()
+	public Response listConfigs(@PathParam("serverId") final String serverId)
 	{
-		LOGGER.info("GET config");
-
+		LOGGER.info("GET server/{}/location", serverId);
 		try
 		{
-			final ListConfigResponse response = backend.listConfig();
-			final String responseJson = objectMapper.writeValueAsString(response);
-			LOGGER.info("Returned {} items.", response.childResources().size());
+			final Possible<ListConfigResponse> data = backend.listLocations(serverId);
+			if (data.isPresent())
+			{
+				final String responseJson = objectMapper.writeValueAsString(data.get());
+				LOGGER.info("Returned {} items.", data.get().childResources().size());
 
-			return Response.ok(responseJson).build();
+				return Response.ok(responseJson).build();
+			}
+			else
+			{
+				return failureResponse(data.failure());
+			}
 		}
 		catch (final RuntimeException | JsonProcessingException e)
 		{
@@ -96,23 +97,24 @@ public final class ManagementResourceImpl implements ManagementResource
 	}
 
 	/**
-	 * Handles creating new config
+	 * Handles binding a location to the filesystem
 	 */
-	@POST
-	@Path("config")
+	@PUT
+	@Path("server/{serverId}/location/{locationId}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response createConfig(final String requestJson)
+	public Response createConfig(
+			@PathParam("serverId") final String serverId,
+			@PathParam("locationId") final String locationId,
+			final String requestJson)
 	{
-		LOGGER.info("POST config {}", requestJson);
-
+		LOGGER.info("PUT server/{}/location/{} {}", serverId, Escapers.url(locationId), requestJson);
 		try
 		{
 			final CreateConfigRequest request = objectMapper.readValue(requestJson, CreateConfigRequest.class);
 
-			final URI newUri = backend.createConfig(request);
-			LOGGER.info("Created {}", newUri);
+			final Possible<Void> result = backend.putConfig(serverId, locationId, request);
 
-			return Response.created(newUri).build();
+			return possibleEmptyResponse(result);
 		}
 		catch (final JsonProcessingException e)
 		{
@@ -128,19 +130,22 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Returns information about the configuration point
 	 */
 	@GET
-	@Path("config/{configId}")
+	@Path("server/{serverId}/location/{locationId}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getConfig(@PathParam("configId") final String configId)
+	public Response getConfig(
+			@PathParam("serverId") final String serverId,
+			@PathParam("locationId") final String locationId)
 	{
+		LOGGER.info("GET server/{}/location/{}", serverId, Escapers.url(locationId));
 		try
 		{
-			if (backend.configExists(bindingModelFactory.configId(configId)))
+			if (backend.configExists(serverId, locationId))
 			{
 				return Response.ok("{}").build();
 			}
 			else
 			{
-				return msgResponse(404, "NO_SUCH_CONFIG_ID");
+				return failureResponse(FailureReason.DOES_NOT_EXIST);
 			}
 		}
 		catch (final RuntimeException e)
@@ -150,52 +155,22 @@ public final class ManagementResourceImpl implements ManagementResource
 	}
 
 	/**
-	 * Deletse a configuration point
+	 * Deletes a configuration point
 	 */
 	@DELETE
-	@Path("config/{configId}")
-	public Response deleteConfig(@PathParam("configId") final String configId)
+	@Path("server/{serverId}/location/{locationId}")
+	public Response deleteConfig(
+			@PathParam("serverId") final String serverId,
+			@PathParam("locationId") final String locationId)
 	{
+		LOGGER.info("DELETE server/{}/location/{}", serverId, Escapers.url(locationId));
 		try
 		{
-			final PossibleEmpty result = backend.deleteConfig(bindingModelFactory.configId(configId));
+			final Possible<Void> result = backend.deleteConfig(serverId, locationId);
 
 			return possibleEmptyResponse(result);
 		}
 		catch (final RuntimeException e)
-		{
-			return unexpectedErrorResponse(e);
-		}
-	}
-
-	private Response msgResponse(final int status, final String msg)
-	{
-		return Response.status(404).entity(msg).build();
-	}
-
-	/**
-	 * Handles setting the handler
-	 */
-	@PUT
-	@Path("config/{configId}/handler")
-	@Consumes(MediaType.APPLICATION_JSON)
-	public Response putHandler(@PathParam("configId") final String configId, final String handlerJson)
-	{
-		LOGGER.info("PUT config/{}/handler {}", configId, handlerJson);
-
-		try
-		{
-			final Handler request = objectMapper.readValue(handlerJson, Handler.class);
-
-			final PossibleEmpty result = backend.putConfig(bindingModelFactory.configId(configId), request);
-
-			return possibleEmptyResponse(result);
-		}
-		catch (final JsonProcessingException e)
-		{
-			return jsonValidationResponse(e);
-		}
-		catch (final RuntimeException | IOException e)
 		{
 			return unexpectedErrorResponse(e);
 		}
@@ -207,13 +182,13 @@ public final class ManagementResourceImpl implements ManagementResource
 	@PUT
 	@Path("data/{path:.*}")
 	@Consumes(MediaType.TEXT_PLAIN)
-	public Response getHandler(@PathParam("path") final String path, final String data)
+	public Response putData(@PathParam("path") final String path, final String data)
 	{
 		LOGGER.info("PUT data/{}", path);
 
 		try
 		{
-			final PossibleEmpty result = backend.putData(backend.literalPath(path), data);
+			final Possible<Void> result = backend.putData(path, data);
 
 			return possibleEmptyResponse(result);
 		}
@@ -235,7 +210,7 @@ public final class ManagementResourceImpl implements ManagementResource
 
 		try
 		{
-			final PossibleData data = backend.getData(backend.literalPath(path));
+			final Possible<String> data = backend.getData(path);
 
 			return possibleDataResponse(data);
 		}
@@ -249,24 +224,20 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles the schema management function (PUT)
 	 */
 	@PUT
-	@Path("config/{configId}/schema")
+	@Path("json-schema/{schemaId}")
 	@Consumes("application/schema+json")
-	public Response putSchema(@PathParam("configId") final String configId, final String data)
+	public Response putSchema(
+			@PathParam("schemaId") final String schemaId,
+			final String data)
 	{
-		LOGGER.info("PUT config/{configId}/schema (json-schema)", configId);
-
+		LOGGER.info("PUT json-schema/{}", schemaId);
 		try
 		{
-			final JsonNode jsonNode = objectMapper.readValue(data, JsonNode.class);
-			final PossibleEmpty result = backend.putJsonSchema(bindingModelFactory.configId(configId), jsonNode);
+			final Possible<Void> result = backend.putJsonSchema(schemaId, data);
 
 			return possibleEmptyResponse(result);
 		}
-		catch (final JsonProcessingException e)
-		{
-			return jsonValidationResponse(e);
-		}
-		catch (final RuntimeException | IOException ex)
+		catch (final RuntimeException ex)
 		{
 			return unexpectedErrorResponse(ex);
 		}
@@ -276,15 +247,16 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles the schema management function (GET)
 	 */
 	@GET
-	@Path("config/{configId}/schema")
-	public Response getSchema(@PathParam("configId") final String configId)
+	@Produces("application/schema+json")
+	@Path("json-schema/{schemaId}")
+	public Response getSchema(
+			@PathParam("schemaId") final String schemaId)
 	{
-		LOGGER.info("GET config/{configId}/schema", configId);
-
+		LOGGER.info("GET json-schema/{}", schemaId);
 		try
 		{
-			final Schema schema = backend.getSchema(bindingModelFactory.configId(configId));
-			return Response.ok(schema.contentAsString(), schema.httpContentType()).build();
+			final Possible<String> data = backend.getJsonSchema(schemaId);
+			return possibleDataResponse(data);
 		}
 		catch (final RuntimeException ex)
 		{
@@ -293,18 +265,19 @@ public final class ManagementResourceImpl implements ManagementResource
 	}
 
 	/**
-	 * Handles the jersey-file management function (PUT)
+	 * Handles the schema data validation function (POST)
 	 */
-	@PUT
-	@Path("config/{configId}/jersey-file")
-	@Consumes("text/plain")
-	public Response putJerseyFile(@PathParam("configId") final String configId, final String data)
+	@POST
+	@Produces("application/schema+json")
+	@Path("json-schema/{schemaId}/validate")
+	public Response validateAgainstSchema(
+			@PathParam("schemaId") final String schemaId,
+			final String data)
 	{
-		LOGGER.info("PUT config/{configId}/jersey-file", configId);
-
+		LOGGER.info("GET json-schema/{}", schemaId);
 		try
 		{
-			final PossibleEmpty result = backend.putJerseyFile(bindingModelFactory.configId(configId), data);
+			final Possible<Void> result = backend.validateAgainstJsonSchema(schemaId, data);
 			return possibleEmptyResponse(result);
 		}
 		catch (final RuntimeException ex)
@@ -314,18 +287,42 @@ public final class ManagementResourceImpl implements ManagementResource
 	}
 
 	/**
-	 * Handles the jersey-file management function (GET)
+	 * Handles the java management function (PUT)
 	 */
-	@GET
-	@Path("config/{configId}/jersey-file")
-	@Produces("text/plain")
-	public Response getJerseyFile(@PathParam("configId") final String configId)
+	@PUT
+	@Path("java-pkg/{pkg}/file/{file}")
+	@Consumes("text/plain")
+	public Response putJerseyFile(
+			@PathParam("pkg") final String pkg,
+			@PathParam("file") final String file,
+			final String data)
 	{
-		LOGGER.info("GET config/{configId}/jersey-file", configId);
-
+		LOGGER.info("PUT java-pkg/{}/file/{}", pkg, file);
 		try
 		{
-			final PossibleData result = backend.getJerseyFile(bindingModelFactory.configId(configId));
+			final Possible<Void> result = backend.putJavaFile(pkg, file, data);
+			return possibleEmptyResponse(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return unexpectedErrorResponse(ex);
+		}
+	}
+
+	/**
+	 * Handles the java management function (GET)
+	 */
+	@GET
+	@Path("java-pkg/{pkg}/file/{file}")
+	@Produces("text/plain")
+	public Response getJerseyFile(
+			@PathParam("pkg") final String pkg,
+			@PathParam("file") final String file)
+	{
+		LOGGER.info("GET java-pkg/{}/file/{}", pkg, file);
+		try
+		{
+			final Possible<String> result = backend.getJavaFile(pkg, file);
 			return possibleDataResponse(result);
 		}
 		catch (final RuntimeException ex)
@@ -346,7 +343,7 @@ public final class ManagementResourceImpl implements ManagementResource
 		return Response.serverError().entity("Unexpected error").build();
 	}
 
-	private Response possibleDataResponse(final PossibleData data)
+	private Response possibleDataResponse(final Possible<String> data)
 	{
 		if (data.isPresent())
 		{
@@ -354,21 +351,25 @@ public final class ManagementResourceImpl implements ManagementResource
 		}
 		else
 		{
-			LOGGER.info("Returning status " + data.httpStatus() + " " + data.message());
-			return Response.status(data.httpStatus()).entity(data.message()).build();
+			return failureResponse(data.failure());
 		}
 	}
 
-	private Response possibleEmptyResponse(final PossibleEmpty data)
+	private Response possibleEmptyResponse(final Possible<Void> data)
 	{
-		if (data.isOk())
+		if (data.isPresent())
 		{
 			return Response.noContent().build();
 		}
 		else
 		{
-			LOGGER.info("Returning status " + data.httpStatus() + " " + data.message());
-			return Response.status(data.httpStatus()).entity(data.message()).build();
+			return failureResponse(data.failure());
 		}
+	}
+
+	private Response failureResponse(final FailureReason fail)
+	{
+		LOGGER.info("Returning status " + fail.httpStatus() + " " + fail.toString());
+		return Response.status(fail.httpStatus()).entity(fail.toString()).build();
 	}
 }

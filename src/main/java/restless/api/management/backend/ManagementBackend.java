@@ -1,41 +1,30 @@
 package restless.api.management.backend;
 
-import java.net.URI;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
 import restless.api.management.model.CreateConfigRequest;
 import restless.api.management.model.ListConfigResponse;
-import restless.handler.binding.backend.PossibleData;
-import restless.handler.binding.backend.PossibleEmpty;
-import restless.handler.binding.model.ConfigId;
-import restless.handler.binding.model.Handler;
-import restless.handler.binding.model.PathSpec;
-import restless.handler.binding.model.Schema;
+import restless.common.util.Possible;
 
 public interface ManagementBackend
 {
-	URI createConfig(CreateConfigRequest request);
+	Possible<ListConfigResponse> listLocations(String serverId);
 
-	PathSpec literalPath(String path);
+	boolean configExists(String serverId, String locationId);
 
-	ListConfigResponse listConfig();
+	Possible<Void> putConfig(String serverId, String locationId, CreateConfigRequest request);
 
-	boolean configExists(ConfigId configId);
+	Possible<Void> putData(String path, String data);
 
-	PossibleEmpty putConfig(ConfigId configId, Handler handler);
+	Possible<String> getData(String path);
 
-	PossibleEmpty putData(PathSpec path, String data);
+	Possible<Void> putJsonSchema(String schemaId, String schemaText);
 
-	PossibleData getData(PathSpec path);
+	Possible<String> getJsonSchema(String schemaId);
 
-	PossibleEmpty putJsonSchema(ConfigId configId, JsonNode schema);
+	Possible<Void> validateAgainstJsonSchema(String schemaId, String text);
 
-	Schema getSchema(ConfigId configId);
+	Possible<Void> putJavaFile(String pkg, String file, String data);
 
-	PossibleEmpty putJerseyFile(ConfigId configId, String code);
+	Possible<String> getJavaFile(String pkg, String file);
 
-	PossibleData getJerseyFile(ConfigId configId);
-
-	PossibleEmpty deleteConfig(ConfigId configId);
+	Possible<Void> deleteConfig(String serverId, String locationId);
 }

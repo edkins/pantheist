@@ -180,4 +180,11 @@ public class Make
 		}
 		return sb.toString();
 	}
+
+	public static <T, U> Function<T, U> failer(final String message)
+	{
+		return x -> {
+			throw new IllegalStateException(message);
+		};
+	}
 }

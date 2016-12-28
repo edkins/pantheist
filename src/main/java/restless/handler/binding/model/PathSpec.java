@@ -67,5 +67,8 @@ public interface PathSpec
 	String literalString();
 
 	@JsonIgnore
+	String literalStringNoLeadingOrTrailingSlashes();
+
+	@JsonIgnore
 	PathSpec plus(PathSpecSegment segment);
 }

@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,6 +15,9 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
 import javax.inject.Inject;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import restless.common.util.DummyException;
 import restless.handler.filesystem.except.FsConflictException;
@@ -246,6 +250,18 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 				directoriesToCreate.add(dir);
 			}
 		});
+	}
+
+	@Override
+	public String readText(final FsPath file)
+	{
+		return read(file, in -> IOUtils.toString(in, StandardCharsets.UTF_8));
+	}
+
+	@Override
+	public void writeSingleText(final FsPath path, final String text)
+	{
+		writeSingle(path, file -> FileUtils.writeStringToFile(file, text, StandardCharsets.UTF_8));
 	}
 
 }

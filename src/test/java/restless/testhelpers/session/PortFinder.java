@@ -5,15 +5,16 @@ import java.net.ServerSocket;
 
 import com.google.common.base.Throwables;
 
-import restless.common.util.MutableOptional;
+import restless.common.util.MutableOpt;
+import restless.common.util.View;
 
 final class PortFinder
 {
-	private final MutableOptional<Integer> value;
+	private final MutableOpt<Integer> value;
 
 	private PortFinder()
 	{
-		value = MutableOptional.empty();
+		value = View.mutableOpt();
 	}
 
 	static PortFinder empty()
@@ -25,7 +26,7 @@ final class PortFinder
 	{
 		if (!value.isPresent())
 		{
-			value.add(findFreePort());
+			value.supply(findFreePort());
 		}
 		return value.get();
 	}

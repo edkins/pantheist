@@ -1,6 +1,6 @@
 package restless.handler.filesystem.backend;
 
-import restless.handler.binding.backend.ManagementFunctions;
+import restless.common.util.Possible;
 
 public interface FilesystemStore
 {
@@ -18,11 +18,6 @@ public interface FilesystemStore
 	<T> JsonSnapshot<T> jsonSnapshot(FsPath path, Class<T> clazz);
 
 	/**
-	 * Look up a particular file and return its management interface.
-	 */
-	ManagementFunctions manage(FsPath path);
-
-	/**
 	 * Used by other handlers to store their stuff.
 	 */
 	FsPath systemBucket();
@@ -30,4 +25,8 @@ public interface FilesystemStore
 	FsPath rootPath();
 
 	FsPath srvBucket();
+
+	Possible<Void> putSrvData(String path, String data);
+
+	Possible<String> getSrvData(String path);
 }

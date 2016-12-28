@@ -4,10 +4,14 @@ import restless.client.impl.TargetWrapper;
 
 public interface ManagementClient
 {
+	ManagementPathRoot manage();
+
 	/**
-	 * @return the root path to the management api
+	 * Convenience method. Equivalent to manage().server(mainPort)
+	 *
+	 * @return the path for managing the main server
 	 */
-	ManagementPath manage();
+	ManagementPathServer manageMainServer();
 
 	/**
 	 * @return the root path to the main api

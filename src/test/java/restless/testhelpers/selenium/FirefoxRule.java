@@ -14,7 +14,8 @@ import org.openqa.selenium.remote.service.DriverCommandExecutor;
 
 import com.google.common.collect.ImmutableMap;
 
-import restless.common.util.MutableOptional;
+import restless.common.util.MutableOpt;
+import restless.common.util.View;
 
 final class FirefoxRule implements ApiRule
 {
@@ -25,13 +26,13 @@ final class FirefoxRule implements ApiRule
 	private final boolean screenshotOnFailure;
 
 	// State
-	private final MutableOptional<WebDriver> webDriver;
+	private final MutableOpt<WebDriver> webDriver;
 
 	FirefoxRule(final boolean visible, final boolean screenshotOnFailure)
 	{
 		this.visible = visible;
 		this.screenshotOnFailure = screenshotOnFailure;
-		this.webDriver = MutableOptional.empty();
+		this.webDriver = View.mutableOpt();
 	}
 
 	private static class FirefoxWithEnvDriver extends RemoteWebDriver
@@ -79,7 +80,7 @@ final class FirefoxRule implements ApiRule
 				final WebDriver webDriver = new FirefoxWithEnvDriver(env());
 				try
 				{
-					FirefoxRule.this.webDriver.add(webDriver);
+					FirefoxRule.this.webDriver.supply(webDriver);
 					base.evaluate();
 				}
 				finally

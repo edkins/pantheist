@@ -22,6 +22,8 @@ public interface FilesystemSnapshot
 	 */
 	<T> T read(FsPath path, InputSteamProcessor<T> fn);
 
+	String readText(FsPath file);
+
 	/**
 	 * Returns the type of file: regular file, directory or missing.
 	 */
@@ -87,4 +89,6 @@ public interface FilesystemSnapshot
 	 * Remember that future writes are forbidden on this snapshot so you can't do a bunch of these.
 	 */
 	void writeSingle(FsPath path, SingleFileProcessor fn);
+
+	void writeSingleText(FsPath path, String text);
 }

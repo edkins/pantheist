@@ -2,10 +2,10 @@ package restless.client.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import restless.client.api.ManagementData;
+import restless.client.api.ManagementDataSchema;
 import restless.client.api.ResponseType;
 
-final class ManagementDataImpl implements ManagementData
+final class ManagementDataImpl implements ManagementDataSchema
 {
 	private final TargetWrapper target;
 
@@ -42,6 +42,12 @@ final class ManagementDataImpl implements ManagementData
 	public ResponseType putResourceResponseType(final String resourcePath, final String contentType)
 	{
 		return target.putResourceResponseType(resourcePath, contentType);
+	}
+
+	@Override
+	public ResponseType validate(final String data, final String contentType)
+	{
+		return target.withSegment("validate").postResponseType(data, contentType);
 	}
 
 }

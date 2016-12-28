@@ -1,6 +1,5 @@
 package restless.common.util;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
@@ -32,14 +31,14 @@ public final class OtherCollectors
 		return (a, b) -> a + delim + b;
 	}
 
-	public static <T> Collector<T, MutableOptional<T>, Optional<T>> toOptional()
+	public static <T> Collector<T, MutableOpt<T>, OptView<T>> toOpt()
 	{
-		return new Collector<T, MutableOptional<T>, Optional<T>>() {
+		return new Collector<T, MutableOpt<T>, OptView<T>>() {
 
 			@Override
-			public BiConsumer<MutableOptional<T>, T> accumulator()
+			public BiConsumer<MutableOpt<T>, T> accumulator()
 			{
-				return (a, x) -> a.add(x);
+				return (a, x) -> a.supply(x);
 			}
 
 			@Override
@@ -49,24 +48,24 @@ public final class OtherCollectors
 			}
 
 			@Override
-			public BinaryOperator<MutableOptional<T>> combiner()
+			public BinaryOperator<MutableOpt<T>> combiner()
 			{
 				return (a, b) -> {
-					a.add(b);
+					a.supplyOpt(b);
 					return a;
 				};
 			}
 
 			@Override
-			public Function<MutableOptional<T>, Optional<T>> finisher()
+			public Function<MutableOpt<T>, OptView<T>> finisher()
 			{
-				return MutableOptional::value;
+				return OptView::immutableCopy;
 			}
 
 			@Override
-			public Supplier<MutableOptional<T>> supplier()
+			public Supplier<MutableOpt<T>> supplier()
 			{
-				return MutableOptional::empty;
+				return View::mutableOpt;
 			}
 		};
 	}

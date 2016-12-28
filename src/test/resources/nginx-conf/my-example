@@ -1,0 +1,14 @@
+pid /home/example/data-dir/system/nginx.pid;
+error_log /home/example/data-dir/system/nginx-error.log;
+events {
+}
+http {
+    access_log /home/example/data-dir//system/nginx-access.log;
+    root /home/example/data-dir/srv/;
+    charset utf-8;
+    server {
+        listen 127.0.0.1:3300;
+        location /resources/ {
+        }
+    }
+}

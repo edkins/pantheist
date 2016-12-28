@@ -14,7 +14,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
 import com.google.inject.Guice;
 
-import restless.common.util.MutableOptional;
+import restless.common.util.MutableOpt;
+import restless.common.util.View;
 import restless.system.config.RestlessConfig;
 import restless.system.config.SystemConfigModule;
 import restless.testhelpers.selenium.SeleniumInfo;
@@ -27,7 +28,7 @@ public final class TestSessionImpl implements TestSession
 
 	private final SeleniumInfo seleniumInfo;
 
-	private final MutableOptional<File> dataDir;
+	private final MutableOpt<File> dataDir;
 
 	private final ObjectMapper objectMapper;
 
@@ -36,7 +37,7 @@ public final class TestSessionImpl implements TestSession
 		this.managementPort = PortFinder.empty();
 		this.mainPort = PortFinder.empty();
 		this.seleniumInfo = checkNotNull(seleniumInfo);
-		this.dataDir = MutableOptional.empty();
+		this.dataDir = View.mutableOpt();
 		this.objectMapper = new ObjectMapper();
 	}
 
@@ -91,7 +92,7 @@ public final class TestSessionImpl implements TestSession
 	@Override
 	public void supplyDataDir(final File newDataDir)
 	{
-		dataDir.add(newDataDir);
+		dataDir.supply(newDataDir);
 	}
 
 	@Override

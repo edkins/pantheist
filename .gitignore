@@ -7,6 +7,7 @@
 /data/system/nginx-access.log
 /data/system/nginx-error.log
 /data/system/nginx.pid
+/data/system/nginx.conf
 /dump/
 /src/experiment
 /third-party/

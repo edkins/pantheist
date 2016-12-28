@@ -196,6 +196,7 @@ final class FsPathImpl implements FsPath
 		else
 		{
 			final ImmutableList.Builder<FsPathSegment> builder = ImmutableList.builder();
+			builder.addAll(segments);
 			slashSeparated(relativePath, builder);
 			return new FsPathImpl(builder.build());
 		}

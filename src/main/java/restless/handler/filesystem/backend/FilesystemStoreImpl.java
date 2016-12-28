@@ -8,7 +8,9 @@ import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import restless.handler.binding.backend.ManagementFunctions;
+import restless.common.util.FailureReason;
+import restless.common.util.Possible;
+import restless.common.util.View;
 
 final class FilesystemStoreImpl implements FilesystemStore
 {
@@ -40,12 +42,6 @@ final class FilesystemStoreImpl implements FilesystemStore
 	}
 
 	@Override
-	public ManagementFunctions manage(final FsPath path)
-	{
-		return factory.managementFunctions(path);
-	}
-
-	@Override
 	public FsPath systemBucket()
 	{
 		return fromBucketName("system");
@@ -73,5 +69,32 @@ final class FilesystemStoreImpl implements FilesystemStore
 	public <T> JsonSnapshot<T> jsonSnapshot(final FsPath path, final Class<T> clazz)
 	{
 		return new JsonSnapshotImpl<>(snapshot(), objectMapper, path, clazz);
+	}
+
+	@Override
+	public Possible<String> getSrvData(final String relativePath)
+	{
+		final FilesystemSnapshot snapshot = snapshot();
+		final FsPath path = srvBucket().slashSeparatedSegments(relativePath);
+		if (snapshot.isFile(path))
+		{
+			final String data = snapshot.readText(path);
+			return View.ok(data);
+		}
+		else
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
+	}
+
+	@Override
+	public Possible<Void> putSrvData(final String relativePath, final String data)
+	{
+		final FilesystemSnapshot snapshot = snapshot();
+		final FsPath path = srvBucket().slashSeparatedSegments(relativePath);
+		snapshot.willNeedDirectory(path.parent());
+		snapshot.isFile(path); // throws an exception if it exists but is not a regular file
+		snapshot.writeSingleText(path, data);
+		return View.noContent();
 	}
 }

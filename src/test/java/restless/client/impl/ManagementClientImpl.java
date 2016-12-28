@@ -13,7 +13,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
 
 import restless.client.api.ManagementClient;
-import restless.client.api.ManagementPath;
+import restless.client.api.ManagementPathRoot;
+import restless.client.api.ManagementPathServer;
 
 public class ManagementClientImpl implements ManagementClient
 {
@@ -45,14 +46,25 @@ public class ManagementClientImpl implements ManagementClient
 	}
 
 	@Override
-	public ManagementPath manage()
+	public ManagementPathRoot manage()
 	{
-		return new ManagementPathImpl(new TargetRootImpl(client, managementUri.toString(), objectMapper).home());
+		return new ManagementPathImpl(managementTarget());
+	}
+
+	private TargetWrapper managementTarget()
+	{
+		return new TargetRootImpl(client, managementUri.toString(), objectMapper).home();
 	}
 
 	@Override
 	public TargetWrapper main()
 	{
 		return new TargetRootImpl(client, mainUri.toString(), objectMapper).home();
+	}
+
+	@Override
+	public ManagementPathServer manageMainServer()
+	{
+		return manage().server(mainUri.getPort());
 	}
 }

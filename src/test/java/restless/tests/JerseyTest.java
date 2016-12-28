@@ -6,7 +6,6 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import restless.client.api.ManagementConfigPoint;
 import restless.client.api.ResponseType;
 
 public class JerseyTest extends BaseTest
@@ -14,11 +13,11 @@ public class JerseyTest extends BaseTest
 	@Test
 	public void jerseyResource_canPutSomewhere_andReadItBack() throws Exception
 	{
-		final ManagementConfigPoint configPoint = manage.config().create("my-binding");
-		configPoint.jerseyFile()
+		manage.javaPackage("restless.examples").file("ExampleJerseyResource")
 				.putResource("/jersey-resource/resource", "text/plain");
 
-		final String data = configPoint.jerseyFile().getString("text/plain");
+		final String data = manage.javaPackage("restless.examples").file("ExampleJerseyResource")
+				.getString("text/plain");
 
 		assertThat(data, is(resource("/jersey-resource/resource")));
 	}
@@ -26,8 +25,7 @@ public class JerseyTest extends BaseTest
 	@Test
 	public void invalidJava_cannotStore() throws Exception
 	{
-		ManagementConfigPoint configPoint = manage.config().create("my-binding");
-		final ResponseType responseType = configPoint.jerseyFile()
+		final ResponseType responseType = manage.javaPackage("restless.examples").file("ExampleJerseyResource")
 				.putResourceResponseType("/jersey-resource/java-syntax-error", "text/plain");
 
 		assertEquals(ResponseType.BAD_REQUEST, responseType);

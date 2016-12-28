@@ -1,0 +1,7 @@
+
+
+
+pid /home/example/data-dir/system/nginx.pid;
+error_log /home/example/data-dir/system/nginx-error.log;
+events {
+}

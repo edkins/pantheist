@@ -1,12 +1,20 @@
 package restless.handler.nginx.manage;
 
-import restless.handler.nginx.model.NginxConfig;
+import restless.common.util.ListView;
+import restless.common.util.OptView;
+import restless.common.util.Possible;
 
 public interface NginxService
 {
-	void configureAndStart(NginxConfig config);
+	void startOrRestart();
 
 	void stop();
 
-	NginxConfig newConfig();
+	boolean hasLocation(int port, String location);
+
+	Possible<Void> deleteLocationAndRestart(int port, String location);
+
+	Possible<ListView<String>> listLocations(int port);
+
+	Possible<Void> putAndRestart(int port, String location, OptView<String> alias);
 }

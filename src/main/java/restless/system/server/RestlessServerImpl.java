@@ -15,8 +15,8 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import com.google.common.base.Throwables;
 
 import restless.api.management.resource.ManagementResource;
-import restless.common.util.MutableOptional;
-import restless.handler.binding.backend.BindingStore;
+import restless.common.util.MutableOpt;
+import restless.common.util.View;
 import restless.system.config.RestlessConfig;
 
 final class RestlessServerImpl implements RestlessServer
@@ -26,16 +26,15 @@ final class RestlessServerImpl implements RestlessServer
 	private final ManagementResource managementResource;
 
 	// State
-	MutableOptional<Server> serverOpt;
+	MutableOpt<Server> serverOpt;
 
 	@Inject
 	RestlessServerImpl(final RestlessConfig config,
-			final ManagementResource managementResource,
-			final BindingStore initializer)
+			final ManagementResource managementResource)
 	{
 		this.config = checkNotNull(config);
 		this.managementResource = checkNotNull(managementResource);
-		this.serverOpt = MutableOptional.empty();
+		this.serverOpt = View.mutableOpt();
 	}
 
 	@Override
@@ -49,7 +48,7 @@ final class RestlessServerImpl implements RestlessServer
 			context.setContextPath("/");
 
 			final Server server = new Server(port);
-			serverOpt.add(server);
+			serverOpt.supply(server);
 			server.setHandler(context);
 
 			final ResourceConfig resourceConfig = new ResourceConfig();

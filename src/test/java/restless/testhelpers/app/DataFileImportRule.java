@@ -3,6 +3,8 @@ package restless.testhelpers.app;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -44,9 +46,32 @@ public class DataFileImportRule implements TestRule
 				LOGGER.info("Copying stuff from {} to {}", source.getAbsolutePath(), target.getAbsolutePath());
 				FileUtils.copyDirectory(new File(source, "srv/resources"), new File(target, "srv/resources"));
 				FileUtils.copyFile(new File(source, "system/bindings"), new File(target, "system/bindings"));
+
+				deanonymizeNginxConf(
+						new File(source, "system/nginx-anon.conf"),
+						new File(target, "system/nginx.conf"),
+						target.getAbsolutePath(),
+						"127.0.0.1:" + session.mainPort());
 				base.evaluate();
 			}
 		};
+	}
+
+	private void deanonymizeNginxConf(
+			final File nginxAnonConf,
+			final File nginxConf,
+			final String hiddenText,
+			final String hiddenText2) throws IOException
+	{
+		final String replacementText = "${DATADIR}";
+		final String replacementText2 = "127.0.0.1:${MAIN_PORT}";
+
+		final String text = FileUtils
+				.readFileToString(nginxAnonConf, StandardCharsets.UTF_8)
+				.replace(replacementText, hiddenText)
+				.replace(replacementText2, hiddenText2);
+
+		FileUtils.write(nginxConf, text, StandardCharsets.UTF_8);
 	}
 
 }

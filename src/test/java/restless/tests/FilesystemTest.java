@@ -15,7 +15,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import restless.api.management.model.ListConfigItem;
-import restless.client.api.ManagementConfigPoint;
+import restless.client.api.ManagementPathLocation;
 import restless.client.api.ResponseType;
 
 public class FilesystemTest extends BaseTest
@@ -23,7 +23,7 @@ public class FilesystemTest extends BaseTest
 	@Test
 	public void filesystemFile_canReadItBack_throughManagementApi() throws Exception
 	{
-		manage.config().create("my-binding").bindToFilesystem();
+		mmain.location("/my-binding/").bindToFilesystem();
 		manage.data("my-binding/my-file").putString("Contents of file");
 
 		final String data = manage.data("my-binding/my-file").getString("text/plain");
@@ -33,7 +33,7 @@ public class FilesystemTest extends BaseTest
 	@Test
 	public void filesystemFile_dataExists_otherfile_dataDoesNotExist() throws Exception
 	{
-		manage.config().create("my-binding").bindToFilesystem();
+		mmain.location("/my-binding/").bindToFilesystem();
 		manage.data("my-binding/my-file").putString("Contents of file");
 
 		assertEquals(ResponseType.OK,
@@ -45,7 +45,7 @@ public class FilesystemTest extends BaseTest
 	@Test
 	public void filesystemFile_isServed() throws Exception
 	{
-		manage.config().create("my-binding").bindToFilesystem();
+		mmain.location("/my-binding/").bindToFilesystem();
 		manage.data("my-binding/my-file").putString("Contents of file");
 
 		assertEquals("Contents of file", mainApi.withSegment("my-binding").withSegment("my-file").getTextPlain());
@@ -65,7 +65,7 @@ public class FilesystemTest extends BaseTest
 		final File tempDir = mainRule.createTempDir();
 		final File myfile = new File(tempDir, "myfile.txt");
 		FileUtils.writeStringToFile(myfile, "Contents of my external file", StandardCharsets.UTF_8);
-		manage.config().create("external-files").bindToExternalFiles(tempDir.getAbsolutePath());
+		mmain.location("/external-files/").bindToExternalFiles(tempDir.getAbsolutePath() + "/");
 
 		final String contents = mainApi.withSegment("external-files").withSegment("myfile.txt").getTextPlain();
 		assertThat(contents, is("Contents of my external file"));
@@ -74,7 +74,7 @@ public class FilesystemTest extends BaseTest
 	@Test
 	public void filesystemBinding_canDeleteBinding() throws Exception
 	{
-		final ManagementConfigPoint configPoint = manage.config().create("my-binding");
+		final ManagementPathLocation configPoint = mmain.location("/my-binding/");
 		configPoint.bindToFilesystem();
 		assertTrue("Configuration point should exist", configPoint.exists());
 		configPoint.delete();
@@ -84,11 +84,17 @@ public class FilesystemTest extends BaseTest
 	@Test
 	public void filesystemBinding_canListBindings() throws Exception
 	{
-		final ManagementConfigPoint configPoint1 = manage.config().create("my-binding");
-		final ManagementConfigPoint configPoint2 = manage.config().create("my-other-binding");
-		final List<ListConfigItem> list = manage.config().list().childResources();
-		assertThat(list.size(), is(3));
-		assertThat(list.get(1).url(), is(configPoint1.url()));
-		assertThat(list.get(2).url(), is(configPoint2.url()));
+		final int initialSize = mmain.listLocations().size();
+
+		final ManagementPathLocation configPoint1 = mmain.location("/my-binding/");
+		final ManagementPathLocation configPoint2 = mmain.location("/my-other-binding/");
+
+		configPoint1.bindToFilesystem();
+		configPoint2.bindToFilesystem();
+
+		final List<ListConfigItem> list = mmain.listLocations();
+		assertThat(list.size(), is(initialSize + 2));
+		assertThat(list.get(initialSize + 0).url(), is(configPoint1.url()));
+		assertThat(list.get(initialSize + 1).url(), is(configPoint2.url()));
 	}
 }
