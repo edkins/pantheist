@@ -33,6 +33,7 @@ import restless.api.management.model.ListConfigResponse;
 import restless.common.util.Escapers;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
+import restless.handler.kind.model.Kind;
 
 /**
  * Path segments may be:
@@ -416,6 +417,54 @@ public final class ManagementResourceImpl implements ManagementResource
 		try
 		{
 			final Possible<ListComponentResponse> result = backend.listComponents(entityId);
+			return possibleToJsonResponse(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return unexpectedErrorResponse(ex);
+		}
+	}
+
+	/**
+	 * Handles kinds (PUT)
+	 */
+	@PUT
+	@Path("kind/{kindId}")
+	@Consumes("application/json")
+	public Response putKind(
+			@PathParam("kindId") final String kindId,
+			final String data)
+	{
+		LOGGER.info("PUT kind/{}", kindId);
+		try
+		{
+			final Kind kind = objectMapper.readValue(data, Kind.class);
+			final Possible<Void> result = backend.putKind(kindId, kind);
+			return possibleEmptyResponse(result);
+		}
+		catch (JsonParseException | JsonMappingException e)
+		{
+			return jsonValidationResponse(e);
+		}
+		catch (final RuntimeException | IOException ex)
+		{
+			return unexpectedErrorResponse(ex);
+		}
+	}
+
+	/**
+	 * Handles kinds (GET)
+	 */
+	@GET
+	@Path("kind/{kindId}")
+	@Produces("application/json")
+	public Response getKind(
+			@PathParam("kindId") final String kindId)
+	{
+		LOGGER.info("GET kind/{}", kindId);
+		try
+		{
+			final Possible<Kind> result = backend.getKind(kindId);
 			return possibleToJsonResponse(result);
 		}
 		catch (final RuntimeException ex)

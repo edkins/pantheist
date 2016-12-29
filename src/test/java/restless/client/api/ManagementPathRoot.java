@@ -28,9 +28,20 @@ public interface ManagementPathRoot
 
 	/**
 	 * Returns an API for managing an entity.
-	 * 
+	 *
 	 * An entity gathers together different kinds of resource (e.g. a json-schema or a java class)
 	 * into one concept.
 	 */
 	ManagementPathEntity entity(String entityId);
+
+	/**
+	 * Returns an API for managing a kind.
+	 *
+	 * A kind is like a schema for entities. It specifies which handlers must be present
+	 * and some restrictions on the structure of their associated files.
+	 *
+	 * For example, it might say that the java handler needs to be present and
+	 * its associated file must be an interface, not a class.
+	 */
+	ManagementPathKind kind(String kindId);
 }

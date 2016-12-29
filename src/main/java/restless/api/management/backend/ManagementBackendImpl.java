@@ -37,6 +37,8 @@ import restless.handler.entity.model.EntityModelFactory;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.java.backend.JavaStore;
 import restless.handler.java.model.JavaComponent;
+import restless.handler.kind.backend.KindStore;
+import restless.handler.kind.model.Kind;
 import restless.handler.nginx.manage.NginxService;
 import restless.handler.schema.backend.JsonSchemaStore;
 import restless.handler.schema.model.SchemaComponent;
@@ -54,6 +56,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	private final EntityStore entityStore;
 	private final UrlTranslation urlTranslation;
 	private final EntityModelFactory entityFactory;
+	private final KindStore kindStore;
 
 	@Inject
 	ManagementBackendImpl(
@@ -65,7 +68,8 @@ final class ManagementBackendImpl implements ManagementBackend
 			final JsonSchemaStore schemaStore,
 			final EntityStore entityStore,
 			final UrlTranslation urlTranslation,
-			final EntityModelFactory entityFactory)
+			final EntityModelFactory entityFactory,
+			final KindStore kindStore)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.javaStore = checkNotNull(javaStore);
@@ -76,6 +80,7 @@ final class ManagementBackendImpl implements ManagementBackend
 		this.entityStore = checkNotNull(entityStore);
 		this.urlTranslation = checkNotNull(urlTranslation);
 		this.entityFactory = checkNotNull(entityFactory);
+		this.kindStore = checkNotNull(kindStore);
 	}
 
 	@Override
@@ -301,6 +306,18 @@ final class ManagementBackendImpl implements ManagementBackend
 			}
 			return result.values().stream().collect(OtherCollectors.wrapped(modelFactory::listComponentResponse));
 		});
+	}
+
+	@Override
+	public Possible<Kind> getKind(final String kindId)
+	{
+		return kindStore.getKind(kindId);
+	}
+
+	@Override
+	public Possible<Void> putKind(final String kindId, final Kind kind)
+	{
+		return kindStore.putKind(kindId, kind);
 	}
 
 }

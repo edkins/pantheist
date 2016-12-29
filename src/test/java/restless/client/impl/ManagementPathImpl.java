@@ -17,17 +17,20 @@ import restless.client.api.ManagementData;
 import restless.client.api.ManagementDataSchema;
 import restless.client.api.ManagementPathEntity;
 import restless.client.api.ManagementPathJavaPackage;
+import restless.client.api.ManagementPathKind;
 import restless.client.api.ManagementPathLocation;
 import restless.client.api.ManagementPathRoot;
 import restless.client.api.ManagementPathServer;
 import restless.client.api.ResponseType;
+import restless.handler.kind.model.Kind;
 
 final class ManagementPathImpl implements
 		ManagementPathServer,
 		ManagementPathLocation,
 		ManagementPathRoot,
 		ManagementPathJavaPackage,
-		ManagementPathEntity
+		ManagementPathEntity,
+		ManagementPathKind
 {
 	// Path segments
 	private static final String JAVA_PKG = "java-pkg";
@@ -173,5 +176,23 @@ final class ManagementPathImpl implements
 	public ResponseType getEntityResponseType()
 	{
 		return target.getResponseType(APPLICATION_JSON);
+	}
+
+	@Override
+	public ManagementPathKind kind(final String kindId)
+	{
+		return new ManagementPathImpl(target.withSegment("kind").withSegment(kindId));
+	}
+
+	@Override
+	public void putJsonResource(final String resourcePath)
+	{
+		target.putResource(resourcePath, APPLICATION_JSON);
+	}
+
+	@Override
+	public Kind getKind()
+	{
+		return target.getJson(Kind.class);
 	}
 }

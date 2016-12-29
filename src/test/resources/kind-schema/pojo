@@ -1,0 +1,7 @@
+{
+	"level": "entity",
+	"java": {
+		"required": true,
+		"javaKind": "interface"
+	}
+}
