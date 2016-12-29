@@ -7,6 +7,8 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Function;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * Operations on immutable objects.
  */
@@ -56,5 +58,30 @@ public class Make
 			throw new IllegalArgumentException("last: empty list");
 		}
 		return xs.get(xs.size() - 1);
+	}
+
+	/**
+	 * A string splitter that behaves predictably.
+	 */
+	public static List<String> split(final char separator, final String str)
+	{
+		checkNotNull(str);
+		final ImmutableList.Builder<String> builder = ImmutableList.builder();
+		final StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < str.length(); i++)
+		{
+			final char ch = str.charAt(i);
+			if (ch == separator)
+			{
+				builder.add(sb.toString());
+				sb.setLength(0);
+			}
+			else
+			{
+				sb.append(ch);
+			}
+		}
+		builder.add(sb.toString());
+		return builder.build();
 	}
 }

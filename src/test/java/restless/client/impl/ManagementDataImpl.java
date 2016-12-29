@@ -50,4 +50,10 @@ final class ManagementDataImpl implements ManagementDataSchema
 		return target.withSegment("validate").postResponseType(data, contentType);
 	}
 
+	@Override
+	public String url()
+	{
+		return target.url();
+	}
+
 }

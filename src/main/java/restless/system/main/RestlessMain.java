@@ -2,7 +2,7 @@ package restless.system.main;
 
 import com.google.inject.Guice;
 
-import restless.glue.initializer.Initializer;
+import restless.system.initializer.Initializer;
 
 public class RestlessMain
 {

@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.Lists;
 
+import restless.api.management.model.ApiEntity;
 import restless.api.management.model.ApiManagementModelFactory;
 import restless.api.management.model.CreateConfigRequest;
 import restless.api.management.model.ListConfigItem;
@@ -21,6 +22,9 @@ import restless.common.util.Escapers;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
 import restless.common.util.View;
+import restless.handler.entity.backend.EntityStore;
+import restless.handler.entity.model.Entity;
+import restless.handler.entity.model.EntityModelFactory;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.java.backend.JavaStore;
 import restless.handler.nginx.manage.NginxService;
@@ -36,6 +40,9 @@ final class ManagementBackendImpl implements ManagementBackend
 	private final ApiManagementModelFactory modelFactory;
 	private final NginxService nginxService;
 	private final JsonSchemaStore schemaStore;
+	private final EntityStore entityStore;
+	private final UrlTranslation urlTranslation;
+	private final EntityModelFactory entityFactory;
 
 	@Inject
 	ManagementBackendImpl(
@@ -44,7 +51,10 @@ final class ManagementBackendImpl implements ManagementBackend
 			final RestlessConfig config,
 			final ApiManagementModelFactory modelFactory,
 			final NginxService nginxService,
-			final JsonSchemaStore schemaStore)
+			final JsonSchemaStore schemaStore,
+			final EntityStore entityStore,
+			final UrlTranslation urlTranslation,
+			final EntityModelFactory entityFactory)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.javaStore = checkNotNull(javaStore);
@@ -52,6 +62,9 @@ final class ManagementBackendImpl implements ManagementBackend
 		this.modelFactory = checkNotNull(modelFactory);
 		this.nginxService = checkNotNull(nginxService);
 		this.schemaStore = checkNotNull(schemaStore);
+		this.entityStore = checkNotNull(entityStore);
+		this.urlTranslation = checkNotNull(urlTranslation);
+		this.entityFactory = checkNotNull(entityFactory);
 	}
 
 	@Override
@@ -176,6 +189,33 @@ final class ManagementBackendImpl implements ManagementBackend
 	public Possible<Void> validateAgainstJsonSchema(final String schemaId, final String text)
 	{
 		return schemaStore.validateAgainstJsonSchema(schemaId, text);
+	}
+
+	private Entity fromApiEntity(final ApiEntity entity)
+	{
+		return entityFactory.entity(
+				urlTranslation.jsonSchemaFromUrl(entity.jsonSchemaUrl()),
+				urlTranslation.javaPkgFromUrl(entity.javaUrl()),
+				urlTranslation.javaFileFromUrl(entity.javaUrl()));
+	}
+
+	private ApiEntity toApiEntity(final Entity entity)
+	{
+		return modelFactory.entity(
+				urlTranslation.jsonSchemaToUrl(entity.jsonSchemaId()),
+				urlTranslation.javaToUrl(entity.javaPkg(), entity.javaFile()));
+	}
+
+	@Override
+	public Possible<Void> putEntity(final String entityId, final ApiEntity entity)
+	{
+		return entityStore.putEntity(entityId, fromApiEntity(entity));
+	}
+
+	@Override
+	public Possible<ApiEntity> getEntity(final String entityId)
+	{
+		return entityStore.getEntity(entityId).map(this::toApiEntity);
 	}
 
 }

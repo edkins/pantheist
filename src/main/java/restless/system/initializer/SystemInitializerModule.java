@@ -1,9 +1,9 @@
-package restless.glue.initializer;
+package restless.system.initializer;
 
 import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
 
-public class GlueInitializerModule extends PrivateModule
+public class SystemInitializerModule extends PrivateModule
 {
 
 	@Override

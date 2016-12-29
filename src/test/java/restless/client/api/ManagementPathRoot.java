@@ -25,4 +25,12 @@ public interface ManagementPathRoot
 	 * Return the json-schema with the given id.
 	 */
 	ManagementDataSchema jsonSchema(String schemaId);
+
+	/**
+	 * Returns an API for managing an entity.
+	 * 
+	 * An entity gathers together different kinds of resource (e.g. a json-schema or a java class)
+	 * into one concept.
+	 */
+	ManagementPathEntity entity(String entityId);
 }

@@ -19,10 +19,13 @@ import javax.ws.rs.core.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.api.management.backend.ManagementBackend;
+import restless.api.management.model.ApiEntity;
 import restless.api.management.model.CreateConfigRequest;
 import restless.api.management.model.ListConfigResponse;
 import restless.common.util.Escapers;
@@ -326,6 +329,70 @@ public final class ManagementResourceImpl implements ManagementResource
 		catch (final RuntimeException ex)
 		{
 			return unexpectedErrorResponse(ex);
+		}
+	}
+
+	/**
+	 * Handles entities (PUT)
+	 */
+	@PUT
+	@Path("entity/{entityId}")
+	@Consumes("application/json")
+	public Response putEntity(
+			@PathParam("entityId") final String entityId, final String request)
+	{
+		LOGGER.info("PUT entity/{} {}", entityId, request);
+		try
+		{
+			final ApiEntity entity = objectMapper.readValue(request, ApiEntity.class);
+			final Possible<Void> result = backend.putEntity(entityId, entity);
+			return possibleEmptyResponse(result);
+		}
+		catch (JsonParseException | JsonMappingException e)
+		{
+			return jsonValidationResponse(e);
+		}
+		catch (final RuntimeException | IOException ex)
+		{
+			return unexpectedErrorResponse(ex);
+		}
+	}
+
+	/**
+	 * Handles entities (GET)
+	 */
+	@GET
+	@Path("entity/{entityId}")
+	@Produces("application/json")
+	public Response getEntity(
+			@PathParam("entityId") final String entityId)
+	{
+		LOGGER.info("GET entity/{}", entityId);
+		try
+		{
+			final Possible<ApiEntity> result = backend.getEntity(entityId);
+			return possibleToJsonResponse(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return unexpectedErrorResponse(ex);
+		}
+	}
+
+	private <T> Response possibleToJsonResponse(final Possible<T> result)
+	{
+		if (!result.isPresent())
+		{
+			return failureResponse(result.failure());
+		}
+		try
+		{
+			final String text = objectMapper.writeValueAsString(result.get());
+			return Response.ok(text).build();
+		}
+		catch (final JsonProcessingException e)
+		{
+			return unexpectedErrorResponse(e);
 		}
 	}
 

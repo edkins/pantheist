@@ -1,4 +1,4 @@
-package restless.glue.initializer;
+package restless.system.initializer;
 
 public interface Initializer extends AutoCloseable
 {

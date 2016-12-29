@@ -1,4 +1,4 @@
-package restless.glue.initializer;
+package restless.system.initializer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

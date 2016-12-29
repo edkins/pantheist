@@ -1,6 +1,6 @@
 package restless.common.util;
 
-import static restless.common.util.OtherPreconditions.checkNotNullOrEmpty;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.glassfish.jersey.uri.UriComponent;
 import org.glassfish.jersey.uri.UriComponent.Type;
@@ -14,7 +14,7 @@ public class Escapers
 
 	public static String url(final String segment)
 	{
-		checkNotNullOrEmpty(segment);
+		checkNotNull(segment);
 		if (segment.equals("."))
 		{
 			return "%2E";
@@ -31,7 +31,7 @@ public class Escapers
 
 	public static String decodeUrl(final String encoded)
 	{
-		checkNotNullOrEmpty(encoded);
+		checkNotNull(encoded);
 		return UriComponent.decode(encoded, Type.PATH_SEGMENT);
 	}
 }

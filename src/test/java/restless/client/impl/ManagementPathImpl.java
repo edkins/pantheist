@@ -6,17 +6,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import restless.api.management.model.ApiEntity;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
 import restless.client.api.ManagementData;
 import restless.client.api.ManagementDataSchema;
+import restless.client.api.ManagementPathEntity;
 import restless.client.api.ManagementPathJavaPackage;
 import restless.client.api.ManagementPathLocation;
 import restless.client.api.ManagementPathRoot;
 import restless.client.api.ManagementPathServer;
 
-final class ManagementPathImpl
-		implements ManagementPathServer, ManagementPathLocation, ManagementPathRoot, ManagementPathJavaPackage
+final class ManagementPathImpl implements
+		ManagementPathServer,
+		ManagementPathLocation,
+		ManagementPathRoot,
+		ManagementPathJavaPackage,
+		ManagementPathEntity
 {
 	private final TargetWrapper target;
 
@@ -98,5 +104,26 @@ final class ManagementPathImpl
 	public ManagementDataSchema jsonSchema(final String schemaId)
 	{
 		return new ManagementDataImpl(target.withSegment("json-schema").withSegment(schemaId));
+	}
+
+	@Override
+	public ManagementPathEntity entity(final String entityId)
+	{
+		return new ManagementPathImpl(target.withSegment("entity").withSegment(entityId));
+	}
+
+	@Override
+	public void putEntity(final String jsonSchemaUrl, final String javaUrl)
+	{
+		final Map<String, Object> map = new HashMap<>();
+		map.put("jsonSchemaUrl", jsonSchemaUrl);
+		map.put("javaUrl", javaUrl);
+		target.putObjectAsJson(map);
+	}
+
+	@Override
+	public ApiEntity getEntity()
+	{
+		return target.getJson(ApiEntity.class);
 	}
 }

@@ -10,7 +10,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
-import restless.glue.initializer.Initializer;
+import restless.system.initializer.Initializer;
 import restless.system.main.AllRestlessModule;
 import restless.testhelpers.session.TestSession;
 

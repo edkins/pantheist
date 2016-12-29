@@ -1,0 +1,11 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "Nonempty Nonnegative Int List",
+    "description": "List of nonnegative integers, of length >=1",
+    "type": "array",
+    "minItems": 1,
+    "items": {
+    	"type": "number",
+    	"minimum": 0
+    }
+}

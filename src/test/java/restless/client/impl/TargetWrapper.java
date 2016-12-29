@@ -12,7 +12,6 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import restless.api.management.model.ListConfigResponse;
 import restless.client.api.ManagementClientException;
 import restless.client.api.ManagementResourceNotFoundException;
 import restless.client.api.ManagementUnexpectedResponseException;
@@ -246,7 +245,7 @@ public final class TargetWrapper
 		expectNoContent(response, "DELETE");
 	}
 
-	public ListConfigResponse getJson(final Class<ListConfigResponse> clazz)
+	public <T> T getJson(final Class<T> clazz)
 	{
 		final String json = getString("application/json");
 		try

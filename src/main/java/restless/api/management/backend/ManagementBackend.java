@@ -1,5 +1,6 @@
 package restless.api.management.backend;
 
+import restless.api.management.model.ApiEntity;
 import restless.api.management.model.CreateConfigRequest;
 import restless.api.management.model.ListConfigResponse;
 import restless.common.util.Possible;
@@ -27,4 +28,8 @@ public interface ManagementBackend
 	Possible<String> getJavaFile(String pkg, String file);
 
 	Possible<Void> deleteConfig(String serverId, String locationId);
+
+	Possible<Void> putEntity(String entityId, ApiEntity entity);
+
+	Possible<ApiEntity> getEntity(String entityId);
 }

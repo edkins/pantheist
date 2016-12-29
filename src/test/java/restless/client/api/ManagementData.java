@@ -42,4 +42,6 @@ public interface ManagementData
 	 * Attempt to put a resource and return the response type.
 	 */
 	ResponseType putResourceResponseType(String resourcePath, String contentType);
+
+	String url();
 }
