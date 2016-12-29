@@ -6,6 +6,8 @@ import javax.annotation.Nullable;
 
 import com.google.inject.assistedinject.Assisted;
 
+import restless.handler.schema.model.SchemaComponent;
+
 public interface ApiManagementModelFactory
 {
 	ListConfigItem listConfigItem(@Assisted("url") String url);
@@ -13,6 +15,12 @@ public interface ApiManagementModelFactory
 	ListConfigResponse listConfigResponse(List<ListConfigItem> childResources);
 
 	ApiEntity entity(
-			@Nullable @Assisted("jsonSchemaUrl") final String jsonSchemaUrl,
-			@Nullable @Assisted("javaUrl") final String javaUrl);
+			@Nullable @Assisted("jsonSchemaUrl") String jsonSchemaUrl,
+			@Nullable @Assisted("javaUrl") String javaUrl);
+
+	ApiComponent component(@Assisted SchemaComponent jsonSchema);
+
+	ListComponentItem listComponentItem(@Assisted("componentId") String componentId);
+
+	ListComponentResponse listComponentResponse(List<ListComponentItem> childResources);
 }

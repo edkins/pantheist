@@ -14,6 +14,9 @@ public class ApiManagementModelModule extends PrivateModule
 				.implement(ListConfigItem.class, ListConfigItemImpl.class)
 				.implement(ListConfigResponse.class, ListConfigResponseImpl.class)
 				.implement(ApiEntity.class, ApiEntityImpl.class)
+				.implement(ApiComponent.class, ApiComponentImpl.class)
+				.implement(ListComponentItem.class, ListComponentItemImpl.class)
+				.implement(ListComponentResponse.class, ListComponentResponseImpl.class)
 				.build(ApiManagementModelFactory.class));
 	}
 

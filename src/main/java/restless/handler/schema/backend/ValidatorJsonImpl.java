@@ -3,6 +3,7 @@ package restless.handler.schema.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import javax.inject.Inject;
 
@@ -20,6 +21,8 @@ import com.google.inject.assistedinject.Assisted;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
 import restless.common.util.View;
+import restless.handler.schema.model.SchemaComponent;
+import restless.handler.schema.model.SchemaModelFactory;
 
 final class ValidatorJsonImpl implements Validator
 {
@@ -27,16 +30,19 @@ final class ValidatorJsonImpl implements Validator
 	private final ObjectMapper objectMapper;
 	private final JsonSchemaFactory jsonSchemaFactory;
 	private final JsonNode schemaJson;
+	private final SchemaModelFactory modelFactory;
 
 	@Inject
 	private ValidatorJsonImpl(
 			final ObjectMapper objectMapper,
 			final JsonSchemaFactory jsonSchemaFactory,
-			@Assisted final JsonNode schemaJson)
+			@Assisted final JsonNode schemaJson,
+			final SchemaModelFactory modelFactory)
 	{
 		this.objectMapper = checkNotNull(objectMapper);
 		this.jsonSchemaFactory = checkNotNull(jsonSchemaFactory);
 		this.schemaJson = checkNotNull(schemaJson);
+		this.modelFactory = checkNotNull(modelFactory);
 	}
 
 	@Override
@@ -82,5 +88,48 @@ final class ValidatorJsonImpl implements Validator
 			LOGGER.catching(e);
 			return FailureReason.REQUEST_FAILED_SCHEMA.happened();
 		}
+	}
+
+	private boolean findComponentRecursive(
+			final boolean isRoot,
+			final JsonNode node,
+			final AntiItConsumer<SchemaComponent> consumer)
+	{
+		if (node.isObject() || node.isArray())
+		{
+			if (isRoot)
+			{
+				if (!consumer.wantMore(modelFactory.component("root", isRoot)))
+				{
+					return false;
+				}
+			}
+
+			final JsonNode id = node.get("id");
+			if (id != null && id.isTextual() && id.asText().startsWith("#"))
+			{
+				if (!consumer.wantMore(modelFactory.component(id.asText().substring(1), isRoot)))
+				{
+					return false;
+				}
+			}
+
+			final Iterator<JsonNode> iterator = node.elements();
+			while (iterator.hasNext())
+			{
+				final JsonNode child = iterator.next();
+				if (!findComponentRecursive(false, child, consumer))
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public AntiIterator<SchemaComponent> components()
+	{
+		return consumer -> findComponentRecursive(true, schemaJson, consumer);
 	}
 }

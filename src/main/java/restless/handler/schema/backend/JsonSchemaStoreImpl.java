@@ -3,6 +3,8 @@ package restless.handler.schema.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -15,6 +17,7 @@ import restless.common.util.View;
 import restless.handler.filesystem.backend.FilesystemSnapshot;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
+import restless.handler.schema.model.SchemaComponent;
 
 final class JsonSchemaStoreImpl implements JsonSchemaStore
 {
@@ -77,6 +80,13 @@ final class JsonSchemaStoreImpl implements JsonSchemaStore
 	@Override
 	public Possible<Void> validateAgainstJsonSchema(final String schemaId, final String data)
 	{
+		return jsonSchemaValidator(schemaId).posMap(schema -> {
+			return schema.validate(data);
+		});
+	}
+
+	private Possible<Validator> jsonSchemaValidator(final String schemaId)
+	{
 		return getJsonSchema(schemaId).posMap(schemaText -> {
 			JsonNode schema;
 			try
@@ -87,7 +97,24 @@ final class JsonSchemaStoreImpl implements JsonSchemaStore
 			{
 				return FailureReason.MISCONFIGURED.happened();
 			}
-			return factory.jsonValidator(schema).validate(data);
+			return View.ok(factory.jsonValidator(schema));
 		});
+	}
+
+	@Override
+	public Optional<SchemaComponent> getJsonSchemaComponent(final String schemaId, final String componentId)
+	{
+		return AntiIt.findFirst(components(schemaId), c -> c.componentId().equals(componentId));
+	}
+
+	private AntiIterator<SchemaComponent> components(final String schemaId)
+	{
+		return jsonSchemaValidator(schemaId).get().components();
+	}
+
+	@Override
+	public List<SchemaComponent> listComponents(final String schemaId)
+	{
+		return AntiIt.toList(components(schemaId));
 	}
 }

@@ -1,7 +1,9 @@
 package restless.api.management.backend;
 
+import restless.api.management.model.ApiComponent;
 import restless.api.management.model.ApiEntity;
 import restless.api.management.model.CreateConfigRequest;
+import restless.api.management.model.ListComponentResponse;
 import restless.api.management.model.ListConfigResponse;
 import restless.common.util.Possible;
 
@@ -32,4 +34,8 @@ public interface ManagementBackend
 	Possible<Void> putEntity(String entityId, ApiEntity entity);
 
 	Possible<ApiEntity> getEntity(String entityId);
+
+	Possible<ApiComponent> getComponent(String entityId, String componentId);
+
+	Possible<ListComponentResponse> listComponents(String entityId);
 }

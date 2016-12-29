@@ -1,5 +1,6 @@
 package restless.api.management.backend;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableMap;
@@ -41,8 +42,12 @@ final class UrlTranslationImpl implements UrlTranslation
 	}
 
 	@Override
-	public String javaPkgFromUrl(final String url)
+	public String javaPkgFromUrl(@Nullable final String url)
 	{
+		if (url == null)
+		{
+			return null;
+		}
 		return java.getVar("pkg", url);
 	}
 

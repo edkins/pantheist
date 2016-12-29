@@ -1,5 +1,6 @@
 package restless.common.util;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -7,6 +8,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -109,5 +111,10 @@ public final class OtherCollectors
 			}
 
 		};
+	}
+
+	public static <T, R> Collector<T, ?, R> wrapped(final Function<List<T>, R> wrapper)
+	{
+		return Collectors.collectingAndThen(Collectors.toList(), wrapper);
 	}
 }

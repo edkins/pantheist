@@ -2,9 +2,14 @@ package restless.api.management.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.core.UriBuilder;
 
@@ -13,13 +18,17 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.Lists;
 
+import restless.api.management.model.ApiComponent;
 import restless.api.management.model.ApiEntity;
 import restless.api.management.model.ApiManagementModelFactory;
 import restless.api.management.model.CreateConfigRequest;
+import restless.api.management.model.ListComponentItem;
+import restless.api.management.model.ListComponentResponse;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
 import restless.common.util.Escapers;
 import restless.common.util.FailureReason;
+import restless.common.util.OtherCollectors;
 import restless.common.util.Possible;
 import restless.common.util.View;
 import restless.handler.entity.backend.EntityStore;
@@ -29,6 +38,7 @@ import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.java.backend.JavaStore;
 import restless.handler.nginx.manage.NginxService;
 import restless.handler.schema.backend.JsonSchemaStore;
+import restless.handler.schema.model.SchemaComponent;
 import restless.system.config.RestlessConfig;
 
 final class ManagementBackendImpl implements ManagementBackend
@@ -191,19 +201,49 @@ final class ManagementBackendImpl implements ManagementBackend
 		return schemaStore.validateAgainstJsonSchema(schemaId, text);
 	}
 
+	@Nullable
+	private <T, U> U nullable(final Function<T, U> fn, @Nullable final T x)
+	{
+		if (x == null)
+		{
+			return null;
+		}
+		else
+		{
+			return fn.apply(x);
+		}
+	}
+
+	@Nullable
+	private <T, U, V> V nullable2(final BiFunction<T, U, V> fn, @Nullable final T x, @Nullable final U y)
+	{
+		if (x == null && y == null)
+		{
+			return null;
+		}
+		else if (x != null && y != null)
+		{
+			return fn.apply(x, y);
+		}
+		else
+		{
+			throw new NullPointerException("Either both must be null, or neither");
+		}
+	}
+
 	private Entity fromApiEntity(final ApiEntity entity)
 	{
 		return entityFactory.entity(
-				urlTranslation.jsonSchemaFromUrl(entity.jsonSchemaUrl()),
-				urlTranslation.javaPkgFromUrl(entity.javaUrl()),
-				urlTranslation.javaFileFromUrl(entity.javaUrl()));
+				nullable(urlTranslation::jsonSchemaFromUrl, entity.jsonSchemaUrl()),
+				nullable(urlTranslation::javaPkgFromUrl, entity.javaUrl()),
+				nullable(urlTranslation::javaFileFromUrl, entity.javaUrl()));
 	}
 
 	private ApiEntity toApiEntity(final Entity entity)
 	{
 		return modelFactory.entity(
-				urlTranslation.jsonSchemaToUrl(entity.jsonSchemaId()),
-				urlTranslation.javaToUrl(entity.javaPkg(), entity.javaFile()));
+				nullable(urlTranslation::jsonSchemaToUrl, entity.jsonSchemaId()),
+				nullable2(urlTranslation::javaToUrl, entity.javaPkg(), entity.javaFile()));
 	}
 
 	@Override
@@ -216,6 +256,44 @@ final class ManagementBackendImpl implements ManagementBackend
 	public Possible<ApiEntity> getEntity(final String entityId)
 	{
 		return entityStore.getEntity(entityId).map(this::toApiEntity);
+	}
+
+	@Override
+	public Possible<ApiComponent> getComponent(final String entityId, final String componentId)
+	{
+		return entityStore.getEntity(entityId).posMap(e -> {
+			SchemaComponent jsonSchema = null;
+			if (e.jsonSchemaId() != null)
+			{
+				jsonSchema = schemaStore.getJsonSchemaComponent(e.jsonSchemaId(), componentId).orElse(null);
+			}
+
+			if (jsonSchema != null)
+			{
+				return View.ok(modelFactory.component(jsonSchema));
+			}
+			else
+			{
+				// None of the handlers know anything about this component.
+				return FailureReason.DOES_NOT_EXIST.happened();
+			}
+		});
+	}
+
+	@Override
+	public Possible<ListComponentResponse> listComponents(final String entityId)
+	{
+		return entityStore.getEntity(entityId).map(e -> {
+			final Map<String, ListComponentItem> result = new HashMap<>();
+
+			if (e.jsonSchemaId() != null)
+			{
+				schemaStore.listComponents(e.jsonSchemaId()).forEach(c -> {
+					result.put(c.componentId(), modelFactory.listComponentItem(c.componentId()));
+				});
+			}
+			return result.values().stream().collect(OtherCollectors.wrapped(modelFactory::listComponentResponse));
+		});
 	}
 
 }

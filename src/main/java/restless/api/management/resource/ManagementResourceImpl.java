@@ -25,8 +25,10 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.api.management.backend.ManagementBackend;
+import restless.api.management.model.ApiComponent;
 import restless.api.management.model.ApiEntity;
 import restless.api.management.model.CreateConfigRequest;
+import restless.api.management.model.ListComponentResponse;
 import restless.api.management.model.ListConfigResponse;
 import restless.common.util.Escapers;
 import restless.common.util.FailureReason;
@@ -371,6 +373,49 @@ public final class ManagementResourceImpl implements ManagementResource
 		try
 		{
 			final Possible<ApiEntity> result = backend.getEntity(entityId);
+			return possibleToJsonResponse(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return unexpectedErrorResponse(ex);
+		}
+	}
+
+	/**
+	 * Handles entity components (GET)
+	 */
+	@GET
+	@Path("entity/{entityId}/component/{componentId}")
+	@Produces("application/json")
+	public Response getComponent(
+			@PathParam("entityId") final String entityId,
+			@PathParam("componentId") final String componentId)
+	{
+		LOGGER.info("GET entity/{}/component/{}", entityId, componentId);
+		try
+		{
+			final Possible<ApiComponent> result = backend.getComponent(entityId, componentId);
+			return possibleToJsonResponse(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return unexpectedErrorResponse(ex);
+		}
+	}
+
+	/**
+	 * Handles listing entity components (GET)
+	 */
+	@GET
+	@Path("entity/{entityId}/component")
+	@Produces("application/json")
+	public Response listComponents(
+			@PathParam("entityId") final String entityId)
+	{
+		LOGGER.info("GET entity/{}/component", entityId);
+		try
+		{
+			final Possible<ListComponentResponse> result = backend.listComponents(entityId);
 			return possibleToJsonResponse(result);
 		}
 		catch (final RuntimeException ex)

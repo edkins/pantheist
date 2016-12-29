@@ -1,7 +1,5 @@
 package restless.api.management.model;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
@@ -18,8 +16,8 @@ final class ApiEntityImpl implements ApiEntity
 			@Nullable @Assisted("jsonSchemaUrl") @JsonProperty("jsonSchemaUrl") final String jsonSchemaUrl,
 			@Nullable @Assisted("javaUrl") @JsonProperty("javaUrl") final String javaUrl)
 	{
-		this.jsonSchemaUrl = checkNotNull(jsonSchemaUrl);
-		this.javaUrl = checkNotNull(javaUrl);
+		this.jsonSchemaUrl = jsonSchemaUrl;
+		this.javaUrl = javaUrl;
 	}
 
 	@Override

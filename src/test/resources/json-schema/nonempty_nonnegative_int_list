@@ -5,7 +5,8 @@
     "type": "array",
     "minItems": 1,
     "items": {
-    	"type": "number",
+    	"id": "#el",
+    	"type": "integer",
     	"minimum": 0
     }
 }

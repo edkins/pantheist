@@ -5,8 +5,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import restless.api.management.model.ApiComponent;
 import restless.api.management.model.ApiEntity;
+import restless.api.management.model.ListComponentItem;
+import restless.api.management.model.ListComponentResponse;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
 import restless.client.api.ManagementData;
@@ -16,6 +20,7 @@ import restless.client.api.ManagementPathJavaPackage;
 import restless.client.api.ManagementPathLocation;
 import restless.client.api.ManagementPathRoot;
 import restless.client.api.ManagementPathServer;
+import restless.client.api.ResponseType;
 
 final class ManagementPathImpl implements
 		ManagementPathServer,
@@ -125,5 +130,28 @@ final class ManagementPathImpl implements
 	public ApiEntity getEntity()
 	{
 		return target.getJson(ApiEntity.class);
+	}
+
+	@Override
+	public ApiComponent getComponent(final String componentId)
+	{
+		return target.withSegment("component").withSegment(componentId).getJson(ApiComponent.class);
+	}
+
+	@Override
+	public ResponseType getComponentResponseType(final String componentId)
+	{
+		return target.withSegment("component").withSegment(componentId).getResponseType("application/json");
+	}
+
+	@Override
+	public List<String> listComponentIds()
+	{
+		return target.withSegment("component")
+				.getJson(ListComponentResponse.class)
+				.childResources()
+				.stream()
+				.map(ListComponentItem::componentId)
+				.collect(Collectors.toList());
 	}
 }

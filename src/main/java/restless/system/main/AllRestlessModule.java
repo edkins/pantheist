@@ -12,6 +12,7 @@ import restless.handler.java.backend.HandlerJavaBackendModule;
 import restless.handler.nginx.manage.HandlerNginxManageModule;
 import restless.handler.nginx.parser.HandlerNginxParserModule;
 import restless.handler.schema.backend.HandlerSchemaBackendModule;
+import restless.handler.schema.model.HandlerSchemaModelModule;
 import restless.system.config.SystemConfigModule;
 import restless.system.initializer.Initializer;
 import restless.system.initializer.SystemInitializerModule;
@@ -35,6 +36,7 @@ public class AllRestlessModule extends PrivateModule
 		install(new HandlerNginxManageModule());
 		install(new HandlerNginxParserModule());
 		install(new HandlerSchemaBackendModule());
+		install(new HandlerSchemaModelModule());
 		install(new SystemConfigModule());
 		install(new SystemInitializerModule());
 		install(new SystemInjectModule());
