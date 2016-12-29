@@ -36,6 +36,7 @@ import restless.handler.entity.model.Entity;
 import restless.handler.entity.model.EntityModelFactory;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.java.backend.JavaStore;
+import restless.handler.java.model.JavaComponent;
 import restless.handler.nginx.manage.NginxService;
 import restless.handler.schema.backend.JsonSchemaStore;
 import restless.handler.schema.model.SchemaComponent;
@@ -263,14 +264,20 @@ final class ManagementBackendImpl implements ManagementBackend
 	{
 		return entityStore.getEntity(entityId).posMap(e -> {
 			SchemaComponent jsonSchema = null;
+			JavaComponent java = null;
 			if (e.jsonSchemaId() != null)
 			{
 				jsonSchema = schemaStore.getJsonSchemaComponent(e.jsonSchemaId(), componentId).orElse(null);
 			}
-
-			if (jsonSchema != null)
+			if (e.javaFile() != null)
 			{
-				return View.ok(modelFactory.component(jsonSchema));
+				checkNotNull(e.javaPkg());
+				java = javaStore.getJavaComponent(e.javaPkg(), e.javaFile(), componentId).orElse(null);
+			}
+
+			if (jsonSchema != null || java != null)
+			{
+				return View.ok(modelFactory.component(jsonSchema, java));
 			}
 			else
 			{

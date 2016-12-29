@@ -1,0 +1,6 @@
+package restless.examples;
+
+public interface NonEmptyNonNegativeIntList
+{
+	List<Integer> elements();
+}

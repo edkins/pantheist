@@ -26,16 +26,21 @@ import restless.common.util.View;
 import restless.handler.filesystem.backend.FilesystemSnapshot;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
+import restless.handler.java.model.JavaComponent;
+import restless.handler.java.model.JavaModelFactory;
 
 final class JavaStoreImpl implements JavaStore
 {
 	private static final Logger LOGGER = LogManager.getLogger(JavaStoreImpl.class);
+	private static final String ROOT = ".";
 	private final FilesystemStore filesystem;
+	private final JavaModelFactory modelFactory;
 
 	@Inject
-	private JavaStoreImpl(final FilesystemStore filesystem)
+	private JavaStoreImpl(final FilesystemStore filesystem, final JavaModelFactory modelFactory)
 	{
 		this.filesystem = checkNotNull(filesystem);
+		this.modelFactory = checkNotNull(modelFactory);
 	}
 
 	private FsPath pathToType(final String pkg, final String file)
@@ -134,6 +139,19 @@ final class JavaStoreImpl implements JavaStore
 		else
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
+		}
+	}
+
+	@Override
+	public Optional<JavaComponent> getJavaComponent(final String pkg, final String file, final String componentId)
+	{
+		if (componentId.equals(ROOT))
+		{
+			return Optional.of(modelFactory.component(true));
+		}
+		else
+		{
+			return Optional.empty();
 		}
 	}
 }

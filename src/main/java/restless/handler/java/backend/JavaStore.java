@@ -1,6 +1,9 @@
 package restless.handler.java.backend;
 
+import java.util.Optional;
+
 import restless.common.util.Possible;
+import restless.handler.java.model.JavaComponent;
 
 public interface JavaStore
 {
@@ -18,4 +21,6 @@ public interface JavaStore
 	 * Return a java file
 	 */
 	Possible<String> getJava(String pkg, String file);
+
+	Optional<JavaComponent> getJavaComponent(String pkg, String file, String componentId);
 }

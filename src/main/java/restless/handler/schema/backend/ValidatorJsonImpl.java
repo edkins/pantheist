@@ -26,6 +26,7 @@ import restless.handler.schema.model.SchemaModelFactory;
 
 final class ValidatorJsonImpl implements Validator
 {
+	private static final String ROOT = ".";
 	private static final Logger LOGGER = LogManager.getLogger(ValidatorJsonImpl.class);
 	private final ObjectMapper objectMapper;
 	private final JsonSchemaFactory jsonSchemaFactory;
@@ -99,7 +100,7 @@ final class ValidatorJsonImpl implements Validator
 		{
 			if (isRoot)
 			{
-				if (!consumer.wantMore(modelFactory.component("root", isRoot)))
+				if (!consumer.wantMore(modelFactory.component(ROOT, isRoot)))
 				{
 					return false;
 				}

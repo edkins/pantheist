@@ -1,6 +1,6 @@
 package restless.tests;
 
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -18,6 +18,7 @@ import restless.client.api.ResponseType;
 
 public class EntityTest extends BaseTest
 {
+	private static final String ROOT = ".";
 	private ManagementDataSchema schema;
 	private ManagementData java;
 
@@ -26,14 +27,20 @@ public class EntityTest extends BaseTest
 		schema = mainRule.actions().manage().jsonSchema("my_schema");
 		schema.putResource("/json-schema/nonempty_nonnegative_int_list", "application/schema+json");
 
-		java = manage.javaPackage("restless.examples").file("ExampleJerseyResource");
-		java.putResource("/jersey-resource/resource", "text/plain");
+		java = manage.javaPackage("restless.examples").file("NonEmptyNonNegativeIntList");
+		java.putResource("/java-example/NonEmptyNonNegativeIntList", "text/plain");
 	}
 
 	private void schemaSetup()
 	{
 		entitySetup();
 		manage.entity("my-entity").putEntity(schema.url(), null);
+	}
+
+	private void javaSetup()
+	{
+		entitySetup();
+		manage.entity("my-entity").putEntity(null, java.url());
 	}
 
 	@Test
@@ -49,11 +56,36 @@ public class EntityTest extends BaseTest
 	}
 
 	@Test
+	public void nonexistentEntity_cannotFindEntity_and_cannotFindRootComponent() throws Exception
+	{
+		schemaSetup();
+
+		assertThat(manage.entity("some-entity-that-is-not-there").getEntityResponseType(),
+				is(ResponseType.NOT_FOUND));
+
+		assertThat(manage.entity("some-entity-that-is-not-there").getComponentResponseType(ROOT),
+				is(ResponseType.NOT_FOUND));
+	}
+
+	@Test
+	public void entityWithNoHandlers_exists_but_cannotFindRootComponent() throws Exception
+	{
+		entitySetup();
+		manage.entity("my-entity").putEntity(null, null);
+
+		assertThat(manage.entity("my-entity").getEntityResponseType(),
+				is(ResponseType.OK));
+
+		assertThat(manage.entity("my-entity").getComponentResponseType(ROOT),
+				is(ResponseType.NOT_FOUND));
+	}
+
+	@Test
 	public void schemaEntity_canFindRootComponent() throws Exception
 	{
 		schemaSetup();
 
-		final ApiComponent result = manage.entity("my-entity").getComponent("root");
+		final ApiComponent result = manage.entity("my-entity").getComponent(ROOT);
 
 		assertTrue("Component should be root", result.jsonSchema().isRoot());
 	}
@@ -63,7 +95,7 @@ public class EntityTest extends BaseTest
 	{
 		schemaSetup();
 
-		assertThat(manage.entity("my-entity").getComponentResponseType("root"), is(ResponseType.OK));
+		assertThat(manage.entity("my-entity").getComponentResponseType(ROOT), is(ResponseType.OK));
 		assertThat(manage.entity("my-entity").getComponentResponseType("asdf"), is(ResponseType.NOT_FOUND));
 	}
 
@@ -84,6 +116,25 @@ public class EntityTest extends BaseTest
 
 		final List<String> componentIds = manage.entity("my-entity").listComponentIds();
 
-		assertThat(componentIds, contains("root", "el"));
+		assertThat(componentIds, containsInAnyOrder(ROOT, "el"));
+	}
+
+	@Test
+	public void javaEntity_canFindRootComponent() throws Exception
+	{
+		javaSetup();
+
+		final ApiComponent result = manage.entity("my-entity").getComponent(ROOT);
+
+		assertTrue("Component should be root", result.java().isRoot());
+	}
+
+	@Test
+	public void javaEntity_cannotFindNonsenseComponent() throws Exception
+	{
+		javaSetup();
+
+		assertThat(manage.entity("my-entity").getComponentResponseType(ROOT), is(ResponseType.OK));
+		assertThat(manage.entity("my-entity").getComponentResponseType("asdf"), is(ResponseType.NOT_FOUND));
 	}
 }

@@ -13,6 +13,8 @@ public interface ManagementPathEntity
 
 	ApiEntity getEntity();
 
+	ResponseType getEntityResponseType();
+
 	List<String> listComponentIds();
 
 	ApiComponent getComponent(String componentId);

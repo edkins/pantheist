@@ -29,6 +29,20 @@ final class ManagementPathImpl implements
 		ManagementPathJavaPackage,
 		ManagementPathEntity
 {
+	// Path segments
+	private static final String JAVA_PKG = "java-pkg";
+	private static final String FILE = "file";
+	private static final String DATA = "data";
+	private static final String LOCATION = "location";
+	private static final String SERVER = "server";
+	private static final String JSON_SCHEMA = "json-schema";
+	private static final String ENTITY = "entity";
+	private static final String COMPONENT = "component";
+
+	// Content types
+	private static final String APPLICATION_JSON = "application/json";
+
+	// Collaborators
 	private final TargetWrapper target;
 
 	ManagementPathImpl(final TargetWrapper target)
@@ -39,13 +53,13 @@ final class ManagementPathImpl implements
 	@Override
 	public ManagementPathServer server(final int port)
 	{
-		return new ManagementPathImpl(target.withSegment("server").withSegment(String.valueOf(port)));
+		return new ManagementPathImpl(target.withSegment(SERVER).withSegment(String.valueOf(port)));
 	}
 
 	@Override
 	public ManagementPathLocation location(final String path)
 	{
-		return new ManagementPathImpl(target.withSegment("location").withEscapedSegment(path));
+		return new ManagementPathImpl(target.withSegment(LOCATION).withEscapedSegment(path));
 	}
 
 	@Override
@@ -72,13 +86,13 @@ final class ManagementPathImpl implements
 	@Override
 	public boolean exists()
 	{
-		return target.exists("application/json");
+		return target.exists(APPLICATION_JSON);
 	}
 
 	@Override
 	public List<ListConfigItem> listLocations()
 	{
-		return target.withSegment("location").getJson(ListConfigResponse.class).childResources();
+		return target.withSegment(LOCATION).getJson(ListConfigResponse.class).childResources();
 	}
 
 	@Override
@@ -90,31 +104,31 @@ final class ManagementPathImpl implements
 	@Override
 	public ManagementData data(final String path)
 	{
-		return new ManagementDataImpl(target.withSegment("data").withSlashSeparatedSegments(path));
+		return new ManagementDataImpl(target.withSegment(DATA).withSlashSeparatedSegments(path));
 	}
 
 	@Override
 	public ManagementData file(final String file)
 	{
-		return new ManagementDataImpl(target.withSegment("file").withSegment(file));
+		return new ManagementDataImpl(target.withSegment(FILE).withSegment(file));
 	}
 
 	@Override
 	public ManagementPathJavaPackage javaPackage(final String pkg)
 	{
-		return new ManagementPathImpl(target.withSegment("java-pkg").withSegment(pkg));
+		return new ManagementPathImpl(target.withSegment(JAVA_PKG).withSegment(pkg));
 	}
 
 	@Override
 	public ManagementDataSchema jsonSchema(final String schemaId)
 	{
-		return new ManagementDataImpl(target.withSegment("json-schema").withSegment(schemaId));
+		return new ManagementDataImpl(target.withSegment(JSON_SCHEMA).withSegment(schemaId));
 	}
 
 	@Override
 	public ManagementPathEntity entity(final String entityId)
 	{
-		return new ManagementPathImpl(target.withSegment("entity").withSegment(entityId));
+		return new ManagementPathImpl(target.withSegment(ENTITY).withSegment(entityId));
 	}
 
 	@Override
@@ -135,23 +149,29 @@ final class ManagementPathImpl implements
 	@Override
 	public ApiComponent getComponent(final String componentId)
 	{
-		return target.withSegment("component").withSegment(componentId).getJson(ApiComponent.class);
+		return target.withSegment(COMPONENT).withSegment(componentId).getJson(ApiComponent.class);
 	}
 
 	@Override
 	public ResponseType getComponentResponseType(final String componentId)
 	{
-		return target.withSegment("component").withSegment(componentId).getResponseType("application/json");
+		return target.withSegment(COMPONENT).withSegment(componentId).getResponseType(APPLICATION_JSON);
 	}
 
 	@Override
 	public List<String> listComponentIds()
 	{
-		return target.withSegment("component")
+		return target.withSegment(COMPONENT)
 				.getJson(ListComponentResponse.class)
 				.childResources()
 				.stream()
 				.map(ListComponentItem::componentId)
 				.collect(Collectors.toList());
+	}
+
+	@Override
+	public ResponseType getEntityResponseType()
+	{
+		return target.getResponseType(APPLICATION_JSON);
 	}
 }
