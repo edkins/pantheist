@@ -148,6 +148,19 @@ final class ManagementPathImpl implements
 	}
 
 	@Override
+	public ResponseType putEntityResponseType(final boolean discovered, final String kindUrl,
+			final String jsonSchemaUrl,
+			final String javaUrl)
+	{
+		final Map<String, Object> map = new HashMap<>();
+		map.put("discovered", discovered);
+		map.put("kindUrl", kindUrl);
+		map.put("jsonSchemaUrl", jsonSchemaUrl);
+		map.put("javaUrl", javaUrl);
+		return target.putObjectJsonResponseType(map);
+	}
+
+	@Override
 	public ApiEntity getEntity()
 	{
 		return target.getJson(ApiEntity.class);

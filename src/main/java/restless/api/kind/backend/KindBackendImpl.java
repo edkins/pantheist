@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -60,22 +61,41 @@ final class KindBackendImpl implements KindBackend
 	}
 
 	@Override
-	public Possible<Void> putEntity(final String entityId, final ApiEntity entity)
+	public Possible<Void> putApiEntity(final String entityId, final ApiEntity entity)
 	{
 		// We don't validate against kind here. It's ok to put invalid things.
-		return entityStore.putEntity(entityId, fromApiEntity(entity));
+		if (entity.discovered())
+		{
+			// The request was syntactically valid, but we cannot store "discovered" entities.
+			return FailureReason.REQUEST_INVALID_OPERATION.happened();
+		}
+		entityStore.putEntity(entityId, fromApiEntity(entity));
+		return View.noContent();
 	}
 
 	@Override
-	public Possible<ApiEntity> getEntity(final String entityId)
+	public Possible<ApiEntity> getApiEntity(final String entityId)
 	{
-		return entityStore.getEntity(entityId).map(this::toApiEntity);
+		return findEntity(entityId).map(this::toApiEntity);
+	}
+
+	private Possible<Entity> findEntity(final String entityId)
+	{
+		final Optional<Entity> storedEntity = entityStore.getEntity(entityId);
+		if (storedEntity.isPresent())
+		{
+			return View.ok(storedEntity.get());
+		}
+		else
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
 	}
 
 	@Override
 	public Possible<ApiComponent> getComponent(final String entityId, final String componentId)
 	{
-		return entityStore.getEntity(entityId).posMap(e -> {
+		return findEntity(entityId).posMap(e -> {
 			SchemaComponent jsonSchema = null;
 			JavaComponent java = null;
 			if (e.jsonSchemaId() != null)
@@ -103,7 +123,7 @@ final class KindBackendImpl implements KindBackend
 	@Override
 	public Possible<ListComponentResponse> listComponents(final String entityId)
 	{
-		return entityStore.getEntity(entityId).map(e -> {
+		return findEntity(entityId).map(e -> {
 			final Map<String, ListComponentItem> result = new HashMap<>();
 
 			if (e.jsonSchemaId() != null)
@@ -157,6 +177,7 @@ final class KindBackendImpl implements KindBackend
 	private Entity fromApiEntity(final ApiEntity entity)
 	{
 		return entityFactory.entity(
+				entity.discovered(),
 				nullable(urlTranslation::kindFromUrl, entity.kindUrl()),
 				nullable(urlTranslation::jsonSchemaFromUrl, entity.jsonSchemaUrl()),
 				nullable(urlTranslation::javaPkgFromUrl, entity.javaUrl()),
@@ -167,6 +188,7 @@ final class KindBackendImpl implements KindBackend
 	{
 		final boolean valid = validateEntityAgainstKind(entity);
 		return modelFactory.entity(
+				entity.discovered(),
 				nullable(urlTranslation::kindToUrl, entity.kindId()),
 				nullable(urlTranslation::jsonSchemaToUrl, entity.jsonSchemaId()),
 				nullable2(urlTranslation::javaToUrl, entity.javaPkg(), entity.javaFile()),

@@ -8,6 +8,7 @@ import com.google.inject.assistedinject.Assisted;
 
 final class EntityImpl implements Entity
 {
+	private boolean discovered;
 	private final String kindId;
 	private final String jsonSchemaId;
 	private final String javaPkg;
@@ -15,6 +16,7 @@ final class EntityImpl implements Entity
 
 	@Inject
 	private EntityImpl(
+			@Assisted("discovered") @JsonProperty("discovered") final boolean discovered,
 			@Nullable @Assisted("kindId") @JsonProperty("kindId") final String kindId,
 			@Nullable @Assisted("jsonSchemaId") @JsonProperty("jsonSchemaId") final String jsonSchemaId,
 			@Nullable @Assisted("javaPkg") @JsonProperty("javaPkg") final String javaPkg,
@@ -48,6 +50,12 @@ final class EntityImpl implements Entity
 	public String javaFile()
 	{
 		return javaFile;
+	}
+
+	@Override
+	public boolean discovered()
+	{
+		return discovered;
 	}
 
 }

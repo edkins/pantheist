@@ -11,6 +11,9 @@ public interface ManagementPathEntity
 {
 	void putEntity(@Nullable String kindUrl, @Nullable String jsonSchemaUrl, @Nullable String javaUrl);
 
+	ResponseType putEntityResponseType(boolean discovered, @Nullable String kindUrl, @Nullable String jsonSchemaUrl,
+			@Nullable String javaUrl);
+
 	ApiEntity getEntity();
 
 	ResponseType getEntityResponseType();
@@ -20,4 +23,5 @@ public interface ManagementPathEntity
 	ApiComponent getComponent(String componentId);
 
 	ResponseType getComponentResponseType(String componentId);
+
 }

@@ -53,6 +53,20 @@ public class EntityTest extends BaseTest
 
 		assertThat(result.javaUrl(), is(java.url()));
 		assertThat(result.jsonSchemaUrl(), is(schema.url()));
+		assertThat(result.discovered(), is(false));
+	}
+
+	@Test
+	public void entity_withDiscovered_cannotStore() throws Exception
+	{
+		entitySetup();
+		final ResponseType response1 = manage.entity("my-entity-1").putEntityResponseType(true, null, schema.url(),
+				java.url());
+		final ResponseType response2 = manage.entity("my-entity-2").putEntityResponseType(false, null, schema.url(),
+				java.url());
+
+		assertThat(response1, is(ResponseType.BAD_REQUEST));
+		assertThat(response2, is(ResponseType.NO_CONTENT));
 	}
 
 	@Test

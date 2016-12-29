@@ -77,6 +77,20 @@ public final class TargetWrapper
 		}
 	}
 
+	public ResponseType putObjectJsonResponseType(final Object obj)
+	{
+		try
+		{
+			final String json = objectMapper.writeValueAsString(obj);
+			final Response response = target.request().put(Entity.json(json));
+			return responseType(response);
+		}
+		catch (final JsonProcessingException e)
+		{
+			throw new ManagementClientException("ClientException " + target.getUri().toString(), e);
+		}
+	}
+
 	public TargetWrapper createObjectAsJsonWithPostRequest(final Object obj)
 	{
 		try

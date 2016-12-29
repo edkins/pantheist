@@ -1,11 +1,12 @@
 package restless.handler.entity.backend;
 
-import restless.common.util.Possible;
+import java.util.Optional;
+
 import restless.handler.entity.model.Entity;
 
 public interface EntityStore
 {
-	Possible<Void> putEntity(String entityId, Entity entity);
+	void putEntity(String entityId, Entity entity);
 
-	Possible<Entity> getEntity(String entityId);
+	Optional<Entity> getEntity(String entityId);
 }

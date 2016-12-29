@@ -8,9 +8,9 @@ import restless.handler.kind.model.Kind;
 
 public interface KindBackend
 {
-	Possible<Void> putEntity(String entityId, ApiEntity entity);
+	Possible<Void> putApiEntity(String entityId, ApiEntity entity);
 
-	Possible<ApiEntity> getEntity(String entityId);
+	Possible<ApiEntity> getApiEntity(String entityId);
 
 	Possible<ApiComponent> getComponent(String entityId, String componentId);
 

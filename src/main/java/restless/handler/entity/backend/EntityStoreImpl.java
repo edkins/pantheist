@@ -2,11 +2,10 @@ package restless.handler.entity.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Optional;
+
 import javax.inject.Inject;
 
-import restless.common.util.FailureReason;
-import restless.common.util.Possible;
-import restless.common.util.View;
 import restless.handler.entity.model.Entity;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
@@ -23,13 +22,16 @@ final class EntityStoreImpl implements EntityStore
 	}
 
 	@Override
-	public Possible<Void> putEntity(final String entityId, final Entity entity)
+	public void putEntity(final String entityId, final Entity entity)
 	{
+		if (entity.discovered())
+		{
+			throw new IllegalArgumentException("Entity store is not intended to be used for discovered entities");
+		}
 		final JsonSnapshot<Entity> snapshot = store.jsonSnapshot(path(entityId), Entity.class);
 
 		snapshot.exists(); // don't care
 		snapshot.write(entity);
-		return View.noContent();
 	}
 
 	private FsPath path(final String entityId)
@@ -38,17 +40,17 @@ final class EntityStoreImpl implements EntityStore
 	}
 
 	@Override
-	public Possible<Entity> getEntity(final String entityId)
+	public Optional<Entity> getEntity(final String entityId)
 	{
 		final JsonSnapshot<Entity> snapshot = store.jsonSnapshot(path(entityId), Entity.class);
 
 		if (snapshot.exists())
 		{
-			return View.ok(snapshot.read());
+			return Optional.of(snapshot.read());
 		}
 		else
 		{
-			return FailureReason.DOES_NOT_EXIST.happened();
+			return Optional.empty();
 		}
 	}
 

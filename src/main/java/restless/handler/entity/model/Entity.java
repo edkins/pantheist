@@ -8,6 +8,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @JsonDeserialize(as = EntityImpl.class)
 public interface Entity
 {
+	@JsonProperty("discovered")
+	boolean discovered();
+
 	@Nullable
 	@JsonProperty("kindId")
 	String kindId();

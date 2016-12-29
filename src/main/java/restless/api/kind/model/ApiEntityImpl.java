@@ -8,6 +8,7 @@ import com.google.inject.assistedinject.Assisted;
 
 final class ApiEntityImpl implements ApiEntity
 {
+	private final boolean discovered;
 	private final String kindUrl;
 	private final String jsonSchemaUrl;
 	private final String javaUrl;
@@ -15,11 +16,13 @@ final class ApiEntityImpl implements ApiEntity
 
 	@Inject
 	private ApiEntityImpl(
+			@Assisted("discovered") @JsonProperty("discovered") final boolean discovered,
 			@Nullable @Assisted("kindUrl") @JsonProperty("kindUrl") final String kindUrl,
 			@Nullable @Assisted("jsonSchemaUrl") @JsonProperty("jsonSchemaUrl") final String jsonSchemaUrl,
 			@Nullable @Assisted("javaUrl") @JsonProperty("javaUrl") final String javaUrl,
 			@Assisted("valid") @JsonProperty("valid") final boolean valid)
 	{
+		this.discovered = discovered;
 		this.kindUrl = kindUrl;
 		this.jsonSchemaUrl = jsonSchemaUrl;
 		this.javaUrl = javaUrl;
@@ -48,6 +51,12 @@ final class ApiEntityImpl implements ApiEntity
 	public boolean valid()
 	{
 		return valid;
+	}
+
+	@Override
+	public boolean discovered()
+	{
+		return discovered;
 	}
 
 }

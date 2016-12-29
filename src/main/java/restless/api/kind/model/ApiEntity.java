@@ -8,6 +8,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @JsonDeserialize(as = ApiEntityImpl.class)
 public interface ApiEntity
 {
+	@JsonProperty("discovered")
+	boolean discovered();
+
 	@Nullable
 	@JsonProperty("kindUrl")
 	String kindUrl();

@@ -12,6 +12,7 @@ import restless.handler.schema.model.SchemaComponent;
 public interface ApiKindModelFactory
 {
 	ApiEntity entity(
+			@Assisted("discovered") boolean discovered,
 			@Nullable @Assisted("kindUrl") String kindUrl,
 			@Nullable @Assisted("jsonSchemaUrl") String jsonSchemaUrl,
 			@Nullable @Assisted("javaUrl") String javaUrl,

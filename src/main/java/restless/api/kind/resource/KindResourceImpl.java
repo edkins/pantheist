@@ -60,7 +60,7 @@ public class KindResourceImpl implements KindResource
 		try
 		{
 			final ApiEntity entity = objectMapper.readValue(request, ApiEntity.class);
-			final Possible<Void> result = backend.putEntity(entityId, entity);
+			final Possible<Void> result = backend.putApiEntity(entityId, entity);
 			return resp.possibleEmpty(result);
 		}
 		catch (JsonParseException | JsonMappingException e)
@@ -85,7 +85,7 @@ public class KindResourceImpl implements KindResource
 		LOGGER.info("GET entity/{}", entityId);
 		try
 		{
-			final Possible<ApiEntity> result = backend.getEntity(entityId);
+			final Possible<ApiEntity> result = backend.getApiEntity(entityId);
 			return resp.possibleToJson(result);
 		}
 		catch (final RuntimeException ex)
