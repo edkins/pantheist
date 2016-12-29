@@ -9,6 +9,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 public interface Entity
 {
 	@Nullable
+	@JsonProperty("kindId")
+	String kindId();
+
+	@Nullable
 	@JsonProperty("jsonSchemaId")
 	String jsonSchemaId();
 

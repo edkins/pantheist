@@ -7,4 +7,6 @@ public interface ManagementPathKind
 	void putJsonResource(String resourcePath);
 
 	Kind getKind();
+
+	String url();
 }

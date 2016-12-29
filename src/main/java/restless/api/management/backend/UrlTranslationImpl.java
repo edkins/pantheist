@@ -9,6 +9,7 @@ import restless.system.config.RestlessConfig;
 
 final class UrlTranslationImpl implements UrlTranslation
 {
+	private final UriPattern kind;
 	private final UriPattern jsonSchema;
 	private final UriPattern java;
 
@@ -19,6 +20,7 @@ final class UrlTranslationImpl implements UrlTranslation
 				.hostAndPort("http", "localhost:" + config.managementPort())
 				.emptySegment();
 
+		this.kind = root.segment("kind").var("kindId");
 		this.jsonSchema = root.segment("json-schema").var("schemaId");
 		this.java = root.segment("java-pkg").var("pkg").segment("file").var("file");
 	}
@@ -44,10 +46,6 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public String javaPkgFromUrl(@Nullable final String url)
 	{
-		if (url == null)
-		{
-			return null;
-		}
 		return java.getVar("pkg", url);
 	}
 
@@ -55,6 +53,18 @@ final class UrlTranslationImpl implements UrlTranslation
 	public String javaFileFromUrl(final String url)
 	{
 		return java.getVar("file", url);
+	}
+
+	@Override
+	public String kindToUrl(final String kindId)
+	{
+		return kind.generate(ImmutableMap.of("kindId", kindId), false);
+	}
+
+	@Override
+	public String kindFromUrl(final String url)
+	{
+		return kind.getVar("kindId", url);
 	}
 
 }

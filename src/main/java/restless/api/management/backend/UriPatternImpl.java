@@ -79,7 +79,8 @@ public class UriPatternImpl implements UriPattern
 			final URI uri = new URI(url);
 			if (!scheme.equalsIgnoreCase(uri.getScheme()))
 			{
-				throw new UrlPatternMismatchException("Wrong scheme. Should be " + scheme + ", was " + uri.getScheme());
+				throw new UrlPatternMismatchException(
+						"Wrong scheme. Should be " + scheme + ", was " + uri.getScheme() + " in " + url);
 			}
 			if (!authority.equals(uri.getAuthority()))
 			{

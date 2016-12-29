@@ -9,7 +9,7 @@ import restless.api.management.model.ApiEntity;
 
 public interface ManagementPathEntity
 {
-	void putEntity(@Nullable String jsonSchemaUrl, @Nullable String javaUrl);
+	void putEntity(@Nullable String kindUrl, @Nullable String jsonSchemaUrl, @Nullable String javaUrl);
 
 	ApiEntity getEntity();
 

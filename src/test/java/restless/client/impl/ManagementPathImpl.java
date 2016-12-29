@@ -135,9 +135,10 @@ final class ManagementPathImpl implements
 	}
 
 	@Override
-	public void putEntity(final String jsonSchemaUrl, final String javaUrl)
+	public void putEntity(final String kindUrl, final String jsonSchemaUrl, final String javaUrl)
 	{
 		final Map<String, Object> map = new HashMap<>();
+		map.put("kindUrl", kindUrl);
 		map.put("jsonSchemaUrl", jsonSchemaUrl);
 		map.put("javaUrl", javaUrl);
 		target.putObjectAsJson(map);

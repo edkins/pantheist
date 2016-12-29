@@ -34,20 +34,20 @@ public class EntityTest extends BaseTest
 	private void schemaSetup()
 	{
 		entitySetup();
-		manage.entity("my-entity").putEntity(schema.url(), null);
+		manage.entity("my-entity").putEntity(null, schema.url(), null);
 	}
 
 	private void javaSetup()
 	{
 		entitySetup();
-		manage.entity("my-entity").putEntity(null, java.url());
+		manage.entity("my-entity").putEntity(null, null, java.url());
 	}
 
 	@Test
 	public void entity_canReadBack() throws Exception
 	{
 		entitySetup();
-		manage.entity("my-entity").putEntity(schema.url(), java.url());
+		manage.entity("my-entity").putEntity(null, schema.url(), java.url());
 
 		final ApiEntity result = manage.entity("my-entity").getEntity();
 
@@ -71,7 +71,7 @@ public class EntityTest extends BaseTest
 	public void entityWithNoHandlers_exists_but_cannotFindRootComponent() throws Exception
 	{
 		entitySetup();
-		manage.entity("my-entity").putEntity(null, null);
+		manage.entity("my-entity").putEntity(null, null, null);
 
 		assertThat(manage.entity("my-entity").getEntityResponseType(),
 				is(ResponseType.OK));

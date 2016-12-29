@@ -6,7 +6,9 @@ import com.google.inject.assistedinject.Assisted;
 
 public interface EntityModelFactory
 {
-	Entity entity(@Nullable @Assisted("jsonSchemaId") final String jsonSchemaId,
+	Entity entity(
+			@Nullable @Assisted("kindId") final String kindId,
+			@Nullable @Assisted("jsonSchemaId") final String jsonSchemaId,
 			@Nullable @Assisted("javaPkg") final String javaPkg,
 			@Nullable @Assisted("javaFile") String javaFile);
 }

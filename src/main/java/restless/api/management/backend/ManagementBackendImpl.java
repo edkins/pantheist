@@ -240,6 +240,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	private Entity fromApiEntity(final ApiEntity entity)
 	{
 		return entityFactory.entity(
+				nullable(urlTranslation::kindFromUrl, entity.kindUrl()),
 				nullable(urlTranslation::jsonSchemaFromUrl, entity.jsonSchemaUrl()),
 				nullable(urlTranslation::javaPkgFromUrl, entity.javaUrl()),
 				nullable(urlTranslation::javaFileFromUrl, entity.javaUrl()));
@@ -248,8 +249,10 @@ final class ManagementBackendImpl implements ManagementBackend
 	private ApiEntity toApiEntity(final Entity entity)
 	{
 		return modelFactory.entity(
+				nullable(urlTranslation::kindToUrl, entity.kindId()),
 				nullable(urlTranslation::jsonSchemaToUrl, entity.jsonSchemaId()),
-				nullable2(urlTranslation::javaToUrl, entity.javaPkg(), entity.javaFile()));
+				nullable2(urlTranslation::javaToUrl, entity.javaPkg(), entity.javaFile()),
+				true);
 	}
 
 	@Override

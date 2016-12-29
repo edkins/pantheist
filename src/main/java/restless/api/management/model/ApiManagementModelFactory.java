@@ -16,8 +16,10 @@ public interface ApiManagementModelFactory
 	ListConfigResponse listConfigResponse(List<ListConfigItem> childResources);
 
 	ApiEntity entity(
+			@Nullable @Assisted("kindUrl") String kindUrl,
 			@Nullable @Assisted("jsonSchemaUrl") String jsonSchemaUrl,
-			@Nullable @Assisted("javaUrl") String javaUrl);
+			@Nullable @Assisted("javaUrl") String javaUrl,
+			@Assisted("valid") boolean valid);
 
 	ApiComponent component(
 			@Nullable SchemaComponent jsonSchema,
