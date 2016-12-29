@@ -11,6 +11,7 @@ import restless.api.kind.model.ApiComponent;
 import restless.api.kind.model.ApiEntity;
 import restless.api.kind.model.ListComponentItem;
 import restless.api.kind.model.ListComponentResponse;
+import restless.api.kind.model.ListEntityResponse;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
 import restless.client.api.ManagementData;
@@ -223,5 +224,11 @@ final class ManagementPathImpl implements
 	public ResponseType putJsonResourceResponseType(final String resourcePath)
 	{
 		return target.putResourceResponseType(resourcePath, APPLICATION_JSON);
+	}
+
+	@Override
+	public ListEntityResponse listEntities()
+	{
+		return target.withSegment(ENTITY).getJson(ListEntityResponse.class);
 	}
 }

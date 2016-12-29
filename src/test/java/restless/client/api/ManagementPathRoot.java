@@ -1,5 +1,7 @@
 package restless.client.api;
 
+import restless.api.kind.model.ListEntityResponse;
+
 public interface ManagementPathRoot
 {
 	/**
@@ -44,4 +46,6 @@ public interface ManagementPathRoot
 	 * its associated file must be an interface, not a class.
 	 */
 	ManagementPathKind kind(String kindId);
+
+	ListEntityResponse listEntities();
 }

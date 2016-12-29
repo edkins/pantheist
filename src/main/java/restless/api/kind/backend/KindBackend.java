@@ -3,11 +3,14 @@ package restless.api.kind.backend;
 import restless.api.kind.model.ApiComponent;
 import restless.api.kind.model.ApiEntity;
 import restless.api.kind.model.ListComponentResponse;
+import restless.api.kind.model.ListEntityResponse;
 import restless.common.util.Possible;
 import restless.handler.kind.model.Kind;
 
 public interface KindBackend
 {
+	ListEntityResponse listEntities();
+
 	Possible<Void> putApiEntity(String entityId, ApiEntity entity);
 
 	Possible<ApiEntity> getApiEntity(String entityId);

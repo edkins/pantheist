@@ -22,6 +22,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 
+import restless.common.util.AntiIterator;
 import restless.common.util.FailureReason;
 import restless.common.util.Make;
 import restless.common.util.OtherPreconditions;
@@ -258,7 +259,24 @@ final class JavaStoreImpl implements JavaStore
 	@Override
 	public Optional<JavaFileId> findFileByName(final String fileName)
 	{
-		final List<FsPath> files = filesystem.snapshot().findFilesByName(rootJavaPath(), fileName + DOT_JAVA);
-		return Make.<FsPath>failIfMultiple().from(files).map(this::fileIdFromPath);
+		final String fileNameDotJava = fileName + DOT_JAVA;
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		return snapshot
+				.recurse(rootJavaPath())
+				.filter(snapshot::safeIsFile)
+				.filter(path -> path.lastSegment().equals(fileNameDotJava))
+				.failIfMultiple()
+				.map(this::fileIdFromPath);
+	}
+
+	@Override
+	public AntiIterator<JavaFileId> allJavaFiles()
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		return snapshot
+				.recurse(rootJavaPath())
+				.filter(snapshot::safeIsFile)
+				.filter(path -> path.lastSegment().endsWith(DOT_JAVA))
+				.map(this::fileIdFromPath);
 	}
 }

@@ -18,7 +18,14 @@ import com.google.common.collect.ImmutableList;
  */
 public interface AntiIterator<T>
 {
-	void feed(Consumer<T> consumer);
+	/**
+	 * This is what you need to implement in order to produce an AntiIterator.
+	 *
+	 * It's the only method, so you can use functional notation.
+	 *
+	 * @param consumer something that gets called once for each element in the sequence.
+	 */
+	void forEach(Consumer<T> consumer);
 
 	/**
 	 * Concatenate AntiIterators.
@@ -26,8 +33,8 @@ public interface AntiIterator<T>
 	default AntiIterator<T> andThen(final AntiIterator<T> other)
 	{
 		return consumer -> {
-			feed(consumer);
-			other.feed(consumer);
+			forEach(consumer);
+			other.forEach(consumer);
 		};
 	}
 
@@ -45,7 +52,7 @@ public interface AntiIterator<T>
 	{
 		final MutableOpt<T> prev = View.mutableOpt();
 		return consumer -> {
-			feed(x -> {
+			forEach(x -> {
 				consumer.accept(Pair.of(prev.toOptional(), Optional.of(x)));
 				prev.setSingle(x);
 			});
@@ -56,7 +63,7 @@ public interface AntiIterator<T>
 	default AntiIterator<T> filter(final Predicate<T> predicate)
 	{
 		return consumer -> {
-			feed(x -> {
+			forEach(x -> {
 				if (predicate.test(x))
 				{
 					consumer.accept(x);
@@ -68,7 +75,7 @@ public interface AntiIterator<T>
 	default <U> AntiIterator<U> map(final Function<T, U> fn)
 	{
 		return consumer -> {
-			feed(x -> consumer.accept(fn.apply(x)));
+			forEach(x -> consumer.accept(fn.apply(x)));
 		};
 	}
 
@@ -82,7 +89,7 @@ public interface AntiIterator<T>
 		OtherPreconditions.checkNonNegative(count);
 		final AtomicInteger index = new AtomicInteger(0);
 		return consumer -> {
-			feed(x -> {
+			forEach(x -> {
 				if (index.getAndIncrement() >= count)
 				{
 					consumer.accept(x);
@@ -117,7 +124,7 @@ public interface AntiIterator<T>
 	default Optional<T> reduce(final BinaryOperator<T> operator)
 	{
 		final MutableOpt<T> result = View.mutableOpt();
-		feed(x -> {
+		forEach(x -> {
 			if (result.isPresent())
 			{
 				result.setSingle(operator.apply(result.get(), x));
@@ -137,14 +144,14 @@ public interface AntiIterator<T>
 	{
 		final ImmutableList.Builder<T> builder = ImmutableList.builder();
 
-		feed(builder::add);
+		forEach(builder::add);
 		return builder.build();
 	}
 
 	default <R> R snowball(final R initial, final BiFunction<R, T, R> accumulate)
 	{
 		final AtomicReference<R> item = new AtomicReference<>(initial);
-		feed(x -> {
+		forEach(x -> {
 			item.set(accumulate.apply(item.get(), x));
 		});
 		return item.get();
@@ -156,15 +163,36 @@ public interface AntiIterator<T>
 	default Optional<T> failIfMultiple()
 	{
 		final MutableOpt<T> result = View.mutableOpt();
-		feed(result::supply);
+		forEach(result::supply);
 		return result.toOptional();
 	}
 
 	default <U> AntiIterator<U> flatMap(final Function<T, AntiIterator<U>> fn)
 	{
 		return consumer -> {
-			feed(x -> {
-				fn.apply(x).feed(consumer);
+			forEach(x -> {
+				fn.apply(x).forEach(consumer);
+			});
+		};
+	}
+
+	/**
+	 * Collects into a list and then wraps using the specified function.
+	 */
+	default <R> R wrap(final Function<List<T>, R> fn)
+	{
+		return fn.apply(toList());
+	}
+
+	default <U> AntiIterator<U> optMap(final Function<T, Optional<U>> fn)
+	{
+		return consumer -> {
+			forEach(x -> {
+				final Optional<U> y = fn.apply(x);
+				if (y.isPresent())
+				{
+					consumer.accept(y.get());
+				}
 			});
 		};
 	}

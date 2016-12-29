@@ -10,6 +10,9 @@ import restless.handler.java.model.JavaFileId;
 @JsonDeserialize(as = EntityImpl.class)
 public interface Entity
 {
+	@JsonProperty("entityId")
+	String entityId();
+
 	@JsonProperty("discovered")
 	boolean discovered();
 

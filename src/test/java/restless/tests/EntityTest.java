@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import restless.api.kind.model.ApiComponent;
 import restless.api.kind.model.ApiEntity;
+import restless.api.kind.model.ListEntityItem;
 import restless.client.api.ManagementDataSchema;
 import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ResponseType;
@@ -54,6 +55,22 @@ public class EntityTest extends BaseTest
 		assertThat(result.javaUrl(), is(java.url()));
 		assertThat(result.jsonSchemaUrl(), is(schema.url()));
 		assertThat(result.discovered(), is(false));
+	}
+
+	@Test
+	public void entity_isListed() throws Exception
+	{
+		entitySetup();
+
+		assertThat(manage.listEntities().childResources().size(), is(0));
+
+		manage.entity("my-entity").putEntity(null, schema.url(), java.url());
+
+		final List<ListEntityItem> result = manage.listEntities().childResources();
+
+		assertThat(result.size(), is(1));
+		assertThat(result.get(0).entityId(), is("my-entity"));
+		assertFalse("Listed entity should not be marked as discovered", result.get(0).discovered());
 	}
 
 	@Test

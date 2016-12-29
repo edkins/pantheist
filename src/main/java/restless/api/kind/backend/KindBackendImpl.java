@@ -6,15 +6,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+
+import com.google.common.collect.ImmutableMap;
 
 import restless.api.kind.model.ApiComponent;
 import restless.api.kind.model.ApiEntity;
 import restless.api.kind.model.ApiKindModelFactory;
 import restless.api.kind.model.ListComponentItem;
 import restless.api.kind.model.ListComponentResponse;
+import restless.api.kind.model.ListEntityItem;
+import restless.api.kind.model.ListEntityResponse;
+import restless.common.util.AntiIterator;
 import restless.common.util.FailureReason;
 import restless.common.util.OtherCollectors;
 import restless.common.util.OtherPreconditions;
@@ -74,7 +80,7 @@ final class KindBackendImpl implements KindBackend
 			// The request was syntactically valid, but we cannot store "discovered" entities.
 			return FailureReason.REQUEST_INVALID_OPERATION.happened();
 		}
-		entityStore.putEntity(entityId, fromApiEntity(entity));
+		entityStore.putEntity(entityId, fromApiEntity(entityId, entity));
 		return View.noContent();
 	}
 
@@ -84,11 +90,12 @@ final class KindBackendImpl implements KindBackend
 		return findEntity(entityId).map(this::toApiEntity);
 	}
 
-	private Optional<Kind> discoverKind(final Entity entity)
+	private Optional<Entity> discoverKind(final Entity entity)
 	{
 		return kindStore.discoverKinds()
 				.filter(k -> validateEntityAgainstKind(entity, k))
-				.failIfMultiple();
+				.failIfMultiple()
+				.map(k -> supplyKind(entity, k));
 	}
 
 	private Possible<Entity> findEntity(final String entityId)
@@ -103,12 +110,12 @@ final class KindBackendImpl implements KindBackend
 			final Optional<JavaFileId> javaFile = javaStore.findFileByName(entityId);
 			if (javaFile.isPresent())
 			{
-				final Entity entityWithoutKind = entityFactory.entity(true, null, null, javaFile.orElse(null));
-				final Optional<Kind> kind = discoverKind(entityWithoutKind);
-				if (kind.isPresent())
+				final Entity entityWithoutKind = entityFactory.entity(entityId, true, null, null,
+						javaFile.orElse(null));
+				final Optional<Entity> entityWithKind = discoverKind(entityWithoutKind);
+				if (entityWithKind.isPresent())
 				{
-					final Entity entityWithKind = supplyKind(entityWithoutKind, kind.get());
-					return View.ok(entityWithKind);
+					return View.ok(entityWithKind.get());
 				}
 				else
 				{
@@ -128,7 +135,9 @@ final class KindBackendImpl implements KindBackend
 		{
 			throw new IllegalArgumentException("entity should not have kind yet");
 		}
-		return entityFactory.entity(entity.discovered(),
+		return entityFactory.entity(
+				entity.entityId(),
+				entity.discovered(),
 				kind.kindId(),
 				entity.jsonSchemaId(),
 				entity.javaFileId());
@@ -219,9 +228,10 @@ final class KindBackendImpl implements KindBackend
 		return true;
 	}
 
-	private Entity fromApiEntity(final ApiEntity entity)
+	private Entity fromApiEntity(final String entityId, final ApiEntity entity)
 	{
 		return entityFactory.entity(
+				entityId,
 				entity.discovered(),
 				nullable(urlTranslation::kindFromUrl, entity.kindUrl()),
 				nullable(urlTranslation::jsonSchemaFromUrl, entity.jsonSchemaUrl()),
@@ -261,5 +271,36 @@ final class KindBackendImpl implements KindBackend
 		{
 			return fn.apply(x);
 		}
+	}
+
+	private ListEntityItem toListEntityItem(final Entity entity)
+	{
+		return modelFactory.listEntityItem(entity.entityId(), entity.discovered());
+	}
+
+	@Override
+	public ListEntityResponse listEntities()
+	{
+		final ImmutableMap.Builder<String, Entity> builder = ImmutableMap.builder();
+
+		// Conflicts (i.e. things that generate the same entityId) will cause exceptions here.
+
+		entityStore.listEntities().forEach(e -> builder.put(e.entityId(), e));
+
+		discoverJavaEntities().forEach(e -> builder.put(e.entityId(), e));
+
+		return modelFactory.listEntityResponse(
+				builder.build()
+						.values()
+						.stream()
+						.map(this::toListEntityItem)
+						.collect(Collectors.toList()));
+	}
+
+	private AntiIterator<Entity> discoverJavaEntities()
+	{
+		return javaStore.allJavaFiles()
+				.map(jf -> entityFactory.entity(jf.file(), true, null, null, jf))
+				.optMap(this::discoverKind);
 	}
 }

@@ -2,6 +2,7 @@ package restless.handler.java.backend;
 
 import java.util.Optional;
 
+import restless.common.util.AntiIterator;
 import restless.common.util.Possible;
 import restless.handler.java.model.JavaComponent;
 import restless.handler.java.model.JavaFileId;
@@ -29,4 +30,6 @@ public interface JavaStore
 	boolean validateKind(JavaFileId fileId, JavaClause javaClause);
 
 	Optional<JavaFileId> findFileByName(String fileName);
+
+	AntiIterator<JavaFileId> allJavaFiles();
 }

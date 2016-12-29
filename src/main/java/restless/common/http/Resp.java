@@ -9,8 +9,9 @@ import restless.common.util.Possible;
 
 public interface Resp
 {
-
 	<T> Response possibleToJson(Possible<T> result);
+
+	<T> Response toJson(T result);
 
 	Response jsonValidation(IOException e);
 
@@ -21,5 +22,4 @@ public interface Resp
 	Response possibleEmpty(Possible<Void> data);
 
 	Response failure(FailureReason fail);
-
 }

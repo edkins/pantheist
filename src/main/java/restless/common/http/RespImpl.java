@@ -34,9 +34,15 @@ public final class RespImpl implements Resp
 		{
 			return failure(result.failure());
 		}
+		return toJson(result.get());
+	}
+
+	@Override
+	public <T> Response toJson(final T result)
+	{
 		try
 		{
-			final String text = objectMapper.writeValueAsString(result.get());
+			final String text = objectMapper.writeValueAsString(result);
 			return Response.ok(text).build();
 		}
 		catch (final JsonProcessingException e)

@@ -21,8 +21,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 
+import restless.common.util.AntiIt;
 import restless.common.util.AntiIterator;
 import restless.common.util.DummyException;
 import restless.handler.filesystem.except.FsConflictException;
@@ -286,7 +286,7 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 			}
 			break;
 		case DIRECTORY:
-			listFilesAndDirectories(path).feed(child -> {
+			listFilesAndDirectories(path).forEach(child -> {
 				findFilesRecursive(consumer, child, fileName);
 			});
 			break;
@@ -298,42 +298,62 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 	}
 
 	@Override
-	public List<FsPath> findFilesByName(final FsPath dir, final String fileName)
+	public AntiIterator<FsPath> listFilesAndDirectories(final FsPath dir)
 	{
 		if (isDir(dir))
 		{
-			final ImmutableList.Builder<FsPath> builder = ImmutableList.builder();
-
-			findFilesRecursive(builder::add, dir, fileName);
-			return builder.build();
+			return consumer -> {
+				for (final String segment : find(dir).list())
+				{
+					final FsPath childPath = dir.segment(segment);
+					checkFileState(childPath);
+					consumer.accept(childPath);
+				}
+			};
 		}
 		else
 		{
-			return ImmutableList.of();
+			return AntiIt.empty();
 		}
-	}
-
-	@Override
-	public AntiIterator<FsPath> listFilesAndDirectories(final FsPath dir)
-	{
-		if (!isDir(dir))
-		{
-			throw new IllegalStateException("listFilesAndDirectories: not a directory");
-		}
-		return consumer -> {
-			for (final String segment : find(dir).list())
-			{
-				final FsPath childPath = dir.segment(segment);
-				checkFileState(childPath);
-				consumer.accept(childPath);
-			}
-		};
 	}
 
 	@Override
 	public <T> T readJson(final FsPath path, final Class<T> clazz)
 	{
 		return read(path, input -> objectMapper.readValue(input, clazz));
+	}
+
+	private void recurseFilesAndDirectories(final FsPath path, final Consumer<FsPath> consumer)
+	{
+		switch (checkFileState(path)) {
+		case REGULAR_FILE:
+			consumer.accept(path);
+			break;
+		case DIRECTORY:
+			consumer.accept(path);
+			for (final String segment : find(path).list())
+			{
+				final FsPath childPath = path.segment(segment);
+				recurseFilesAndDirectories(childPath, consumer);
+			}
+			break;
+		case DOES_NOT_EXIST:
+		default:
+			// don't supply path if it doesn't exist is or an unknown type of filesystem object
+			break;
+		}
+	}
+
+	@Override
+	public AntiIterator<FsPath> recurse(final FsPath path)
+	{
+		return consumer -> recurseFilesAndDirectories(path, consumer);
+	}
+
+	@Override
+	public boolean safeIsFile(final FsPath path)
+	{
+		return checkFileState(path) == FileState.REGULAR_FILE;
 	}
 
 }

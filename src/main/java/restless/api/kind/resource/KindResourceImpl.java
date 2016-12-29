@@ -48,6 +48,25 @@ public class KindResourceImpl implements KindResource
 	}
 
 	/**
+	 * Handles listing entities (GET)
+	 */
+	@GET
+	@Path("entity")
+	@Produces("application/json")
+	public Response listEntities()
+	{
+		LOGGER.info("GET entity");
+		try
+		{
+			return resp.toJson(backend.listEntities());
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
 	 * Handles entities (PUT)
 	 */
 	@PUT

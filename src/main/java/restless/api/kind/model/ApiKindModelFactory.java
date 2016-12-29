@@ -25,4 +25,8 @@ public interface ApiKindModelFactory
 	ListComponentItem listComponentItem(@Assisted("componentId") String componentId);
 
 	ListComponentResponse listComponentResponse(List<ListComponentItem> childResources);
+
+	ListEntityItem listEntityItem(@Assisted("entityId") String entityId, @Assisted("discovered") boolean discovered);
+
+	ListEntityResponse listEntityResponse(List<ListEntityItem> childResources);
 }

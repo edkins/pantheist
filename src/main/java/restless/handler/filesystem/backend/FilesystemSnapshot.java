@@ -1,7 +1,5 @@
 package restless.handler.filesystem.backend;
 
-import java.util.List;
-
 import restless.common.util.AntiIterator;
 import restless.handler.filesystem.except.FsConflictException;
 import restless.handler.filesystem.except.FsIoException;
@@ -47,6 +45,14 @@ public interface FilesystemSnapshot
 	 * @throws FsUnexpectedStateException if it's a directory file instead
 	 */
 	boolean isFile(FsPath path);
+
+	/**
+	 * Convenience method.
+	 *
+	 * Returns if checkFileState equals REGULAR_FILE. Won't throw an exception if it's something
+	 * weird or a directory.
+	 */
+	boolean safeIsFile(FsPath path);
 
 	/**
 	 * Convenience method.
@@ -98,21 +104,20 @@ public interface FilesystemSnapshot
 	void writeSingleText(FsPath path, String text);
 
 	/**
-	 * Return a list of paths to all files that have the given filename and lie
-	 * within the given directory.
+	 * If this is a file, return it.
 	 *
-	 * Exact file name match only, and will only return regular files.
+	 * If it's a directory then return it and recurse into all child objects.
 	 *
-	 * If the directory does not exist, it will return an empty list.
+	 * If it's missing then return nothing.
 	 */
-	List<FsPath> findFilesByName(FsPath dir, String fileName);
+	AntiIterator<FsPath> recurse(FsPath path);
 
 	/**
 	 * Return a sequence of all the immediate children. Includes both files and directories.
 	 *
 	 * Remember to use checkFileState to distinguish them, not isFile/isDir.
 	 *
-	 * Fails if dir is not a directory.
+	 * Returns an empty list if dir is missing. Fails if dir is a regular file.
 	 */
 	AntiIterator<FsPath> listFilesAndDirectories(FsPath dir);
 }

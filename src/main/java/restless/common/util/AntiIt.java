@@ -29,12 +29,18 @@ public final class AntiIt
 	{
 		final MutableOpt<T> result = View.mutableOpt();
 
-		ait.feed(x -> {
+		ait.forEach(x -> {
 			if (predicate.test(x))
 			{
 				result.supply(x);
 			}
 		});
 		return result.toOptional();
+	}
+
+	public static <T> AntiIterator<T> empty()
+	{
+		return consumer -> {
+		};
 	}
 }

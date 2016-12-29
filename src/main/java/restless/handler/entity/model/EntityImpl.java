@@ -6,10 +6,12 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.assistedinject.Assisted;
 
+import restless.common.util.OtherPreconditions;
 import restless.handler.java.model.JavaFileId;
 
 final class EntityImpl implements Entity
 {
+	private final String entityId;
 	private final boolean discovered;
 	private final String kindId;
 	private final String jsonSchemaId;
@@ -17,15 +19,23 @@ final class EntityImpl implements Entity
 
 	@Inject
 	private EntityImpl(
+			@Assisted("entityId") @JsonProperty("entityId") final String entityId,
 			@Assisted("discovered") @JsonProperty("discovered") final boolean discovered,
 			@Nullable @Assisted("kindId") @JsonProperty("kindId") final String kindId,
 			@Nullable @Assisted("jsonSchemaId") @JsonProperty("jsonSchemaId") final String jsonSchemaId,
 			@Nullable @Assisted @JsonProperty("javaFileId") final JavaFileId javaFileId)
 	{
+		this.entityId = OtherPreconditions.checkNotNullOrEmpty(entityId);
 		this.discovered = discovered;
 		this.kindId = kindId;
 		this.jsonSchemaId = jsonSchemaId;
 		this.javaFileId = javaFileId;
+	}
+
+	@Override
+	public String entityId()
+	{
+		return entityId;
 	}
 
 	@Override
@@ -51,5 +61,4 @@ final class EntityImpl implements Entity
 	{
 		return javaFileId;
 	}
-
 }

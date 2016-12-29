@@ -4,14 +4,18 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.junit.Test;
 
 import restless.api.kind.model.ApiEntity;
+import restless.api.kind.model.ListEntityItem;
 import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ResponseType;
 
 public class DiscoveryTest extends BaseTest
 {
+	private static final String JAVA_PKG = "restless.examples";
 	private static final String KIND_SCHEMA_JAVA_DISCOVERABLE_INTERFACE_RES = "/kind-schema/java-discoverable-interface";
 	private static final String JAVA_INTLIST_NAME = "NonEmptyNonNegativeIntList";
 	private static final String JAVA_INTLIST_RES = "/java-example/NonEmptyNonNegativeIntList";
@@ -23,7 +27,7 @@ public class DiscoveryTest extends BaseTest
 	{
 		manage.kind("java-interface-file").putJsonResource(KIND_SCHEMA_JAVA_DISCOVERABLE_INTERFACE_RES);
 
-		final ManagementPathJavaFile java = manage.javaPackage("restless.examples").file(JAVA_INTLIST_NAME);
+		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
 		java.data().putResource(JAVA_INTLIST_RES, "text/plain");
 
 		final ApiEntity entity = manage.entity(JAVA_INTLIST_NAME).getEntity();
@@ -35,7 +39,7 @@ public class DiscoveryTest extends BaseTest
 	{
 		manage.kind("java-interface-file").putJsonResource(KIND_SCHEMA_JAVA_DISCOVERABLE_INTERFACE_RES);
 
-		final ManagementPathJavaFile java = manage.javaPackage("restless.examples").file(JAVA_INTLIST_NAME);
+		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
 		java.data().putResource(JAVA_INTLIST_RES, "text/plain");
 
 		final ResponseType responseType1 = manage.entity(JAVA_INTLIST_NAME).getEntityResponseType();
@@ -50,11 +54,24 @@ public class DiscoveryTest extends BaseTest
 	{
 		manage.kind("java-interface-file").putJsonResource(KIND_SCHEMA_JAVA_DISCOVERABLE_INTERFACE_RES);
 
-		final ManagementPathJavaFile java = manage.javaPackage("restless.examples").file(JAVA_EMPTY_CLASS_NAME);
+		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_EMPTY_CLASS_NAME);
 		java.data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
 
 		final ResponseType responseType = manage.entity(JAVA_EMPTY_CLASS_NAME).getEntityResponseType();
 
 		assertThat(responseType, is(ResponseType.NOT_FOUND));
+	}
+
+	@Test
+	public void discoveredJavaEntity_isListed() throws Exception
+	{
+		manage.kind("java-interface-file").putJsonResource(KIND_SCHEMA_JAVA_DISCOVERABLE_INTERFACE_RES);
+		manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME).data().putResource(JAVA_INTLIST_RES, "text/plain");
+
+		final List<ListEntityItem> result = manage.listEntities().childResources();
+
+		assertThat(result.size(), is(1));
+		assertThat(result.get(0).entityId(), is(JAVA_INTLIST_NAME));
+		assertThat(result.get(0).discovered(), is(true));
 	}
 }
