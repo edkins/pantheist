@@ -60,6 +60,12 @@ public class Make
 		return xs.get(xs.size() - 1);
 	}
 
+	public static MakeList<String, Optional<String>> join(final String delim)
+	{
+		return Make.<Optional<String>>single()
+				.throughAntiIterator(ait -> ait.reduce(OtherCollectors.join(delim)));
+	}
+
 	/**
 	 * A string splitter that behaves predictably.
 	 */
@@ -83,5 +89,26 @@ public class Make
 		}
 		builder.add(sb.toString());
 		return builder.build();
+	}
+
+	/**
+	 * Return whether xs starts with ys, or they are equal.
+	 *
+	 * e.g. returns true for xs=[1,2,3], ys=[1,2]
+	 */
+	public static <T> boolean listStartsWith(final List<T> xs, final List<T> ys)
+	{
+		if (xs.size() < ys.size())
+		{
+			return false;
+		}
+		for (int i = 0; i < ys.size(); i++)
+		{
+			if (!xs.get(i).equals(ys.get(i)))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 }

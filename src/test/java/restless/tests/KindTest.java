@@ -10,32 +10,51 @@ import org.junit.Test;
 import restless.api.kind.model.ApiEntity;
 import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ManagementPathKind;
+import restless.client.api.ResponseType;
 import restless.handler.kind.model.JavaKind;
 import restless.handler.kind.model.Kind;
 import restless.handler.kind.model.KindLevel;
 
 public class KindTest extends BaseTest
 {
+	private static final String JAVA_INTLIST_NAME = "NonEmptyNonNegativeIntList";
+	private static final String JAVA_INTLIST_RES = "/java-example/NonEmptyNonNegativeIntList";
+	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
+	private static final String KIND_SCHEMA_RES = "/kind-schema/kind-test-example";
+	private static final String KIND_EXAMPLE_CORRECT_ID_RES = "/kind-schema/kind-test-example-correct-id";
+	private static final String KIND_EXAMPLE_GARBAGE_ID_RES = "/kind-schema/kind-test-example-garbage-id";
+
 	@Test
 	public void kind_canReadBack() throws Exception
 	{
-		manage.kind("my-kind").putJsonResource("/kind-schema/pojo");
+		manage.kind("my-kind").putJsonResource(KIND_SCHEMA_RES);
 
 		final Kind kind = manage.kind("my-kind").getKind();
 
 		assertThat(kind.level(), is(KindLevel.entity));
 		assertThat(kind.java().required(), is(true));
 		assertThat(kind.java().javaKind(), is(JavaKind.INTERFACE));
+		assertThat(kind.kindId(), is("my-kind"));
+	}
+
+	@Test
+	public void kind_withWrongId_rejected() throws Exception
+	{
+		final ResponseType response1 = manage.kind("my-kind").putJsonResourceResponseType(KIND_EXAMPLE_GARBAGE_ID_RES);
+		final ResponseType response2 = manage.kind("my-kind").putJsonResourceResponseType(KIND_EXAMPLE_CORRECT_ID_RES);
+
+		assertThat(response1, is(ResponseType.BAD_REQUEST));
+		assertThat(response2, is(ResponseType.NO_CONTENT));
 	}
 
 	@Test
 	public void entity_withKind_isValid() throws Exception
 	{
-		final ManagementPathJavaFile java = manage.javaPackage("restless.examples").file("NonEmptyNonNegativeIntList");
-		java.data().putResource("/java-example/NonEmptyNonNegativeIntList", "text/plain");
+		final ManagementPathJavaFile java = manage.javaPackage("restless.examples").file(JAVA_INTLIST_NAME);
+		java.data().putResource(JAVA_INTLIST_RES, "text/plain");
 
 		final ManagementPathKind kindPath = manage.kind("my-kind");
-		kindPath.putJsonResource("/kind-schema/pojo");
+		kindPath.putJsonResource(KIND_SCHEMA_RES);
 
 		manage.entity("my-entity").putEntity(kindPath.url(), null, java.url());
 
@@ -48,7 +67,7 @@ public class KindTest extends BaseTest
 	public void entity_kindSaysJava_noJava_invalid() throws Exception
 	{
 		final ManagementPathKind kindPath = manage.kind("my-kind");
-		kindPath.putJsonResource("/kind-schema/pojo");
+		kindPath.putJsonResource(KIND_SCHEMA_RES);
 
 		manage.entity("my-entity").putEntity(kindPath.url(), null, null);
 
@@ -60,10 +79,10 @@ public class KindTest extends BaseTest
 	public void entity_kindSaysInterface_actuallyClass_invalid() throws Exception
 	{
 		final ManagementPathJavaFile java = manage.javaPackage("restless.examples").file("EmptyClass");
-		java.data().putResource("/java-example/EmptyClass", "text/plain");
+		java.data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
 
 		final ManagementPathKind kindPath = manage.kind("my-kind");
-		kindPath.putJsonResource("/kind-schema/pojo");
+		kindPath.putJsonResource(KIND_SCHEMA_RES);
 
 		manage.entity("my-entity").putEntity(kindPath.url(), null, java.url());
 

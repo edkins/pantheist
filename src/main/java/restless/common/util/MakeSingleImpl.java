@@ -3,12 +3,9 @@ package restless.common.util;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import com.google.common.collect.ImmutableList;
 
 final class MakeSingleImpl<T, R> implements MakeSingle<T, R>
 {
@@ -55,23 +52,19 @@ final class MakeSingleImpl<T, R> implements MakeSingle<T, R>
 	@Override
 	public <U> MakeList<U, R> through(final Function<List<U>, T> listFunc)
 	{
-		return MakeListImpl.<U, R>fromFunc(xs -> {
-			final ImmutableList.Builder<U> builder = ImmutableList.builder();
-			Sub.forEachRemaining(xs, builder::add);
-			return func.apply(listFunc.apply(builder.build()));
-		});
+		return throughAntiIterator(ait -> listFunc.apply(ait.toList()));
 	}
 
 	@Override
 	public <U> MakeList<U, R> snowball(final T initial, final BiFunction<T, U, T> accumulate)
 	{
-		return MakeListImpl.<U, R>fromFunc(xs -> {
-			final AtomicReference<T> item = new AtomicReference<>(initial);
-			Sub.forEachRemaining(xs, x -> {
-				item.set(accumulate.apply(item.get(), x));
-			});
-			return func.apply(item.get());
-		});
+		return throughAntiIterator(ait -> ait.snowball(initial, accumulate));
+	}
+
+	@Override
+	public <U> MakeList<U, R> throughAntiIterator(final Function<AntiIterator<U>, T> aitFunc)
+	{
+		return MakeListImpl.fromAntiIt(ait -> func.apply(aitFunc.apply(ait)));
 	}
 
 }

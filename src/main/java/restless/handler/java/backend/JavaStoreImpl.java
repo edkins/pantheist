@@ -3,6 +3,7 @@ package restless.handler.java.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -22,6 +23,7 @@ import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 
 import restless.common.util.FailureReason;
+import restless.common.util.Make;
 import restless.common.util.OtherPreconditions;
 import restless.common.util.Possible;
 import restless.common.util.View;
@@ -29,12 +31,14 @@ import restless.handler.filesystem.backend.FilesystemSnapshot;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
 import restless.handler.java.model.JavaComponent;
+import restless.handler.java.model.JavaFileId;
 import restless.handler.java.model.JavaModelFactory;
 import restless.handler.kind.model.JavaClause;
 import restless.handler.kind.model.JavaKind;
 
 final class JavaStoreImpl implements JavaStore
 {
+	private static final String DOT_JAVA = ".java";
 	private static final Logger LOGGER = LogManager.getLogger(JavaStoreImpl.class);
 	private static final String ROOT = ".";
 	private final FilesystemStore filesystem;
@@ -60,79 +64,89 @@ final class JavaStoreImpl implements JavaStore
 			throw new IllegalArgumentException("Bad filename: " + file);
 		}
 
-		FsPath path = filesystem.systemBucket().segment("java");
+		FsPath path = rootJavaPath();
 		for (final String seg : pkg.split("\\."))
 		{
 			path = path.segment(seg);
 		}
-		return path.segment(file + ".java");
+		return path.segment(file + DOT_JAVA);
+	}
+
+	private FsPath rootJavaPath()
+	{
+		return filesystem.systemBucket().segment("java");
 	}
 
 	@Override
-	public Possible<Void> putJava(final String pkg, final String file, final String code)
+	public Possible<Void> putJava(final JavaFileId javaFileId, final String code)
 	{
+		checkNotNull(javaFileId);
+		final String pkg = javaFileId.pkg();
+		final String file = javaFileId.file();
+		final CompilationUnit compilationUnit;
 		try
 		{
-			final CompilationUnit compilationUnit = JavaParser.parse(code);
-
-			final Optional<PackageDeclaration> packageDeclaration = compilationUnit.getPackageDeclaration();
-
-			if (!packageDeclaration.isPresent())
-			{
-				LOGGER.warn("Java code has no package declaration");
-				return FailureReason.REQUEST_FAILED_SCHEMA.happened();
-			}
-
-			final NodeList<TypeDeclaration<?>> types = compilationUnit.getTypes();
-			if (types == null || types.size() != 1)
-			{
-				LOGGER.warn(
-						"Java code does not contain a unique type declaration. We need this to determine where the file gets put");
-				return FailureReason.REQUEST_FAILED_SCHEMA.happened();
-			}
-
-			if (!pkg.equals(packageDeclaration.get().getPackageName()))
-			{
-				LOGGER.warn("Wrong package. Request said " + pkg + ", java code said " + packageDeclaration.get());
-				return FailureReason.REQUEST_FAILED_SCHEMA.happened();
-			}
-			if (!file.equals(types.get(0).getNameAsString()))
-			{
-				LOGGER.warn(
-						"Wrong type name. Request said " + file + ", java code said " + types.get(0).getNameAsString());
-				return FailureReason.REQUEST_FAILED_SCHEMA.happened();
-			}
-			final FsPath filePath = pathToType(pkg, file);
-
-			final FilesystemSnapshot snapshot = filesystem.snapshot();
-
-			if (snapshot.isFile(filePath))
-			{
-				return FailureReason.ALREADY_EXISTS.happened();
-			}
-
-			filePath.parent().leadingPortions().forEach(dirPath -> snapshot.isDir(dirPath));
-
-			snapshot.write(map -> {
-				for (final FsPath dirPath : filePath.parent().leadingPortions())
-				{
-					map.get(dirPath).mkdir();
-				}
-				FileUtils.write(map.get(filePath), code, StandardCharsets.UTF_8);
-			});
-			return View.noContent();
+			compilationUnit = JavaParser.parse(code);
 		}
 		catch (final ParseProblemException e)
 		{
 			LOGGER.catching(e);
 			return FailureReason.REQUEST_HAS_INVALID_SYNTAX.happened();
 		}
+
+		final Optional<PackageDeclaration> packageDeclaration = compilationUnit.getPackageDeclaration();
+
+		if (!packageDeclaration.isPresent())
+		{
+			LOGGER.warn("Java code has no package declaration");
+			return FailureReason.REQUEST_FAILED_SCHEMA.happened();
+		}
+
+		final NodeList<TypeDeclaration<?>> types = compilationUnit.getTypes();
+		if (types == null || types.size() != 1)
+		{
+			LOGGER.warn(
+					"Java code does not contain a unique type declaration. We need this to determine where the file gets put");
+			return FailureReason.REQUEST_FAILED_SCHEMA.happened();
+		}
+
+		if (!pkg.equals(packageDeclaration.get().getPackageName()))
+		{
+			LOGGER.warn("Wrong package. Request said " + pkg + ", java code said " + packageDeclaration.get());
+			return FailureReason.REQUEST_FAILED_SCHEMA.happened();
+		}
+		if (!file.equals(types.get(0).getNameAsString()))
+		{
+			LOGGER.warn(
+					"Wrong type name. Request said " + file + ", java code said " + types.get(0).getNameAsString());
+			return FailureReason.REQUEST_FAILED_SCHEMA.happened();
+		}
+		final FsPath filePath = pathToType(pkg, file);
+
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+
+		if (snapshot.isFile(filePath))
+		{
+			return FailureReason.ALREADY_EXISTS.happened();
+		}
+
+		filePath.parent().leadingPortions().forEach(dirPath -> snapshot.isDir(dirPath));
+
+		snapshot.write(map -> {
+			for (final FsPath dirPath : filePath.parent().leadingPortions())
+			{
+				map.get(dirPath).mkdir();
+			}
+			FileUtils.write(map.get(filePath), code, StandardCharsets.UTF_8);
+		});
+		return View.noContent();
 	}
 
 	@Override
-	public Possible<String> getJava(final String pkg, final String file)
+	public Possible<String> getJava(final JavaFileId javaFileId)
 	{
-		final FsPath filePath = pathToType(pkg, file);
+		checkNotNull(javaFileId);
+		final FsPath filePath = pathToType(javaFileId.pkg(), javaFileId.file());
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
 		if (snapshot.isFile(filePath))
 		{
@@ -147,8 +161,9 @@ final class JavaStoreImpl implements JavaStore
 	}
 
 	@Override
-	public Optional<JavaComponent> getJavaComponent(final String pkg, final String file, final String componentId)
+	public Optional<JavaComponent> getJavaComponent(final JavaFileId javaFileId, final String componentId)
 	{
+		checkNotNull(javaFileId);
 		if (componentId.equals(ROOT))
 		{
 			return Optional.of(modelFactory.component(true));
@@ -187,10 +202,11 @@ final class JavaStoreImpl implements JavaStore
 	}
 
 	@Override
-	public boolean validateKind(final String pkg, final String file, final JavaClause javaClause)
+	public boolean validateKind(final JavaFileId javaFileId, final JavaClause javaClause)
 	{
+		checkNotNull(javaFileId);
 		checkNotNull(javaClause);
-		final String code = getJava(pkg, file).get();
+		final String code = getJava(javaFileId).get();
 		final CompilationUnit compilationUnit = JavaParser.parse(code);
 
 		if (javaClause.javaKind() != null)
@@ -212,5 +228,37 @@ final class JavaStoreImpl implements JavaStore
 
 		// Nothing left to complain about.
 		return true;
+	}
+
+	private String withoutDotJava(final String segment)
+	{
+		if (segment.endsWith(DOT_JAVA))
+		{
+			final String result = segment.substring(0, segment.length() - DOT_JAVA.length());
+			if (result.isEmpty())
+			{
+				throw new IllegalArgumentException("Can't have a file just called .java!");
+			}
+			return result;
+		}
+		else
+		{
+			throw new IllegalArgumentException("Does not end in .java");
+		}
+	}
+
+	private JavaFileId fileIdFromPath(final FsPath path)
+	{
+		final List<String> segs = path.segmentsRelativeTo(rootJavaPath());
+		final String file = withoutDotJava(Make.last(segs));
+		final String pkg = Make.join(".").init().from(segs).get();
+		return modelFactory.fileId(pkg, file);
+	}
+
+	@Override
+	public Optional<JavaFileId> findFileByName(final String fileName)
+	{
+		final List<FsPath> files = filesystem.snapshot().findFilesByName(rootJavaPath(), fileName + DOT_JAVA);
+		return Make.<FsPath>failIfMultiple().from(files).map(this::fileIdFromPath);
 	}
 }

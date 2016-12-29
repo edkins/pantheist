@@ -69,4 +69,20 @@ public interface FsPath
 	 * are an error
 	 */
 	FsPath slashSeparatedSegments(String relativePath);
+
+	/**
+	 * Return a list of segments that need to be appended to base in order to get here.
+	 *
+	 * Returns the empty list if this is equal to base.
+	 *
+	 * @throws IllegalArgumentException if this is not a descendant of base.
+	 */
+	List<String> segmentsRelativeTo(FsPath base);
+
+	/**
+	 * Returns the last segment, i.e. the name of the file.
+	 *
+	 * @throws IllegalStateException if the path is empty
+	 */
+	String lastSegment();
 }

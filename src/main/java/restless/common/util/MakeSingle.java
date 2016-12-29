@@ -11,6 +11,8 @@ public interface MakeSingle<T, R>
 
 	<U> MakeList<U, R> through(Function<List<U>, T> func);
 
+	<U> MakeList<U, R> throughAntiIterator(Function<AntiIterator<U>, T> func);
+
 	<U> MakeList<U, R> snowball(T initial, BiFunction<T, U, T> accumulate);
 
 	R of(T x);

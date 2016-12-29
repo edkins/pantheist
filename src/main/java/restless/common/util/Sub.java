@@ -5,6 +5,7 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+@Deprecated
 public final class Sub
 {
 	private Sub()

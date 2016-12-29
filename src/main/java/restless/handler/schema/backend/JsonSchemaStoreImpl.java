@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import restless.common.util.AntiIterator;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
 import restless.common.util.View;
@@ -104,7 +105,9 @@ final class JsonSchemaStoreImpl implements JsonSchemaStore
 	@Override
 	public Optional<SchemaComponent> getJsonSchemaComponent(final String schemaId, final String componentId)
 	{
-		return AntiIt.findFirst(components(schemaId), c -> c.componentId().equals(componentId));
+		return components(schemaId)
+				.filter(c -> c.componentId().equals(componentId))
+				.failIfMultiple();
 	}
 
 	private AntiIterator<SchemaComponent> components(final String schemaId)
@@ -115,6 +118,6 @@ final class JsonSchemaStoreImpl implements JsonSchemaStore
 	@Override
 	public List<SchemaComponent> listComponents(final String schemaId)
 	{
-		return AntiIt.toList(components(schemaId));
+		return components(schemaId).toList();
 	}
 }

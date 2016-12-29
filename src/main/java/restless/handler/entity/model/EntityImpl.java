@@ -6,26 +6,32 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.assistedinject.Assisted;
 
+import restless.handler.java.model.JavaFileId;
+
 final class EntityImpl implements Entity
 {
-	private boolean discovered;
+	private final boolean discovered;
 	private final String kindId;
 	private final String jsonSchemaId;
-	private final String javaPkg;
-	private final String javaFile;
+	private final JavaFileId javaFileId;
 
 	@Inject
 	private EntityImpl(
 			@Assisted("discovered") @JsonProperty("discovered") final boolean discovered,
 			@Nullable @Assisted("kindId") @JsonProperty("kindId") final String kindId,
 			@Nullable @Assisted("jsonSchemaId") @JsonProperty("jsonSchemaId") final String jsonSchemaId,
-			@Nullable @Assisted("javaPkg") @JsonProperty("javaPkg") final String javaPkg,
-			@Nullable @Assisted("javaFile") @JsonProperty("javaFile") final String javaFile)
+			@Nullable @Assisted @JsonProperty("javaFileId") final JavaFileId javaFileId)
 	{
+		this.discovered = discovered;
 		this.kindId = kindId;
 		this.jsonSchemaId = jsonSchemaId;
-		this.javaPkg = javaPkg;
-		this.javaFile = javaFile;
+		this.javaFileId = javaFileId;
+	}
+
+	@Override
+	public boolean discovered()
+	{
+		return discovered;
 	}
 
 	@Override
@@ -41,21 +47,9 @@ final class EntityImpl implements Entity
 	}
 
 	@Override
-	public String javaPkg()
+	public JavaFileId javaFileId()
 	{
-		return javaPkg;
-	}
-
-	@Override
-	public String javaFile()
-	{
-		return javaFile;
-	}
-
-	@Override
-	public boolean discovered()
-	{
-		return discovered;
+		return javaFileId;
 	}
 
 }

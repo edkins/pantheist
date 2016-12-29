@@ -43,16 +43,6 @@ public class MakeTest
 	}
 
 	@Test
-	public void list_dropSome() throws Exception
-	{
-		final List<Integer> myList = ImmutableList.of(3, 1, 4, 1, 5, 9, 2, 6, 5);
-
-		final List<Integer> result = Make.<Integer>list().without(x -> x < 5).from(myList);
-
-		assertThat(result, is(ImmutableList.of(5, 9, 6, 5)));
-	}
-
-	@Test
 	public void optional_emptyList() throws Exception
 	{
 		final Optional<Integer> result = Make.<Integer>failIfMultiple().from(ImmutableList.of());
@@ -142,5 +132,51 @@ public class MakeTest
 				.from(ImmutableList.of(1, 2, 3));
 
 		assertThat(result, is(94));
+	}
+
+	@Test
+	public void join_empty() throws Exception
+	{
+		final Optional<String> result = Make.join("%").from(ImmutableList.of());
+
+		assertThat(result, is(Optional.empty()));
+	}
+
+	@Test
+	public void join_single() throws Exception
+	{
+		final Optional<String> result = Make.join("%").from(ImmutableList.of("abc"));
+
+		assertThat(result, is(Optional.of("abc")));
+	}
+
+	@Test
+	public void join_several() throws Exception
+	{
+		final Optional<String> result = Make.join("%").from(ImmutableList.of("a", "b", "c"));
+
+		assertThat(result, is(Optional.of("a%b%c")));
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void drop_fewer_fails() throws Exception
+	{
+		Make.<Integer>list().drop(3).from(ImmutableList.of(100, 101));
+	}
+
+	@Test
+	public void drop_sameNumber() throws Exception
+	{
+		final List<Integer> result = Make.<Integer>list().drop(3).from(ImmutableList.of(100, 101, 102));
+
+		assertThat(result, is(ImmutableList.of()));
+	}
+
+	@Test
+	public void drop_more() throws Exception
+	{
+		final List<Integer> result = Make.<Integer>list().drop(3).from(ImmutableList.of(100, 101, 102, 103, 104));
+
+		assertThat(result, is(ImmutableList.of(103, 104)));
 	}
 }

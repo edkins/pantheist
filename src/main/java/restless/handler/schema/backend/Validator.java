@@ -1,5 +1,6 @@
 package restless.handler.schema.backend;
 
+import restless.common.util.AntiIterator;
 import restless.common.util.Possible;
 import restless.handler.schema.model.SchemaComponent;
 

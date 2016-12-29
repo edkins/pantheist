@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import restless.common.util.Possible;
 import restless.handler.java.model.JavaComponent;
+import restless.handler.java.model.JavaFileId;
 import restless.handler.kind.model.JavaClause;
 
 public interface JavaStore
@@ -16,14 +17,16 @@ public interface JavaStore
 	 *
 	 * If there's something else we don't like about it, we'll return REQUEST_FAILED_SCHEMA.
 	 */
-	Possible<Void> putJava(String pkg, String file, String code);
+	Possible<Void> putJava(JavaFileId fileId, String code);
 
 	/**
 	 * Return a java file
 	 */
-	Possible<String> getJava(String pkg, String file);
+	Possible<String> getJava(JavaFileId fileId);
 
-	Optional<JavaComponent> getJavaComponent(String pkg, String file, String componentId);
+	Optional<JavaComponent> getJavaComponent(JavaFileId fileId, String componentId);
 
-	boolean validateKind(String pkg, String file, JavaClause javaClause);
+	boolean validateKind(JavaFileId fileId, JavaClause javaClause);
+
+	Optional<JavaFileId> findFileByName(String fileName);
 }

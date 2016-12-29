@@ -1,5 +1,8 @@
 package restless.handler.filesystem.backend;
 
+import java.util.List;
+
+import restless.common.util.AntiIterator;
 import restless.handler.filesystem.except.FsConflictException;
 import restless.handler.filesystem.except.FsIoException;
 import restless.handler.filesystem.except.FsUnexpectedStateException;
@@ -23,6 +26,8 @@ public interface FilesystemSnapshot
 	<T> T read(FsPath path, InputSteamProcessor<T> fn);
 
 	String readText(FsPath file);
+
+	<T> T readJson(FsPath path, Class<T> clazz);
 
 	/**
 	 * Returns the type of file: regular file, directory or missing.
@@ -91,4 +96,23 @@ public interface FilesystemSnapshot
 	void writeSingle(FsPath path, SingleFileProcessor fn);
 
 	void writeSingleText(FsPath path, String text);
+
+	/**
+	 * Return a list of paths to all files that have the given filename and lie
+	 * within the given directory.
+	 *
+	 * Exact file name match only, and will only return regular files.
+	 *
+	 * If the directory does not exist, it will return an empty list.
+	 */
+	List<FsPath> findFilesByName(FsPath dir, String fileName);
+
+	/**
+	 * Return a sequence of all the immediate children. Includes both files and directories.
+	 *
+	 * Remember to use checkFileState to distinguish them, not isFile/isDir.
+	 *
+	 * Fails if dir is not a directory.
+	 */
+	AntiIterator<FsPath> listFilesAndDirectories(FsPath dir);
 }

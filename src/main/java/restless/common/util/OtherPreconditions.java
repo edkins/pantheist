@@ -28,4 +28,11 @@ public class OtherPreconditions
 		}
 	}
 
+	public static void checkNonNegative(final long n)
+	{
+		if (n < 0)
+		{
+			throw new IllegalArgumentException("Argument is negative");
+		}
+	}
 }

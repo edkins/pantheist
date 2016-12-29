@@ -218,4 +218,10 @@ final class ManagementPathImpl implements
 	{
 		return new ManagementDataImpl(target.withSegment(DATA));
 	}
+
+	@Override
+	public ResponseType putJsonResourceResponseType(final String resourcePath)
+	{
+		return target.putResourceResponseType(resourcePath, APPLICATION_JSON);
+	}
 }

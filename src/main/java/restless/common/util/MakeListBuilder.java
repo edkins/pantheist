@@ -1,6 +1,6 @@
 package restless.common.util;
 
-import java.util.function.Predicate;
+import java.util.function.Function;
 
 /**
  * The methods of MakeList that build a new MakeList.
@@ -18,12 +18,9 @@ public interface MakeListBuilder<T, R>
 	MakeList<T, R> withLast(T lastItem);
 
 	/**
-	 * Removes the items that satisfy the predicate.
-	 */
-	MakeList<T, R> without(Predicate<T> dropPredicate);
-
-	/**
 	 * Drops the first element and fails if the list is empty.
+	 *
+	 * Equivalent to drop(1)
 	 */
 	MakeList<T, R> tail();
 
@@ -31,4 +28,14 @@ public interface MakeListBuilder<T, R>
 	 * Drops the last element and fails if the list is empty.
 	 */
 	MakeList<T, R> init();
+
+	/**
+	 * Drop some number of elements from the start. Fails if the list is shorter than that.
+	 */
+	MakeList<T, R> drop(int count);
+
+	/**
+	 * Applies the given function to each element
+	 */
+	<U> MakeList<U, R> map(Function<U, T> fn);
 }

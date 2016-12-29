@@ -177,4 +177,23 @@ final class FsPathImpl implements FsPath
 			return new FsPathImpl(builder.build());
 		}
 	}
+
+	@Override
+	public List<String> segmentsRelativeTo(final FsPath base)
+	{
+		if (!Make.listStartsWith(segments, base.segments()))
+		{
+			throw new IllegalArgumentException("Path " + this + " not contained within base " + base);
+		}
+		return Make.<String>list()
+				.map(FsPathSegment::toString)
+				.drop(base.segments().size())
+				.from(segments);
+	}
+
+	@Override
+	public String lastSegment()
+	{
+		return Make.last(segments).toString();
+	}
 }

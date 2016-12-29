@@ -10,14 +10,20 @@ import com.google.inject.assistedinject.Assisted;
 
 final class KindImpl implements Kind
 {
+	private final String kindId;
 	private final KindLevel level;
 	private final JavaClause java;
+	private final boolean discoverable;
 
 	@Inject
 	private KindImpl(
+			@Nullable @Assisted("kindId") @JsonProperty("kindId") final String kindId,
 			@Assisted @JsonProperty("level") final KindLevel level,
+			@Assisted("discoverable") @JsonProperty("discoverable") final Boolean discoverable,
 			@Nullable @Assisted @JsonProperty("java") final JavaClause java)
 	{
+		this.kindId = kindId;
+		this.discoverable = checkNotNull(discoverable);
 		this.level = checkNotNull(level);
 		this.java = java;
 	}
@@ -32,6 +38,18 @@ final class KindImpl implements Kind
 	public JavaClause java()
 	{
 		return java;
+	}
+
+	@Override
+	public boolean discoverable()
+	{
+		return discoverable;
+	}
+
+	@Override
+	public String kindId()
+	{
+		return kindId;
 	}
 
 }

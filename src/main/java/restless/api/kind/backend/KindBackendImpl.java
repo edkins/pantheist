@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
@@ -18,6 +17,7 @@ import restless.api.kind.model.ListComponentItem;
 import restless.api.kind.model.ListComponentResponse;
 import restless.common.util.FailureReason;
 import restless.common.util.OtherCollectors;
+import restless.common.util.OtherPreconditions;
 import restless.common.util.Possible;
 import restless.common.util.View;
 import restless.handler.entity.backend.EntityStore;
@@ -25,8 +25,10 @@ import restless.handler.entity.model.Entity;
 import restless.handler.entity.model.EntityModelFactory;
 import restless.handler.java.backend.JavaStore;
 import restless.handler.java.model.JavaComponent;
+import restless.handler.java.model.JavaFileId;
 import restless.handler.kind.backend.KindStore;
 import restless.handler.kind.model.Kind;
+import restless.handler.kind.model.KindModelFactory;
 import restless.handler.schema.backend.JsonSchemaStore;
 import restless.handler.schema.model.SchemaComponent;
 import restless.handler.uri.UrlTranslation;
@@ -40,6 +42,7 @@ final class KindBackendImpl implements KindBackend
 	private final JsonSchemaStore schemaStore;
 	private final ApiKindModelFactory modelFactory;
 	private final JavaStore javaStore;
+	private final KindModelFactory kindFactory;
 
 	@Inject
 	private KindBackendImpl(
@@ -49,7 +52,8 @@ final class KindBackendImpl implements KindBackend
 			final KindStore kindStore,
 			final JsonSchemaStore schemaStore,
 			final JavaStore javaStore,
-			final ApiKindModelFactory modelFactory)
+			final ApiKindModelFactory modelFactory,
+			final KindModelFactory kindFactory)
 	{
 		this.entityStore = checkNotNull(entityStore);
 		this.urlTranslation = checkNotNull(urlTranslation);
@@ -58,6 +62,7 @@ final class KindBackendImpl implements KindBackend
 		this.schemaStore = checkNotNull(schemaStore);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.javaStore = checkNotNull(javaStore);
+		this.kindFactory = checkNotNull(kindFactory);
 	}
 
 	@Override
@@ -79,6 +84,13 @@ final class KindBackendImpl implements KindBackend
 		return findEntity(entityId).map(this::toApiEntity);
 	}
 
+	private Optional<Kind> discoverKind(final Entity entity)
+	{
+		return kindStore.discoverKinds()
+				.filter(k -> validateEntityAgainstKind(entity, k))
+				.failIfMultiple();
+	}
+
 	private Possible<Entity> findEntity(final String entityId)
 	{
 		final Optional<Entity> storedEntity = entityStore.getEntity(entityId);
@@ -88,8 +100,38 @@ final class KindBackendImpl implements KindBackend
 		}
 		else
 		{
-			return FailureReason.DOES_NOT_EXIST.happened();
+			final Optional<JavaFileId> javaFile = javaStore.findFileByName(entityId);
+			if (javaFile.isPresent())
+			{
+				final Entity entityWithoutKind = entityFactory.entity(true, null, null, javaFile.orElse(null));
+				final Optional<Kind> kind = discoverKind(entityWithoutKind);
+				if (kind.isPresent())
+				{
+					final Entity entityWithKind = supplyKind(entityWithoutKind, kind.get());
+					return View.ok(entityWithKind);
+				}
+				else
+				{
+					return FailureReason.DOES_NOT_EXIST.happened();
+				}
+			}
+			else
+			{
+				return FailureReason.DOES_NOT_EXIST.happened();
+			}
 		}
+	}
+
+	private Entity supplyKind(final Entity entity, final Kind kind)
+	{
+		if (entity.kindId() != null)
+		{
+			throw new IllegalArgumentException("entity should not have kind yet");
+		}
+		return entityFactory.entity(entity.discovered(),
+				kind.kindId(),
+				entity.jsonSchemaId(),
+				entity.javaFileId());
 	}
 
 	@Override
@@ -102,10 +144,9 @@ final class KindBackendImpl implements KindBackend
 			{
 				jsonSchema = schemaStore.getJsonSchemaComponent(e.jsonSchemaId(), componentId).orElse(null);
 			}
-			if (e.javaFile() != null)
+			if (e.javaFileId() != null)
 			{
-				checkNotNull(e.javaPkg());
-				java = javaStore.getJavaComponent(e.javaPkg(), e.javaFile(), componentId).orElse(null);
+				java = javaStore.getJavaComponent(e.javaFileId(), componentId).orElse(null);
 			}
 
 			if (jsonSchema != null || java != null)
@@ -142,28 +183,32 @@ final class KindBackendImpl implements KindBackend
 		return kindStore.getKind(kindId);
 	}
 
+	private Kind supplyKindId(final String kindId, final Kind kind)
+	{
+		OtherPreconditions.checkNotNullOrEmpty(kindId);
+		return kindFactory.kind(kindId, kind.level(), kind.discoverable(), kind.java());
+	}
+
 	@Override
 	public Possible<Void> putKind(final String kindId, final Kind kind)
 	{
-		return kindStore.putKind(kindId, kind);
+		if (kind.kindId() != null && !kind.kindId().equals(kindId))
+		{
+			return FailureReason.WRONG_LOCATION.happened();
+		}
+		return kindStore.putKind(kindId, supplyKindId(kindId, kind));
 	}
 
-	private boolean validateEntityAgainstKind(final Entity entity)
+	private boolean validateEntityAgainstKind(final Entity entity, final Kind kind)
 	{
-		if (entity.kindId() == null)
-		{
-			// If kind is missing then anything is valid.
-			return true;
-		}
-		final Kind kind = getKind(entity.kindId()).get();
 		if (kind.java() != null)
 		{
-			if (kind.java().required() && (entity.javaPkg() == null || entity.javaFile() == null))
+			if (kind.java().required() && (entity.javaFileId() == null))
 			{
 				// Java is required but not present in entity.
 				return false;
 			}
-			if (!javaStore.validateKind(entity.javaPkg(), entity.javaFile(), kind.java()))
+			if (!javaStore.validateKind(entity.javaFileId(), kind.java()))
 			{
 				// Java store says the details are invalid.
 				return false;
@@ -180,19 +225,29 @@ final class KindBackendImpl implements KindBackend
 				entity.discovered(),
 				nullable(urlTranslation::kindFromUrl, entity.kindUrl()),
 				nullable(urlTranslation::jsonSchemaFromUrl, entity.jsonSchemaUrl()),
-				nullable(urlTranslation::javaPkgFromUrl, entity.javaUrl()),
-				nullable(urlTranslation::javaFileFromUrl, entity.javaUrl()));
+				nullable(urlTranslation::javaFromUrl, entity.javaUrl()));
 	}
 
 	private ApiEntity toApiEntity(final Entity entity)
 	{
-		final boolean valid = validateEntityAgainstKind(entity);
+		final boolean valid = validateEntityAgainstStoredKind(entity);
 		return modelFactory.entity(
 				entity.discovered(),
 				nullable(urlTranslation::kindToUrl, entity.kindId()),
 				nullable(urlTranslation::jsonSchemaToUrl, entity.jsonSchemaId()),
-				nullable2(urlTranslation::javaToUrl, entity.javaPkg(), entity.javaFile()),
+				nullable(urlTranslation::javaToUrl, entity.javaFileId()),
 				valid);
+	}
+
+	private boolean validateEntityAgainstStoredKind(final Entity entity)
+	{
+		if (entity.kindId() == null)
+		{
+			// If kind is missing then anything is valid.
+			return true;
+		}
+		final Kind kind = getKind(entity.kindId()).get();
+		return validateEntityAgainstKind(entity, kind);
 	}
 
 	@Nullable
@@ -207,22 +262,4 @@ final class KindBackendImpl implements KindBackend
 			return fn.apply(x);
 		}
 	}
-
-	@Nullable
-	private <T, U, V> V nullable2(final BiFunction<T, U, V> fn, @Nullable final T x, @Nullable final U y)
-	{
-		if (x == null && y == null)
-		{
-			return null;
-		}
-		else if (x != null && y != null)
-		{
-			return fn.apply(x, y);
-		}
-		else
-		{
-			throw new NullPointerException("Either both must be null, or neither");
-		}
-	}
-
 }

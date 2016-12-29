@@ -3,55 +3,46 @@ package restless.common.util;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 final class MakeListImpl<T, R> implements MakeList<T, R>
 {
-	private final Function<SubIterator<T>, R> func;
+	private final Function<AntiIterator<T>, R> func;
 
-	private MakeListImpl(final Function<SubIterator<T>, R> func)
+	private MakeListImpl(final Function<AntiIterator<T>, R> func)
 	{
 		this.func = checkNotNull(func);
 	}
 
-	static <T, R> MakeList<T, R> fromFunc(final Function<SubIterator<T>, R> func)
+	static <T, R> MakeList<T, R> fromAntiIt(final Function<AntiIterator<T>, R> func)
 	{
 		return new MakeListImpl<>(func);
 	}
 
-	private <U> MakeList<U, R> chain(final Function<SubIterator<U>, SubIterator<T>> fn)
+	private <U> MakeList<U, R> chain(final Function<AntiIterator<U>, AntiIterator<T>> fn)
 	{
-		return fromFunc(it -> func.apply(fn.apply(it)));
+		return fromAntiIt(it -> func.apply(fn.apply(it)));
 	}
 
 	@Override
 	public MakeList<T, R> withFirst(final T firstItem)
 	{
 		checkNotNull(firstItem);
-		return chain(xs -> Sub.concat(Sub.single(firstItem), xs));
+		return chain(xs -> AntiIt.single(firstItem).andThen(xs));
 	}
 
 	@Override
 	public MakeList<T, R> withLast(final T lastItem)
 	{
 		checkNotNull(lastItem);
-		return chain(xs -> Sub.concat(xs, Sub.single(lastItem)));
-	}
-
-	@Override
-	public MakeList<T, R> without(final Predicate<T> dropPredicate)
-	{
-		checkNotNull(dropPredicate);
-		return chain(xs -> Sub.filter(xs, dropPredicate.negate()));
+		return chain(xs -> xs.andThen(AntiIt.single(lastItem)));
 	}
 
 	@Override
 	public R from(final List<T> list)
 	{
 		checkNotNull(list);
-		return func.apply(Sub.from(list));
+		return func.apply(AntiIt.from(list));
 	}
 
 	@Override
@@ -63,50 +54,25 @@ final class MakeListImpl<T, R> implements MakeList<T, R>
 	@Override
 	public MakeList<T, R> tail()
 	{
-		return chain(s -> {
-			if (!s.tryAdvance(x -> {
-			}))
-			{
-				throw new IllegalStateException("tail: empty list");
-			}
-			return s;
-		});
+		return drop(1);
 	}
 
 	@Override
 	public MakeList<T, R> init()
 	{
-		return chain(xs -> new SubIterator<T>() {
-			private boolean start = true;
-			private T current = null;
+		return chain(AntiIterator::init);
+	}
 
-			private final Consumer<T> get = x -> {
-				current = x;
-			};
+	@Override
+	public MakeList<T, R> drop(final int count)
+	{
+		return chain(xs -> xs.drop(count, true));
+	}
 
-			@Override
-			public boolean tryAdvance(final Consumer<? super T> action)
-			{
-				if (start)
-				{
-					if (!xs.tryAdvance(get))
-					{
-						throw new IllegalStateException("init: empty list");
-					}
-					start = false;
-				}
-				final T previous = current;
-				if (xs.tryAdvance(get))
-				{
-					action.accept(previous);
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-		});
+	@Override
+	public <U> MakeList<U, R> map(final Function<U, T> fn)
+	{
+		return chain(xs -> xs.map(fn));
 	}
 
 }

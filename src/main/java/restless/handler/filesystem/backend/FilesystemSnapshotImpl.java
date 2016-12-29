@@ -13,12 +13,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+
+import restless.common.util.AntiIterator;
 import restless.common.util.DummyException;
 import restless.handler.filesystem.except.FsConflictException;
 import restless.handler.filesystem.except.FsIoException;
@@ -29,6 +34,7 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 {
 	private final Lock lock;
 	private final RestlessConfig config;
+	private final ObjectMapper objectMapper;
 	private final long timestamp;
 
 	//State
@@ -37,7 +43,9 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 	private final List<FsPath> directoriesToCreate;
 
 	@Inject
-	private FilesystemSnapshotImpl(@FilesystemLock final Lock lock, final RestlessConfig config)
+	private FilesystemSnapshotImpl(@FilesystemLock final Lock lock,
+			final RestlessConfig config,
+			final ObjectMapper objectMapper)
 	{
 		this.lock = checkNotNull(lock);
 		this.config = checkNotNull(config);
@@ -45,6 +53,7 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 		this.knownFileStates = new HashMap<>();
 		this.written = false;
 		this.directoriesToCreate = new ArrayList<>();
+		this.objectMapper = checkNotNull(objectMapper);
 	}
 
 	@Override
@@ -262,6 +271,69 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 	public void writeSingleText(final FsPath path, final String text)
 	{
 		writeSingle(path, file -> FileUtils.writeStringToFile(file, text, StandardCharsets.UTF_8));
+	}
+
+	private void findFilesRecursive(
+			final Consumer<FsPath> consumer,
+			final FsPath path,
+			final String fileName)
+	{
+		switch (checkFileState(path)) {
+		case REGULAR_FILE:
+			if (path.lastSegment().equals(fileName))
+			{
+				consumer.accept(path);
+			}
+			break;
+		case DIRECTORY:
+			listFilesAndDirectories(path).feed(child -> {
+				findFilesRecursive(consumer, child, fileName);
+			});
+			break;
+		case DOES_NOT_EXIST:
+			throw new IllegalStateException("findFilesRecursive: should not visit missing files");
+		default:
+			// do nothing for unknown types of filesystem object
+		}
+	}
+
+	@Override
+	public List<FsPath> findFilesByName(final FsPath dir, final String fileName)
+	{
+		if (isDir(dir))
+		{
+			final ImmutableList.Builder<FsPath> builder = ImmutableList.builder();
+
+			findFilesRecursive(builder::add, dir, fileName);
+			return builder.build();
+		}
+		else
+		{
+			return ImmutableList.of();
+		}
+	}
+
+	@Override
+	public AntiIterator<FsPath> listFilesAndDirectories(final FsPath dir)
+	{
+		if (!isDir(dir))
+		{
+			throw new IllegalStateException("listFilesAndDirectories: not a directory");
+		}
+		return consumer -> {
+			for (final String segment : find(dir).list())
+			{
+				final FsPath childPath = dir.segment(segment);
+				checkFileState(childPath);
+				consumer.accept(childPath);
+			}
+		};
+	}
+
+	@Override
+	public <T> T readJson(final FsPath path, final Class<T> clazz)
+	{
+		return read(path, input -> objectMapper.readValue(input, clazz));
 	}
 
 }

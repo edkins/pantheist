@@ -5,6 +5,8 @@ import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import restless.handler.java.model.JavaFileId;
+
 @JsonDeserialize(as = EntityImpl.class)
 public interface Entity
 {
@@ -20,10 +22,6 @@ public interface Entity
 	String jsonSchemaId();
 
 	@Nullable
-	@JsonProperty("javaPkg")
-	String javaPkg();
-
-	@Nullable
-	@JsonProperty("javaFile")
-	String javaFile();
+	@JsonProperty("javaFileId")
+	JavaFileId javaFileId();
 }

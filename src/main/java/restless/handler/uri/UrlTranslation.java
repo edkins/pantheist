@@ -1,5 +1,7 @@
 package restless.handler.uri;
 
+import restless.handler.java.model.JavaFileId;
+
 public interface UrlTranslation
 {
 	String kindToUrl(String kindId);
@@ -10,11 +12,9 @@ public interface UrlTranslation
 
 	String jsonSchemaFromUrl(String url);
 
-	String javaToUrl(String javaPkg, String javaFile);
+	String javaToUrl(JavaFileId javaFileId);
 
-	String javaPkgFromUrl(String url);
-
-	String javaFileFromUrl(String url);
+	JavaFileId javaFromUrl(String url);
 
 	String locationToUrl(String serverId, String locationId);
 }

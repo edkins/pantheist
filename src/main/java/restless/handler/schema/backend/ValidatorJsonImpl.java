@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
@@ -18,6 +19,7 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.google.inject.assistedinject.Assisted;
 
+import restless.common.util.AntiIterator;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
 import restless.common.util.View;
@@ -91,41 +93,31 @@ final class ValidatorJsonImpl implements Validator
 		}
 	}
 
-	private boolean findComponentRecursive(
+	private void findComponentRecursive(
 			final boolean isRoot,
 			final JsonNode node,
-			final AntiItConsumer<SchemaComponent> consumer)
+			final Consumer<SchemaComponent> consumer)
 	{
 		if (node.isObject() || node.isArray())
 		{
 			if (isRoot)
 			{
-				if (!consumer.wantMore(modelFactory.component(ROOT, isRoot)))
-				{
-					return false;
-				}
+				consumer.accept(modelFactory.component(ROOT, isRoot));
 			}
 
 			final JsonNode id = node.get("id");
 			if (id != null && id.isTextual() && id.asText().startsWith("#"))
 			{
-				if (!consumer.wantMore(modelFactory.component(id.asText().substring(1), isRoot)))
-				{
-					return false;
-				}
+				consumer.accept(modelFactory.component(id.asText().substring(1), isRoot));
 			}
 
 			final Iterator<JsonNode> iterator = node.elements();
 			while (iterator.hasNext())
 			{
 				final JsonNode child = iterator.next();
-				if (!findComponentRecursive(false, child, consumer))
-				{
-					return false;
-				}
+				findComponentRecursive(false, child, consumer);
 			}
 		}
-		return true;
 	}
 
 	@Override

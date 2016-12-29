@@ -6,7 +6,11 @@ import com.google.inject.assistedinject.Assisted;
 
 public interface KindModelFactory
 {
-	Kind kind(KindLevel level, @Nullable JavaClause java);
+	Kind kind(
+			@Nullable @Assisted("kindId") String kindId,
+			KindLevel level,
+			@Assisted("discoverable") Boolean discoverable,
+			@Nullable JavaClause java);
 
 	JavaClause javaClause(@Assisted("required") boolean required, @Nullable JavaKind javaKind);
 }

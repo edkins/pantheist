@@ -23,6 +23,8 @@ import restless.handler.entity.backend.EntityStore;
 import restless.handler.entity.model.EntityModelFactory;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.java.backend.JavaStore;
+import restless.handler.java.model.JavaFileId;
+import restless.handler.java.model.JavaModelFactory;
 import restless.handler.kind.backend.KindStore;
 import restless.handler.nginx.manage.NginxService;
 import restless.handler.schema.backend.JsonSchemaStore;
@@ -37,6 +39,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	private final NginxService nginxService;
 	private final JsonSchemaStore schemaStore;
 	private final UrlTranslation urlTranslation;
+	private final JavaModelFactory javaFactory;
 
 	@Inject
 	ManagementBackendImpl(
@@ -48,7 +51,8 @@ final class ManagementBackendImpl implements ManagementBackend
 			final EntityStore entityStore,
 			final UrlTranslation urlTranslation,
 			final EntityModelFactory entityFactory,
-			final KindStore kindStore)
+			final KindStore kindStore,
+			final JavaModelFactory javaFactory)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.javaStore = checkNotNull(javaStore);
@@ -56,6 +60,7 @@ final class ManagementBackendImpl implements ManagementBackend
 		this.nginxService = checkNotNull(nginxService);
 		this.schemaStore = checkNotNull(schemaStore);
 		this.urlTranslation = checkNotNull(urlTranslation);
+		this.javaFactory = checkNotNull(javaFactory);
 	}
 
 	@Override
@@ -100,13 +105,15 @@ final class ManagementBackendImpl implements ManagementBackend
 	@Override
 	public Possible<Void> putJavaFile(final String pkg, final String file, final String code)
 	{
-		return javaStore.putJava(pkg, file, code);
+		final JavaFileId id = javaFactory.fileId(pkg, file);
+		return javaStore.putJava(id, code);
 	}
 
 	@Override
 	public Possible<String> getJavaFile(final String pkg, final String file)
 	{
-		return javaStore.getJava(pkg, file);
+		final JavaFileId id = javaFactory.fileId(pkg, file);
+		return javaStore.getJava(id);
 	}
 
 	@Override

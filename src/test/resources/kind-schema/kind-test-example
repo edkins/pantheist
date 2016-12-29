@@ -1,0 +1,8 @@
+{
+	"level": "entity",
+	"discoverable": false,
+	"java": {
+		"required": true,
+		"javaKind": "interface"
+	}
+}

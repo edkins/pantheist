@@ -4,9 +4,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.inject.Inject;
 
+import restless.common.util.AntiIterator;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
 import restless.common.util.View;
+import restless.handler.filesystem.backend.FilesystemSnapshot;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
 import restless.handler.filesystem.backend.JsonSnapshot;
@@ -34,7 +36,12 @@ final class KindStoreImpl implements KindStore
 
 	private FsPath path(final String kindId)
 	{
-		return filesystem.systemBucket().segment("kind").segment(kindId);
+		return kindDir().segment(kindId);
+	}
+
+	private FsPath kindDir()
+	{
+		return filesystem.systemBucket().segment("kind");
 	}
 
 	@Override
@@ -50,6 +57,16 @@ final class KindStoreImpl implements KindStore
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
 		}
+	}
+
+	@Override
+	public AntiIterator<Kind> discoverKinds()
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		return snapshot
+				.listFilesAndDirectories(kindDir())
+				.map(path -> snapshot.readJson(path, Kind.class))
+				.filter(kind -> kind.discoverable());
 	}
 
 }

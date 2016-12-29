@@ -1,5 +1,7 @@
 package restless.handler.uri;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
@@ -7,6 +9,8 @@ import com.google.common.collect.ImmutableMap;
 
 import restless.api.management.backend.UriPattern;
 import restless.api.management.backend.UriPatternImpl;
+import restless.handler.java.model.JavaFileId;
+import restless.handler.java.model.JavaModelFactory;
 import restless.system.config.RestlessConfig;
 
 final class UrlTranslationImpl implements UrlTranslation
@@ -15,9 +19,10 @@ final class UrlTranslationImpl implements UrlTranslation
 	private final UriPattern jsonSchema;
 	private final UriPattern java;
 	private final UriPattern location;
+	private final JavaModelFactory javaFactory;
 
 	@Inject
-	private UrlTranslationImpl(final RestlessConfig config)
+	private UrlTranslationImpl(final RestlessConfig config, final JavaModelFactory javaFactory)
 	{
 		final UriPattern root = UriPatternImpl
 				.hostAndPort("http", "localhost:" + config.managementPort())
@@ -27,6 +32,7 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.jsonSchema = root.segment("json-schema").var("schemaId");
 		this.java = root.segment("java-pkg").var("pkg").segment("file").var("file");
 		this.location = root.segment("server").var("serverId").segment("location").var("locationId");
+		this.javaFactory = checkNotNull(javaFactory);
 	}
 
 	@Override
@@ -42,21 +48,15 @@ final class UrlTranslationImpl implements UrlTranslation
 	}
 
 	@Override
-	public String javaToUrl(final String javaPkg, final String javaFile)
+	public String javaToUrl(final JavaFileId javaFileId)
 	{
-		return java.generate(ImmutableMap.of("pkg", javaPkg, "file", javaFile), false);
+		return java.generate(ImmutableMap.of("pkg", javaFileId.pkg(), "file", javaFileId.file()), false);
 	}
 
 	@Override
-	public String javaPkgFromUrl(@Nullable final String url)
+	public JavaFileId javaFromUrl(@Nullable final String url)
 	{
-		return java.getVar("pkg", url);
-	}
-
-	@Override
-	public String javaFileFromUrl(final String url)
-	{
-		return java.getVar("file", url);
+		return javaFactory.fileId(java.getVar("pkg", url), java.getVar("file", url));
 	}
 
 	@Override
