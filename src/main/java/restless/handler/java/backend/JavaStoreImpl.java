@@ -17,6 +17,8 @@ import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.PackageDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 
 import restless.common.util.FailureReason;
@@ -28,6 +30,8 @@ import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
 import restless.handler.java.model.JavaComponent;
 import restless.handler.java.model.JavaModelFactory;
+import restless.handler.kind.model.JavaClause;
+import restless.handler.kind.model.JavaKind;
 
 final class JavaStoreImpl implements JavaStore
 {
@@ -153,5 +157,60 @@ final class JavaStoreImpl implements JavaStore
 		{
 			return Optional.empty();
 		}
+	}
+
+	/**
+	 * Return what we think this is, or empty if we have no idea.
+	 */
+	private Optional<JavaKind> classify(final TypeDeclaration<?> type)
+	{
+		if (type instanceof ClassOrInterfaceDeclaration)
+		{
+			if (((ClassOrInterfaceDeclaration) type).isInterface())
+			{
+				return Optional.of(JavaKind.INTERFACE);
+			}
+			else
+			{
+				return Optional.of(JavaKind.CLASS);
+			}
+		}
+		else if (type instanceof EnumDeclaration)
+		{
+			return Optional.of(JavaKind.ENUM);
+		}
+		else
+		{
+			// possibly annotation?
+			return Optional.empty();
+		}
+	}
+
+	@Override
+	public boolean validateKind(final String pkg, final String file, final JavaClause javaClause)
+	{
+		checkNotNull(javaClause);
+		final String code = getJava(pkg, file).get();
+		final CompilationUnit compilationUnit = JavaParser.parse(code);
+
+		if (javaClause.javaKind() != null)
+		{
+			if (compilationUnit.getTypes() == null || compilationUnit.getTypes().size() != 1)
+			{
+				// can only compare java kind when there's exactly one type defined.
+				return false;
+			}
+
+			// Work out the actual java kind and see if it agrees.
+			final TypeDeclaration<?> type = compilationUnit.getType(0);
+			final Optional<JavaKind> javaKind = classify(type);
+			if (!javaKind.isPresent() || !javaClause.javaKind().encompasses(javaKind))
+			{
+				return false;
+			}
+		}
+
+		// Nothing left to complain about.
+		return true;
 	}
 }

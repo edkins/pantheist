@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import restless.common.util.Possible;
 import restless.handler.java.model.JavaComponent;
+import restless.handler.kind.model.JavaClause;
 
 public interface JavaStore
 {
@@ -23,4 +24,6 @@ public interface JavaStore
 	Possible<String> getJava(String pkg, String file);
 
 	Optional<JavaComponent> getJavaComponent(String pkg, String file, String componentId);
+
+	boolean validateKind(String pkg, String file, JavaClause javaClause);
 }

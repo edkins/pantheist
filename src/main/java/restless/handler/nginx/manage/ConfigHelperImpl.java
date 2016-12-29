@@ -12,12 +12,9 @@ import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 
-import com.google.common.collect.ImmutableList;
-
 import restless.handler.filesystem.backend.FilesystemSnapshot;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
-import restless.handler.nginx.parser.NginxDirective;
 import restless.handler.nginx.parser.NginxRoot;
 import restless.handler.nginx.parser.NginxSyntax;
 import restless.system.config.RestlessConfig;
@@ -56,32 +53,6 @@ final class ConfigHelperImpl implements ConfigHelper
 	public String absolutePath()
 	{
 		return path().in(config.dataDir()).getAbsolutePath();
-	}
-
-	private void newConfig()
-	{
-		root.contents().getOrCreateSimple("pid").setSingleParameter(sysFilePath("nginx.pid"));
-		root.contents().getOrCreateSimple("error_log").setSingleParameter(sysFilePath("nginx-error.log"));
-
-		final NginxDirective http = root.contents().getOrCreateBlock("http");
-		http.contents().getOrCreateSimple("access_log").setSingleParameter(sysFilePath("nginx-access.log"));
-		http.contents().getOrCreateSimple("charset").setSingleParameter(sysFilePath("utf-8"));
-		final NginxDirective server = http.contents().addBlock("server", ImmutableList.of());
-		server.contents().getOrCreateSimple("listen").setSingleParameter(local(config.mainPort()));
-	}
-
-	private String local(final int port)
-	{
-		return "127.0.0.1:" + port;
-	}
-
-	private String sysFilePath(final String relativePath)
-	{
-		return filesystem
-				.systemBucket()
-				.slashSeparatedSegments(relativePath)
-				.in(config.dataDir())
-				.getAbsolutePath();
 	}
 
 	@Override

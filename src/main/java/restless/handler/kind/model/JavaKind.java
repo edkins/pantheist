@@ -1,5 +1,7 @@
 package restless.handler.kind.model;
 
+import java.util.Optional;
+
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import restless.common.util.OtherPreconditions;
@@ -12,7 +14,8 @@ public enum JavaKind
 {
 	CLASS("class"),
 	INTERFACE("interface"),
-	ENUM("enum");
+	ENUM("enum"),
+	TYPE("type");
 
 	private final String value;
 
@@ -26,5 +29,29 @@ public enum JavaKind
 	public String toString()
 	{
 		return value;
+	}
+
+	public boolean encompasses(final Optional<JavaKind> optOther)
+	{
+		if (!optOther.isPresent())
+		{
+			return true;
+		}
+		final JavaKind other = optOther.get();
+		if (other == TYPE)
+		{
+			throw new IllegalArgumentException("other may not be TYPE here");
+		}
+
+		switch (this) {
+		case TYPE:
+			return other == CLASS || other == INTERFACE || other == ENUM;
+		case CLASS:
+		case INTERFACE:
+		case ENUM:
+			return this == other;
+		default:
+			throw new IllegalStateException("This enum state should not be possible");
+		}
 	}
 }

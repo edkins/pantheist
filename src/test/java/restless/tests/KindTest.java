@@ -1,6 +1,7 @@
 package restless.tests;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -41,5 +42,32 @@ public class KindTest extends BaseTest
 		final ApiEntity result = manage.entity("my-entity").getEntity();
 		assertThat(result.kindUrl(), is(kindPath.url()));
 		assertTrue("Entity should be valid", result.valid());
+	}
+
+	@Test
+	public void entity_kindSaysJava_noJava_invalid() throws Exception
+	{
+		final ManagementPathKind kindPath = manage.kind("my-kind");
+		kindPath.putJsonResource("/kind-schema/pojo");
+
+		manage.entity("my-entity").putEntity(kindPath.url(), null, null);
+
+		final ApiEntity result = manage.entity("my-entity").getEntity();
+		assertFalse("Entity should be invalid", result.valid());
+	}
+
+	@Test
+	public void entity_kindSaysInterface_actuallyClass_invalid() throws Exception
+	{
+		final ManagementData java = manage.javaPackage("restless.examples").file("EmptyClass");
+		java.putResource("/java-example/EmptyClass", "text/plain");
+
+		final ManagementPathKind kindPath = manage.kind("my-kind");
+		kindPath.putJsonResource("/kind-schema/pojo");
+
+		manage.entity("my-entity").putEntity(kindPath.url(), null, java.url());
+
+		final ApiEntity result = manage.entity("my-entity").getEntity();
+		assertFalse("Entity should be invalid", result.valid());
 	}
 }

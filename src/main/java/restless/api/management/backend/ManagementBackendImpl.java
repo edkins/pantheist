@@ -248,16 +248,18 @@ final class ManagementBackendImpl implements ManagementBackend
 
 	private ApiEntity toApiEntity(final Entity entity)
 	{
+		final boolean valid = validateEntityAgainstKind(entity);
 		return modelFactory.entity(
 				nullable(urlTranslation::kindToUrl, entity.kindId()),
 				nullable(urlTranslation::jsonSchemaToUrl, entity.jsonSchemaId()),
 				nullable2(urlTranslation::javaToUrl, entity.javaPkg(), entity.javaFile()),
-				true);
+				valid);
 	}
 
 	@Override
 	public Possible<Void> putEntity(final String entityId, final ApiEntity entity)
 	{
+		// We don't validate against kind here. It's ok to put invalid things.
 		return entityStore.putEntity(entityId, fromApiEntity(entity));
 	}
 
@@ -323,4 +325,29 @@ final class ManagementBackendImpl implements ManagementBackend
 		return kindStore.putKind(kindId, kind);
 	}
 
+	private boolean validateEntityAgainstKind(final Entity entity)
+	{
+		if (entity.kindId() == null)
+		{
+			// If kind is missing then anything is valid.
+			return true;
+		}
+		final Kind kind = getKind(entity.kindId()).get();
+		if (kind.java() != null)
+		{
+			if (kind.java().required() && (entity.javaPkg() == null || entity.javaFile() == null))
+			{
+				// Java is required but not present in entity.
+				return false;
+			}
+			if (!javaStore.validateKind(entity.javaPkg(), entity.javaFile(), kind.java()))
+			{
+				// Java store says the details are invalid.
+				return false;
+			}
+		}
+
+		// Otherwise assume ok.
+		return true;
+	}
 }
