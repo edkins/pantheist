@@ -1,12 +1,8 @@
 package restless.api.management.backend;
 
-import restless.api.management.model.ApiComponent;
-import restless.api.management.model.ApiEntity;
 import restless.api.management.model.CreateConfigRequest;
-import restless.api.management.model.ListComponentResponse;
 import restless.api.management.model.ListConfigResponse;
 import restless.common.util.Possible;
-import restless.handler.kind.model.Kind;
 
 public interface ManagementBackend
 {
@@ -31,16 +27,4 @@ public interface ManagementBackend
 	Possible<String> getJavaFile(String pkg, String file);
 
 	Possible<Void> deleteConfig(String serverId, String locationId);
-
-	Possible<Void> putEntity(String entityId, ApiEntity entity);
-
-	Possible<ApiEntity> getEntity(String entityId);
-
-	Possible<ApiComponent> getComponent(String entityId, String componentId);
-
-	Possible<ListComponentResponse> listComponents(String entityId);
-
-	Possible<Kind> getKind(String kindId);
-
-	Possible<Void> putKind(String kindId, Kind kind);
 }

@@ -1,10 +1,12 @@
-package restless.api.management.backend;
+package restless.handler.uri;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableMap;
 
+import restless.api.management.backend.UriPattern;
+import restless.api.management.backend.UriPatternImpl;
 import restless.system.config.RestlessConfig;
 
 final class UrlTranslationImpl implements UrlTranslation
@@ -12,6 +14,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	private final UriPattern kind;
 	private final UriPattern jsonSchema;
 	private final UriPattern java;
+	private final UriPattern location;
 
 	@Inject
 	private UrlTranslationImpl(final RestlessConfig config)
@@ -23,6 +26,7 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.kind = root.segment("kind").var("kindId");
 		this.jsonSchema = root.segment("json-schema").var("schemaId");
 		this.java = root.segment("java-pkg").var("pkg").segment("file").var("file");
+		this.location = root.segment("server").var("serverId").segment("location").var("locationId");
 	}
 
 	@Override
@@ -65,6 +69,12 @@ final class UrlTranslationImpl implements UrlTranslation
 	public String kindFromUrl(final String url)
 	{
 		return kind.getVar("kindId", url);
+	}
+
+	@Override
+	public String locationToUrl(final String serverId, final String locationId)
+	{
+		return location.generate(ImmutableMap.of("serverId", serverId, "locationId", locationId), false);
 	}
 
 }

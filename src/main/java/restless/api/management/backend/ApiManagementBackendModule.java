@@ -11,7 +11,6 @@ public class ApiManagementBackendModule extends PrivateModule
 	{
 		expose(ManagementBackend.class);
 		bind(ManagementBackend.class).to(ManagementBackendImpl.class).in(Scopes.SINGLETON);
-		bind(UrlTranslation.class).to(UrlTranslationImpl.class).in(Scopes.SINGLETON);
 	}
 
 }

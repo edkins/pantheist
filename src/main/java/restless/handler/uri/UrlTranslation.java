@@ -1,6 +1,6 @@
-package restless.api.management.backend;
+package restless.handler.uri;
 
-interface UrlTranslation
+public interface UrlTranslation
 {
 	String kindToUrl(String kindId);
 
@@ -15,4 +15,6 @@ interface UrlTranslation
 	String javaPkgFromUrl(String url);
 
 	String javaFileFromUrl(String url);
+
+	String locationToUrl(String serverId, String locationId);
 }

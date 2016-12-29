@@ -4,8 +4,8 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import restless.api.management.model.ApiComponent;
-import restless.api.management.model.ApiEntity;
+import restless.api.kind.model.ApiComponent;
+import restless.api.kind.model.ApiEntity;
 
 public interface ManagementPathEntity
 {

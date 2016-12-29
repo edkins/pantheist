@@ -7,15 +7,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import restless.api.management.model.ApiComponent;
-import restless.api.management.model.ApiEntity;
-import restless.api.management.model.ListComponentItem;
-import restless.api.management.model.ListComponentResponse;
+import restless.api.kind.model.ApiComponent;
+import restless.api.kind.model.ApiEntity;
+import restless.api.kind.model.ListComponentItem;
+import restless.api.kind.model.ListComponentResponse;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
 import restless.client.api.ManagementData;
 import restless.client.api.ManagementDataSchema;
 import restless.client.api.ManagementPathEntity;
+import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ManagementPathJavaPackage;
 import restless.client.api.ManagementPathKind;
 import restless.client.api.ManagementPathLocation;
@@ -30,7 +31,8 @@ final class ManagementPathImpl implements
 		ManagementPathRoot,
 		ManagementPathJavaPackage,
 		ManagementPathEntity,
-		ManagementPathKind
+		ManagementPathKind,
+		ManagementPathJavaFile
 {
 	// Path segments
 	private static final String JAVA_PKG = "java-pkg";
@@ -41,6 +43,7 @@ final class ManagementPathImpl implements
 	private static final String JSON_SCHEMA = "json-schema";
 	private static final String ENTITY = "entity";
 	private static final String COMPONENT = "component";
+	private static final String KIND = "kind";
 
 	// Content types
 	private static final String APPLICATION_JSON = "application/json";
@@ -111,9 +114,9 @@ final class ManagementPathImpl implements
 	}
 
 	@Override
-	public ManagementData file(final String file)
+	public ManagementPathJavaFile file(final String file)
 	{
-		return new ManagementDataImpl(target.withSegment(FILE).withSegment(file));
+		return new ManagementPathImpl(target.withSegment(FILE).withSegment(file));
 	}
 
 	@Override
@@ -182,7 +185,7 @@ final class ManagementPathImpl implements
 	@Override
 	public ManagementPathKind kind(final String kindId)
 	{
-		return new ManagementPathImpl(target.withSegment("kind").withSegment(kindId));
+		return new ManagementPathImpl(target.withSegment(KIND).withSegment(kindId));
 	}
 
 	@Override
@@ -195,5 +198,11 @@ final class ManagementPathImpl implements
 	public Kind getKind()
 	{
 		return target.getJson(Kind.class);
+	}
+
+	@Override
+	public ManagementData data()
+	{
+		return new ManagementDataImpl(target.withSegment(DATA));
 	}
 }

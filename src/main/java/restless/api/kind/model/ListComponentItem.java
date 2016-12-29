@@ -1,4 +1,4 @@
-package restless.api.management.model;
+package restless.api.kind.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

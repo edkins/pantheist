@@ -10,17 +10,17 @@ import java.util.List;
 
 import org.junit.Test;
 
-import restless.api.management.model.ApiComponent;
-import restless.api.management.model.ApiEntity;
-import restless.client.api.ManagementData;
+import restless.api.kind.model.ApiComponent;
+import restless.api.kind.model.ApiEntity;
 import restless.client.api.ManagementDataSchema;
+import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ResponseType;
 
 public class EntityTest extends BaseTest
 {
 	private static final String ROOT = ".";
 	private ManagementDataSchema schema;
-	private ManagementData java;
+	private ManagementPathJavaFile java;
 
 	private void entitySetup()
 	{
@@ -28,7 +28,7 @@ public class EntityTest extends BaseTest
 		schema.putResource("/json-schema/nonempty_nonnegative_int_list", "application/schema+json");
 
 		java = manage.javaPackage("restless.examples").file("NonEmptyNonNegativeIntList");
-		java.putResource("/java-example/NonEmptyNonNegativeIntList", "text/plain");
+		java.data().putResource("/java-example/NonEmptyNonNegativeIntList", "text/plain");
 	}
 
 	private void schemaSetup()

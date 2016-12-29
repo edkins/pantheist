@@ -14,6 +14,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 
 import com.google.common.base.Throwables;
 
+import restless.api.kind.resource.KindResource;
 import restless.api.management.resource.ManagementResource;
 import restless.common.util.MutableOpt;
 import restless.common.util.View;
@@ -24,16 +25,20 @@ final class RestlessServerImpl implements RestlessServer
 	private static final Logger LOGGER = LogManager.getLogger(RestlessServerImpl.class);
 	private final RestlessConfig config;
 	private final ManagementResource managementResource;
+	private final KindResource kindResource;
 
 	// State
 	MutableOpt<Server> serverOpt;
 
 	@Inject
-	RestlessServerImpl(final RestlessConfig config,
-			final ManagementResource managementResource)
+	RestlessServerImpl(
+			final RestlessConfig config,
+			final ManagementResource managementResource,
+			final KindResource kindResource)
 	{
 		this.config = checkNotNull(config);
 		this.managementResource = checkNotNull(managementResource);
+		this.kindResource = checkNotNull(kindResource);
 		this.serverOpt = View.mutableOpt();
 	}
 
@@ -52,7 +57,9 @@ final class RestlessServerImpl implements RestlessServer
 			server.setHandler(context);
 
 			final ResourceConfig resourceConfig = new ResourceConfig();
-			resourceConfig.register(managementResource);
+			resourceConfig
+					.register(managementResource)
+					.register(kindResource);
 
 			context.addServlet(new ServletHolder(new ServletContainer(resourceConfig)), "/*");
 

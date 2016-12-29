@@ -19,46 +19,33 @@ import javax.ws.rs.core.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.api.management.backend.ManagementBackend;
-import restless.api.management.model.ApiComponent;
-import restless.api.management.model.ApiEntity;
 import restless.api.management.model.CreateConfigRequest;
-import restless.api.management.model.ListComponentResponse;
 import restless.api.management.model.ListConfigResponse;
+import restless.common.http.Resp;
 import restless.common.util.Escapers;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
-import restless.handler.kind.model.Kind;
 
-/**
- * Path segments may be:
- *
- *   +literal    refers to an exact path segment
- *   *           matches any single path segment
- *   **          matches zero or more path segments
- *   config      management function
- *   data        management function
- *   schema      management function
- *   jersey-file management function
- */
 @Path("/")
 public final class ManagementResourceImpl implements ManagementResource
 {
 	private static final Logger LOGGER = LogManager.getLogger(ManagementResourceImpl.class);
 	private final ManagementBackend backend;
 	private final ObjectMapper objectMapper;
+	private final Resp resp;
 
 	@Inject
 	ManagementResourceImpl(final ManagementBackend backend,
-			final ObjectMapper objectMapper)
+			final ObjectMapper objectMapper,
+			final Resp resp)
 	{
 		this.backend = checkNotNull(backend);
 		this.objectMapper = checkNotNull(objectMapper);
+		this.resp = checkNotNull(resp);
 	}
 
 	/**
@@ -91,12 +78,12 @@ public final class ManagementResourceImpl implements ManagementResource
 			}
 			else
 			{
-				return failureResponse(data.failure());
+				return resp.failure(data.failure());
 			}
 		}
 		catch (final RuntimeException | JsonProcessingException e)
 		{
-			return unexpectedErrorResponse(e);
+			return resp.unexpectedError(e);
 		}
 	}
 
@@ -118,15 +105,15 @@ public final class ManagementResourceImpl implements ManagementResource
 
 			final Possible<Void> result = backend.putConfig(serverId, locationId, request);
 
-			return possibleEmptyResponse(result);
+			return resp.possibleEmpty(result);
 		}
 		catch (final JsonProcessingException e)
 		{
-			return jsonValidationResponse(e);
+			return resp.jsonValidation(e);
 		}
 		catch (final RuntimeException | IOException e)
 		{
-			return unexpectedErrorResponse(e);
+			return resp.unexpectedError(e);
 		}
 	}
 
@@ -149,12 +136,12 @@ public final class ManagementResourceImpl implements ManagementResource
 			}
 			else
 			{
-				return failureResponse(FailureReason.DOES_NOT_EXIST);
+				return resp.failure(FailureReason.DOES_NOT_EXIST);
 			}
 		}
 		catch (final RuntimeException e)
 		{
-			return unexpectedErrorResponse(e);
+			return resp.unexpectedError(e);
 		}
 	}
 
@@ -172,11 +159,11 @@ public final class ManagementResourceImpl implements ManagementResource
 		{
 			final Possible<Void> result = backend.deleteConfig(serverId, locationId);
 
-			return possibleEmptyResponse(result);
+			return resp.possibleEmpty(result);
 		}
 		catch (final RuntimeException e)
 		{
-			return unexpectedErrorResponse(e);
+			return resp.unexpectedError(e);
 		}
 	}
 
@@ -194,11 +181,11 @@ public final class ManagementResourceImpl implements ManagementResource
 		{
 			final Possible<Void> result = backend.putData(path, data);
 
-			return possibleEmptyResponse(result);
+			return resp.possibleEmpty(result);
 		}
 		catch (final RuntimeException ex)
 		{
-			return unexpectedErrorResponse(ex);
+			return resp.unexpectedError(ex);
 		}
 	}
 
@@ -216,11 +203,11 @@ public final class ManagementResourceImpl implements ManagementResource
 		{
 			final Possible<String> data = backend.getData(path);
 
-			return possibleDataResponse(data);
+			return resp.possibleData(data);
 		}
 		catch (final RuntimeException ex)
 		{
-			return unexpectedErrorResponse(ex);
+			return resp.unexpectedError(ex);
 		}
 	}
 
@@ -239,11 +226,11 @@ public final class ManagementResourceImpl implements ManagementResource
 		{
 			final Possible<Void> result = backend.putJsonSchema(schemaId, data);
 
-			return possibleEmptyResponse(result);
+			return resp.possibleEmpty(result);
 		}
 		catch (final RuntimeException ex)
 		{
-			return unexpectedErrorResponse(ex);
+			return resp.unexpectedError(ex);
 		}
 	}
 
@@ -260,11 +247,11 @@ public final class ManagementResourceImpl implements ManagementResource
 		try
 		{
 			final Possible<String> data = backend.getJsonSchema(schemaId);
-			return possibleDataResponse(data);
+			return resp.possibleData(data);
 		}
 		catch (final RuntimeException ex)
 		{
-			return unexpectedErrorResponse(ex);
+			return resp.unexpectedError(ex);
 		}
 	}
 
@@ -282,11 +269,11 @@ public final class ManagementResourceImpl implements ManagementResource
 		try
 		{
 			final Possible<Void> result = backend.validateAgainstJsonSchema(schemaId, data);
-			return possibleEmptyResponse(result);
+			return resp.possibleEmpty(result);
 		}
 		catch (final RuntimeException ex)
 		{
-			return unexpectedErrorResponse(ex);
+			return resp.unexpectedError(ex);
 		}
 	}
 
@@ -294,22 +281,22 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles the java management function (PUT)
 	 */
 	@PUT
-	@Path("java-pkg/{pkg}/file/{file}")
+	@Path("java-pkg/{pkg}/file/{file}/data")
 	@Consumes("text/plain")
 	public Response putJerseyFile(
 			@PathParam("pkg") final String pkg,
 			@PathParam("file") final String file,
 			final String data)
 	{
-		LOGGER.info("PUT java-pkg/{}/file/{}", pkg, file);
+		LOGGER.info("PUT java-pkg/{}/file/{}/data", pkg, file);
 		try
 		{
 			final Possible<Void> result = backend.putJavaFile(pkg, file, data);
-			return possibleEmptyResponse(result);
+			return resp.possibleEmpty(result);
 		}
 		catch (final RuntimeException ex)
 		{
-			return unexpectedErrorResponse(ex);
+			return resp.unexpectedError(ex);
 		}
 	}
 
@@ -317,218 +304,21 @@ public final class ManagementResourceImpl implements ManagementResource
 	 * Handles the java management function (GET)
 	 */
 	@GET
-	@Path("java-pkg/{pkg}/file/{file}")
+	@Path("java-pkg/{pkg}/file/{file}/data")
 	@Produces("text/plain")
 	public Response getJerseyFile(
 			@PathParam("pkg") final String pkg,
 			@PathParam("file") final String file)
 	{
-		LOGGER.info("GET java-pkg/{}/file/{}", pkg, file);
+		LOGGER.info("GET java-pkg/{}/file/{}/data", pkg, file);
 		try
 		{
 			final Possible<String> result = backend.getJavaFile(pkg, file);
-			return possibleDataResponse(result);
+			return resp.possibleData(result);
 		}
 		catch (final RuntimeException ex)
 		{
-			return unexpectedErrorResponse(ex);
+			return resp.unexpectedError(ex);
 		}
-	}
-
-	/**
-	 * Handles entities (PUT)
-	 */
-	@PUT
-	@Path("entity/{entityId}")
-	@Consumes("application/json")
-	public Response putEntity(
-			@PathParam("entityId") final String entityId, final String request)
-	{
-		LOGGER.info("PUT entity/{} {}", entityId, request);
-		try
-		{
-			final ApiEntity entity = objectMapper.readValue(request, ApiEntity.class);
-			final Possible<Void> result = backend.putEntity(entityId, entity);
-			return possibleEmptyResponse(result);
-		}
-		catch (JsonParseException | JsonMappingException e)
-		{
-			return jsonValidationResponse(e);
-		}
-		catch (final RuntimeException | IOException ex)
-		{
-			return unexpectedErrorResponse(ex);
-		}
-	}
-
-	/**
-	 * Handles entities (GET)
-	 */
-	@GET
-	@Path("entity/{entityId}")
-	@Produces("application/json")
-	public Response getEntity(
-			@PathParam("entityId") final String entityId)
-	{
-		LOGGER.info("GET entity/{}", entityId);
-		try
-		{
-			final Possible<ApiEntity> result = backend.getEntity(entityId);
-			return possibleToJsonResponse(result);
-		}
-		catch (final RuntimeException ex)
-		{
-			return unexpectedErrorResponse(ex);
-		}
-	}
-
-	/**
-	 * Handles entity components (GET)
-	 */
-	@GET
-	@Path("entity/{entityId}/component/{componentId}")
-	@Produces("application/json")
-	public Response getComponent(
-			@PathParam("entityId") final String entityId,
-			@PathParam("componentId") final String componentId)
-	{
-		LOGGER.info("GET entity/{}/component/{}", entityId, componentId);
-		try
-		{
-			final Possible<ApiComponent> result = backend.getComponent(entityId, componentId);
-			return possibleToJsonResponse(result);
-		}
-		catch (final RuntimeException ex)
-		{
-			return unexpectedErrorResponse(ex);
-		}
-	}
-
-	/**
-	 * Handles listing entity components (GET)
-	 */
-	@GET
-	@Path("entity/{entityId}/component")
-	@Produces("application/json")
-	public Response listComponents(
-			@PathParam("entityId") final String entityId)
-	{
-		LOGGER.info("GET entity/{}/component", entityId);
-		try
-		{
-			final Possible<ListComponentResponse> result = backend.listComponents(entityId);
-			return possibleToJsonResponse(result);
-		}
-		catch (final RuntimeException ex)
-		{
-			return unexpectedErrorResponse(ex);
-		}
-	}
-
-	/**
-	 * Handles kinds (PUT)
-	 */
-	@PUT
-	@Path("kind/{kindId}")
-	@Consumes("application/json")
-	public Response putKind(
-			@PathParam("kindId") final String kindId,
-			final String data)
-	{
-		LOGGER.info("PUT kind/{}", kindId);
-		try
-		{
-			final Kind kind = objectMapper.readValue(data, Kind.class);
-			final Possible<Void> result = backend.putKind(kindId, kind);
-			return possibleEmptyResponse(result);
-		}
-		catch (JsonParseException | JsonMappingException e)
-		{
-			return jsonValidationResponse(e);
-		}
-		catch (final RuntimeException | IOException ex)
-		{
-			return unexpectedErrorResponse(ex);
-		}
-	}
-
-	/**
-	 * Handles kinds (GET)
-	 */
-	@GET
-	@Path("kind/{kindId}")
-	@Produces("application/json")
-	public Response getKind(
-			@PathParam("kindId") final String kindId)
-	{
-		LOGGER.info("GET kind/{}", kindId);
-		try
-		{
-			final Possible<Kind> result = backend.getKind(kindId);
-			return possibleToJsonResponse(result);
-		}
-		catch (final RuntimeException ex)
-		{
-			return unexpectedErrorResponse(ex);
-		}
-	}
-
-	private <T> Response possibleToJsonResponse(final Possible<T> result)
-	{
-		if (!result.isPresent())
-		{
-			return failureResponse(result.failure());
-		}
-		try
-		{
-			final String text = objectMapper.writeValueAsString(result.get());
-			return Response.ok(text).build();
-		}
-		catch (final JsonProcessingException e)
-		{
-			return unexpectedErrorResponse(e);
-		}
-	}
-
-	private Response jsonValidationResponse(final IOException e)
-	{
-		LOGGER.catching(e);
-		return Response.status(400).entity("Bad json").build();
-	}
-
-	private Response unexpectedErrorResponse(final Exception ex)
-	{
-		LOGGER.catching(ex);
-		return Response.serverError().entity("Unexpected error").build();
-	}
-
-	private Response possibleDataResponse(final Possible<String> data)
-	{
-		if (data.isPresent())
-		{
-			return Response.ok(data.get()).build();
-		}
-		else
-		{
-			return failureResponse(data.failure());
-		}
-	}
-
-	private Response possibleEmptyResponse(final Possible<Void> data)
-	{
-		if (data.isPresent())
-		{
-			return Response.noContent().build();
-		}
-		else
-		{
-			return failureResponse(data.failure());
-		}
-	}
-
-	private Response failureResponse(final FailureReason fail)
-	{
-		LOGGER.info("Returning status " + fail.httpStatus() + " " + fail.toString());
-		return Response.status(fail.httpStatus()).entity(fail.toString()).build();
 	}
 }

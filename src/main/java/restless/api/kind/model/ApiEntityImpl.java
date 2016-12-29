@@ -1,4 +1,4 @@
-package restless.api.management.model;
+package restless.api.kind.model;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
