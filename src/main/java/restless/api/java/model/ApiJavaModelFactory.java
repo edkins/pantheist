@@ -6,6 +6,7 @@ import com.google.inject.assistedinject.Assisted;
 
 import restless.common.api.model.CreateAction;
 import restless.common.api.model.DataAction;
+import restless.common.api.model.DeleteAction;
 
 public interface ApiJavaModelFactory
 {
@@ -19,5 +20,5 @@ public interface ApiJavaModelFactory
 
 	ListFileResponse listFileResponse(List<ListFileItem> childResources);
 
-	ApiJavaFile javaFile(DataAction dataAction);
+	ApiJavaFile javaFile(DataAction dataAction, DeleteAction deleteAction);
 }

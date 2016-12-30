@@ -19,4 +19,6 @@ public interface JavaBackend
 	Possible<ListFileResponse> listFilesInPackage(String pkg);
 
 	Possible<ApiJavaFile> describeJavaFile(String pkg, String file);
+
+	Possible<Void> deleteJavaFile(String pkg, String file);
 }

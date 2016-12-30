@@ -290,4 +290,10 @@ final class ManagementPathImpl implements
 	{
 		return target.getResponseType(APPLICATION_JSON);
 	}
+
+	@Override
+	public ResponseType deleteResponseType()
+	{
+		return target.deleteResponseType();
+	}
 }

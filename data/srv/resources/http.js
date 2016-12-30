@@ -205,3 +205,30 @@ http.post = function(url,contentType,data)
 		}
 	);
 };
+
+http.del = function(url)
+{
+	return new Promise(
+		function(resolve,reject)
+		{
+			var xmlhttp = new XMLHttpRequest();
+			xmlhttp.open('DELETE', url, true);
+			xmlhttp.onload = function()
+				{
+					if (xmlhttp.status == 204)
+					{
+						resolve(undefined);
+					}
+					else
+					{
+						reject(xmlhttp.status + ' ' + xmlhttp.statusText + ':' + xmlhttp.responseText.substring(0,30));
+					}
+				};
+			xmlhttp.onerror = function()
+				{
+					reject(xmlhttp.status + ' ' + xmlhttp.statusText);
+				};
+			xmlhttp.send();
+		}
+	);
+};

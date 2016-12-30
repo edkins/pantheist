@@ -4,6 +4,7 @@ import java.util.List;
 
 import restless.common.api.model.CreateAction;
 import restless.common.api.model.DataAction;
+import restless.common.api.model.DeleteAction;
 import restless.common.api.model.ListClassifierItem;
 import restless.handler.java.model.JavaFileId;
 
@@ -40,4 +41,6 @@ public interface UrlTranslation
 	CreateAction javaPkgCreateAction();
 
 	DataAction javaFileDataAction(JavaFileId javaFileId);
+
+	DeleteAction javaFileDeleteAction(JavaFileId javaFileId);
 }

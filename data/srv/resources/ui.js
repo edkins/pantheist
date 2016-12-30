@@ -327,6 +327,15 @@ function showAvailableActionsAsTabs(t)
 	{
 		document.getElementById('btn-data').classList.add('hidden');
 	}
+
+	if (t.data !== undefined && t.data.deleteAction != undefined)
+	{
+		document.getElementById('btn-delete').classList.remove('hidden');
+	}
+	else
+	{
+		document.getElementById('btn-delete').classList.add('hidden');
+	}
 }
 
 function flashMsg(msg)
@@ -382,7 +391,7 @@ function clickShutdown(event)
 {
 	var t = new Transaction();
 	http.post(http.home + '/system/terminate', undefined, undefined).then( () => {
-		flashMsg('Shutdown');
+		flashMsg('Terminated');
 	});
 }
 
@@ -473,6 +482,17 @@ function clickSend(event)
 	} );
 }
 
+function clickDelete(event)
+{
+	Transaction.fetch().then( t => {
+		http.del(t.url).then( () => {
+			flashMsg('Deleted');
+		}).catch( error => {
+			flashMsg(error);
+		});
+	});
+}
+
 function changeAddressBar(event)
 {
 	if (ui.tab === 'btn-info')
@@ -493,6 +513,7 @@ window.onload = function()
 	document.getElementById('btn-data').onclick = clickData;
 	document.getElementById('btn-create').onclick = clickCreate;
 	document.getElementById('btn-send').onclick = clickSend;
+	document.getElementById('btn-delete').onclick = clickDelete;
 
 	document.getElementById('address-bar').value = http.home;
 

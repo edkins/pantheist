@@ -45,4 +45,11 @@ public interface JavaStore
 	boolean packageExists(String pkg);
 
 	AntiIterator<JavaFileId> filesInPackage(String pkg);
+
+	/**
+	 * Delete a file.
+	 *
+	 * @return whether the file previously existed.
+	 */
+	boolean deleteFile(JavaFileId fileId);
 }

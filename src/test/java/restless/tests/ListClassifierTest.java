@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -162,6 +163,16 @@ public class ListClassifierTest extends BaseTest
 		assertThat(dataAction.basicType(), is(BasicContentType.java));
 		assertThat(dataAction.mimeType(), is("text/plain"));
 		assertTrue("Should say we can put", dataAction.canPut());
+	}
+
+	@Test
+	public void javaFile_deleteAction() throws Exception
+	{
+		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
+		final ManagementPathJavaFile file = pkg.file(JAVA_EMPTY_CLASS_NAME);
+		file.data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+
+		assertThat(file.describeJavaFile().deleteAction(), notNullValue());
 	}
 
 	@Test

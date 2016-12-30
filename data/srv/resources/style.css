@@ -108,17 +108,21 @@ ul {
 	background: #0a0;
 	color: white;
 }
-.tab-bar .action.hidden {
-	visibility: hidden;
+.tab-bar .scary-action {
+    border: solid black 1px;
+    margin-right: 4pt;
+    padding: 4pt 10pt;
+	cursor: default;
+	background: #c60;
+	color: white;
 }
-.tab-bar .tab.hidden {
-	visibility: hidden;
-}
-
 .tab-bar .gap {
 	padding: 0pt 40pt;
 }
 
+.hidden {
+	visibility: hidden;
+}
 .disappearing.hidden {
 	display: none;
 }

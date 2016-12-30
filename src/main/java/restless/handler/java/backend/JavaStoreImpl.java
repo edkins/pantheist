@@ -327,4 +327,20 @@ final class JavaStoreImpl implements JavaStore
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
 		return snapshot.isFile(idToPath(fileId));
 	}
+
+	@Override
+	public boolean deleteFile(final JavaFileId fileId)
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final FsPath path = idToPath(fileId);
+		if (snapshot.isFile(path))
+		{
+			snapshot.writeSingle(path, file -> file.delete());
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 }

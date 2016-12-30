@@ -18,6 +18,7 @@ import restless.common.api.model.BasicContentType;
 import restless.common.api.model.CommonApiModelFactory;
 import restless.common.api.model.CreateAction;
 import restless.common.api.model.DataAction;
+import restless.common.api.model.DeleteAction;
 import restless.common.api.model.ListClassifierItem;
 import restless.common.util.AntiIt;
 import restless.handler.java.model.JavaFileId;
@@ -178,6 +179,12 @@ final class UrlTranslationImpl implements UrlTranslation
 	public DataAction javaFileDataAction(final JavaFileId javaFileId)
 	{
 		return modelFactory.dataAction(BasicContentType.java, TEXT_PLAIN, true);
+	}
+
+	@Override
+	public DeleteAction javaFileDeleteAction(final JavaFileId javaFileId)
+	{
+		return modelFactory.deleteAction();
 	}
 
 }

@@ -11,4 +11,8 @@ public interface ManagementPathJavaFile
 	ApiJavaFile describeJavaFile();
 
 	ResponseType getJavaFileResponseType();
+
+	void delete();
+
+	ResponseType deleteResponseType();
 }

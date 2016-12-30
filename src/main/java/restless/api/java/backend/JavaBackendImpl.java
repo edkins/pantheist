@@ -119,7 +119,23 @@ final class JavaBackendImpl implements JavaBackend
 		final JavaFileId id = javaFactory.fileId(pkg, file);
 		if (javaStore.fileExists(id))
 		{
-			return View.ok(modelFactory.javaFile(urlTranslation.javaFileDataAction(id)));
+			return View.ok(modelFactory.javaFile(
+					urlTranslation.javaFileDataAction(id),
+					urlTranslation.javaFileDeleteAction(id)));
+		}
+		else
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
+	}
+
+	@Override
+	public Possible<Void> deleteJavaFile(final String pkg, final String file)
+	{
+		final JavaFileId id = javaFactory.fileId(pkg, file);
+		if (javaStore.deleteFile(id))
+		{
+			return View.noContent();
 		}
 		else
 		{

@@ -26,4 +26,6 @@ public interface CommonApiModelFactory
 
 	ListClassifierResponse listClassifierResponse(
 			List<ListClassifierItem> childResources);
+
+	DeleteAction deleteAction();
 }

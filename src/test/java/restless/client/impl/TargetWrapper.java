@@ -295,4 +295,10 @@ public final class TargetWrapper
 		final Response response = target.request().post(Entity.entity(data, contentType));
 		return responseType(response);
 	}
+
+	public ResponseType deleteResponseType()
+	{
+		final Response response = target.request().delete();
+		return responseType(response);
+	}
 }

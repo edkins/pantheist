@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -148,7 +149,7 @@ public final class JavaResource implements ResourceTag
 	@GET
 	@Path("java-pkg/{pkg}/file/{file}")
 	@Produces("application/json")
-	public Response getJerseyFile(
+	public Response describeJavaFile(
 			@PathParam("pkg") final String pkg,
 			@PathParam("file") final String file)
 	{
@@ -157,6 +158,27 @@ public final class JavaResource implements ResourceTag
 		{
 			final Possible<ApiJavaFile> result = backend.describeJavaFile(pkg, file);
 			return resp.possibleToJson(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles deleting java files (DELETE)
+	 */
+	@DELETE
+	@Path("java-pkg/{pkg}/file/{file}")
+	public Response deleteJavaFile(
+			@PathParam("pkg") final String pkg,
+			@PathParam("file") final String file)
+	{
+		LOGGER.info("DELETE java-pkg/{pkg}/file/{file}", pkg, file);
+		try
+		{
+			final Possible<Void> result = backend.deleteJavaFile(pkg, file);
+			return resp.possibleEmpty(result);
 		}
 		catch (final RuntimeException ex)
 		{

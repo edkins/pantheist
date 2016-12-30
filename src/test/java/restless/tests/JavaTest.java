@@ -36,6 +36,20 @@ public class JavaTest extends BaseTest
 	}
 
 	@Test
+	public void java_canPutTwice() throws Exception
+	{
+		manage.javaPackage(JAVA_PKG)
+				.file("ExampleJerseyResource")
+				.data()
+				.putResource("/jersey-resource/resource", "text/plain");
+
+		manage.javaPackage(JAVA_PKG)
+				.file(JAVA_EMPTY_CLASS_NAME)
+				.data()
+				.putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+	}
+
+	@Test
 	public void invalidJava_cannotStore() throws Exception
 	{
 		final ResponseType responseType = manage.javaPackage(JAVA_PKG)
@@ -56,5 +70,28 @@ public class JavaTest extends BaseTest
 
 		assertThat(list.size(), is(1));
 		assertThat(list.get(0).url(), is(file.url()));
+	}
+
+	@Test
+	public void java_canDelete() throws Exception
+	{
+		final ManagementPathJavaFile file = manage.javaPackage(JAVA_PKG)
+				.file(JAVA_EMPTY_CLASS_NAME);
+		file.data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+
+		assertThat(file.getJavaFileResponseType(), is(ResponseType.OK));
+
+		file.delete();
+
+		assertThat(file.getJavaFileResponseType(), is(ResponseType.NOT_FOUND));
+	}
+
+	@Test
+	public void java_notThere_deleteReturnsNotFound() throws Exception
+	{
+		final ManagementPathJavaFile file = manage.javaPackage(JAVA_PKG)
+				.file(JAVA_EMPTY_CLASS_NAME);
+
+		assertThat(file.deleteResponseType(), is(ResponseType.NOT_FOUND));
 	}
 }
