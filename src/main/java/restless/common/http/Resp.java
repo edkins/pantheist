@@ -1,7 +1,5 @@
 package restless.common.http;
 
-import java.io.IOException;
-
 import javax.ws.rs.core.Response;
 
 import restless.common.util.FailureReason;
@@ -13,8 +11,6 @@ public interface Resp
 
 	<T> Response toJson(T result);
 
-	Response jsonValidation(IOException e);
-
 	Response unexpectedError(Exception ex);
 
 	Response possibleData(Possible<String> data);
@@ -22,4 +18,6 @@ public interface Resp
 	Response possibleEmpty(Possible<Void> data);
 
 	Response failure(FailureReason fail);
+
+	<T> Possible<T> request(String requestJson, Class<T> clazz);
 }

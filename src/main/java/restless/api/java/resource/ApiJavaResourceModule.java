@@ -1,16 +1,18 @@
 package restless.api.java.resource;
 
-import com.google.inject.PrivateModule;
-import com.google.inject.Scopes;
+import com.google.inject.AbstractModule;
+import com.google.inject.multibindings.Multibinder;
 
-public class ApiJavaResourceModule extends PrivateModule
+import restless.common.annotations.ResourceTag;
+
+public class ApiJavaResourceModule extends AbstractModule
 {
 
 	@Override
 	protected void configure()
 	{
-		expose(JavaResource.class);
-		bind(JavaResource.class).to(JavaResourceImpl.class).in(Scopes.SINGLETON);
+		final Multibinder<ResourceTag> multi = Multibinder.newSetBinder(binder(), ResourceTag.class);
+		multi.addBinding().to(JavaResource.class);
 	}
 
 }

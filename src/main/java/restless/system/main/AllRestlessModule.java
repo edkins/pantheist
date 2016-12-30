@@ -1,7 +1,9 @@
 package restless.system.main;
 
-import com.google.inject.PrivateModule;
+import com.google.inject.AbstractModule;
 
+import restless.api.entity.backend.ApiEntityBackendModule;
+import restless.api.entity.resource.ApiEntityResourceModule;
 import restless.api.java.backend.ApiJavaBackendModule;
 import restless.api.java.resource.ApiJavaResourceModule;
 import restless.api.kind.backend.ApiKindBackendModule;
@@ -26,18 +28,18 @@ import restless.handler.schema.backend.HandlerSchemaBackendModule;
 import restless.handler.schema.model.HandlerSchemaModelModule;
 import restless.handler.uri.HandlerUriModule;
 import restless.system.config.SystemConfigModule;
-import restless.system.initializer.Initializer;
 import restless.system.initializer.SystemInitializerModule;
 import restless.system.inject.SystemInjectModule;
 import restless.system.server.SystemServerModule;
 
-public class AllRestlessModule extends PrivateModule
+public class AllRestlessModule extends AbstractModule
 {
 
 	@Override
 	protected void configure()
 	{
-		expose(Initializer.class);
+		install(new ApiEntityBackendModule());
+		install(new ApiEntityResourceModule());
 		install(new ApiJavaBackendModule());
 		install(new ApiJavaResourceModule());
 		install(new ApiKindBackendModule());
@@ -66,5 +68,4 @@ public class AllRestlessModule extends PrivateModule
 		install(new SystemInjectModule());
 		install(new SystemServerModule());
 	}
-
 }

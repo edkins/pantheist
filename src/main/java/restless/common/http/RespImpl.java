@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
+import restless.common.util.View;
 
 public final class RespImpl implements Resp
 {
@@ -49,13 +50,6 @@ public final class RespImpl implements Resp
 		{
 			return unexpectedError(e);
 		}
-	}
-
-	@Override
-	public Response jsonValidation(final IOException e)
-	{
-		LOGGER.catching(e);
-		return Response.status(400).entity("Bad json").build();
 	}
 
 	@Override
@@ -96,5 +90,18 @@ public final class RespImpl implements Resp
 	{
 		LOGGER.info("Returning status " + fail.httpStatus() + " " + fail.toString());
 		return Response.status(fail.httpStatus()).entity(fail.toString()).build();
+	}
+
+	@Override
+	public <T> Possible<T> request(final String requestJson, final Class<T> clazz)
+	{
+		try
+		{
+			return View.ok(objectMapper.readValue(requestJson, clazz));
+		}
+		catch (final IOException e)
+		{
+			return FailureReason.REQUEST_HAS_INVALID_SYNTAX.happened();
+		}
 	}
 }

@@ -10,7 +10,9 @@ public class HandlerKindBackendModule extends PrivateModule
 	protected void configure()
 	{
 		expose(KindStore.class);
+		expose(KindValidation.class);
 		bind(KindStore.class).to(KindStoreImpl.class).in(Scopes.SINGLETON);
+		bind(KindValidation.class).to(KindValidationImpl.class).in(Scopes.SINGLETON);
 	}
 
 }

@@ -25,7 +25,6 @@ import restless.handler.entity.model.EntityModelFactory;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.kind.backend.KindStore;
 import restless.handler.nginx.manage.NginxService;
-import restless.handler.schema.backend.JsonSchemaStore;
 import restless.handler.uri.UrlTranslation;
 
 final class ManagementBackendImpl implements ManagementBackend
@@ -34,7 +33,6 @@ final class ManagementBackendImpl implements ManagementBackend
 	private final FilesystemStore filesystem;
 	private final ApiManagementModelFactory modelFactory;
 	private final NginxService nginxService;
-	private final JsonSchemaStore schemaStore;
 	private final UrlTranslation urlTranslation;
 
 	@Inject
@@ -42,7 +40,6 @@ final class ManagementBackendImpl implements ManagementBackend
 			final FilesystemStore filesystem,
 			final ApiManagementModelFactory modelFactory,
 			final NginxService nginxService,
-			final JsonSchemaStore schemaStore,
 			final EntityStore entityStore,
 			final UrlTranslation urlTranslation,
 			final EntityModelFactory entityFactory,
@@ -51,7 +48,6 @@ final class ManagementBackendImpl implements ManagementBackend
 		this.filesystem = checkNotNull(filesystem);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.nginxService = checkNotNull(nginxService);
-		this.schemaStore = checkNotNull(schemaStore);
 		this.urlTranslation = checkNotNull(urlTranslation);
 	}
 
