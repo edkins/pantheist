@@ -7,9 +7,10 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import restless.api.java.model.ApiJavaModelFactory;
+import restless.api.java.model.ListJavaPkgResponse;
 import restless.api.management.model.ApiManagementModelFactory;
 import restless.api.management.model.ListClassifierResponse;
-import restless.api.management.model.ListJavaPkgResponse;
 import restless.common.util.AntiIt;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
@@ -25,24 +26,27 @@ import restless.handler.uri.UrlTranslation;
 final class JavaBackendImpl implements JavaBackend
 {
 	private final JavaStore javaStore;
-	private final ApiManagementModelFactory modelFactory;
+	private final ApiJavaModelFactory modelFactory;
 	private final UrlTranslation urlTranslation;
 	private final JavaModelFactory javaFactory;
+	private final ApiManagementModelFactory managementFactory;
 
 	@Inject
 	JavaBackendImpl(
 			final JavaStore javaStore,
-			final ApiManagementModelFactory modelFactory,
+			final ApiJavaModelFactory modelFactory,
 			final EntityStore entityStore,
 			final UrlTranslation urlTranslation,
 			final EntityModelFactory entityFactory,
 			final KindStore kindStore,
-			final JavaModelFactory javaFactory)
+			final JavaModelFactory javaFactory,
+			final ApiManagementModelFactory managementFactory)
 	{
 		this.javaStore = checkNotNull(javaStore);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.urlTranslation = checkNotNull(urlTranslation);
 		this.javaFactory = checkNotNull(javaFactory);
+		this.managementFactory = checkNotNull(managementFactory);
 	}
 
 	@Override
@@ -76,7 +80,7 @@ final class JavaBackendImpl implements JavaBackend
 	{
 		if (javaStore.packageExists(pkg))
 		{
-			return View.ok(modelFactory.listClassifierResponse(urlTranslation.listJavaPkgClassifiers(pkg)));
+			return View.ok(managementFactory.listClassifierResponse(urlTranslation.listJavaPkgClassifiers(pkg)));
 		}
 		else
 		{

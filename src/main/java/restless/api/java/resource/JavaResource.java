@@ -15,8 +15,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import restless.api.java.backend.JavaBackend;
+import restless.api.java.model.ListJavaPkgResponse;
 import restless.api.management.model.ListClassifierResponse;
-import restless.api.management.model.ListJavaPkgResponse;
 import restless.common.annotations.ResourceTag;
 import restless.common.http.Resp;
 import restless.common.util.Possible;

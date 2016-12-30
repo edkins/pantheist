@@ -1,4 +1,4 @@
-package restless.api.management.model;
+package restless.api.schema.model;
 
 import javax.inject.Inject;
 
@@ -7,12 +7,12 @@ import com.google.inject.assistedinject.Assisted;
 
 import restless.common.util.OtherPreconditions;
 
-final class ListJavaPkgItemImpl implements ListJavaPkgItem
+final class ListSchemaItemImpl implements ListSchemaItem
 {
 	private final String url;
 
 	@Inject
-	private ListJavaPkgItemImpl(@Assisted("url") @JsonProperty("url") final String url)
+	private ListSchemaItemImpl(@Assisted("url") @JsonProperty("url") final String url)
 	{
 		this.url = OtherPreconditions.checkNotNullOrEmpty(url);
 	}

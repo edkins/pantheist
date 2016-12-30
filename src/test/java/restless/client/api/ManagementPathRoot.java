@@ -1,9 +1,10 @@
 package restless.client.api;
 
 import restless.api.entity.model.ListEntityResponse;
+import restless.api.java.model.ListJavaPkgResponse;
 import restless.api.kind.model.ListKindResponse;
 import restless.api.management.model.ListClassifierResponse;
-import restless.api.management.model.ListJavaPkgResponse;
+import restless.api.schema.model.ListSchemaResponse;
 
 public interface ManagementPathRoot
 {
@@ -59,4 +60,6 @@ public interface ManagementPathRoot
 	ListJavaPkgResponse listJavaPackages();
 
 	ListKindResponse listKinds();
+
+	ListSchemaResponse listJsonSchemas();
 }

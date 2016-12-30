@@ -1,13 +1,13 @@
-package restless.api.management.model;
+package restless.api.schema.model;
 
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonDeserialize(as = ListJavaPkgResponseImpl.class)
-public interface ListJavaPkgResponse
+@JsonDeserialize(as = ListSchemaResponseImpl.class)
+public interface ListSchemaResponse
 {
 	@JsonProperty("childResources")
-	List<ListJavaPkgItem> childResources();
+	List<ListSchemaItem> childResources();
 }

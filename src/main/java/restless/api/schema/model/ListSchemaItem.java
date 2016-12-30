@@ -1,10 +1,10 @@
-package restless.api.management.model;
+package restless.api.schema.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonDeserialize(as = ListJavaPkgItemImpl.class)
-public interface ListJavaPkgItem
+@JsonDeserialize(as = ListSchemaItemImpl.class)
+public interface ListSchemaItem
 {
 	@JsonProperty("url")
 	String url();

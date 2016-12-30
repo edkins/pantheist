@@ -3,6 +3,7 @@ package restless.handler.schema.backend;
 import java.util.List;
 import java.util.Optional;
 
+import restless.common.util.AntiIterator;
 import restless.common.util.Possible;
 import restless.handler.schema.model.SchemaComponent;
 
@@ -22,4 +23,6 @@ public interface JsonSchemaStore
 	Optional<SchemaComponent> getJsonSchemaComponent(String schemaId, String componentId);
 
 	List<SchemaComponent> listComponents(String schemaId);
+
+	AntiIterator<String> listJsonSchemaIds();
 }

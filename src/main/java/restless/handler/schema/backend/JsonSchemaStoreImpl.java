@@ -60,7 +60,12 @@ final class JsonSchemaStoreImpl implements JsonSchemaStore
 
 	private FsPath path(final String schemaId)
 	{
-		return filesystem.systemBucket().segment("json-schema").segment(schemaId);
+		return jsonSchemaRootPath().segment(schemaId);
+	}
+
+	private FsPath jsonSchemaRootPath()
+	{
+		return filesystem.systemBucket().segment("json-schema");
 	}
 
 	@Override
@@ -119,5 +124,14 @@ final class JsonSchemaStoreImpl implements JsonSchemaStore
 	public List<SchemaComponent> listComponents(final String schemaId)
 	{
 		return components(schemaId).toList();
+	}
+
+	@Override
+	public AntiIterator<String> listJsonSchemaIds()
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		return snapshot.listFilesAndDirectories(jsonSchemaRootPath())
+				.filter(snapshot::safeIsFile)
+				.map(FsPath::lastSegment);
 	}
 }

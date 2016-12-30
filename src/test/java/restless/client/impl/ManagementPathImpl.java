@@ -10,12 +10,13 @@ import restless.api.entity.model.ApiComponent;
 import restless.api.entity.model.ApiEntity;
 import restless.api.entity.model.ListComponentResponse;
 import restless.api.entity.model.ListEntityResponse;
+import restless.api.java.model.ListJavaPkgResponse;
 import restless.api.kind.model.ApiKind;
 import restless.api.kind.model.ListKindResponse;
 import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
-import restless.api.management.model.ListJavaPkgResponse;
+import restless.api.schema.model.ListSchemaResponse;
 import restless.client.api.ManagementData;
 import restless.client.api.ManagementDataSchema;
 import restless.client.api.ManagementPathEntity;
@@ -262,5 +263,11 @@ final class ManagementPathImpl implements
 	public ListKindResponse listKinds()
 	{
 		return target.withSegment("kind").getJson(ListKindResponse.class);
+	}
+
+	@Override
+	public ListSchemaResponse listJsonSchemas()
+	{
+		return target.withSegment("json-schema").getJson(ListSchemaResponse.class);
 	}
 }

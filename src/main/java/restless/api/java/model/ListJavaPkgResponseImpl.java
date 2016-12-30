@@ -1,4 +1,4 @@
-package restless.api.management.model;
+package restless.api.java.model;
 
 import java.util.List;
 

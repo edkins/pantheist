@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
-import restless.api.management.model.ListJavaPkgItem;
+import restless.api.java.model.ListJavaPkgItem;
 import restless.client.api.ManagementPathEntity;
 import restless.client.api.ManagementPathJavaPackage;
 import restless.client.api.ManagementPathKind;

@@ -13,8 +13,4 @@ public interface ApiManagementModelFactory
 	ListConfigResponse listConfigResponse(List<ListConfigItem> childResources);
 
 	ListClassifierResponse listClassifierResponse(List<ListClassifierItem> childResources);
-
-	ListJavaPkgItem listJavaPkgItem(@Assisted("url") String url);
-
-	ListJavaPkgResponse listJavaPkgResponse(List<ListJavaPkgItem> childResources);
 }
