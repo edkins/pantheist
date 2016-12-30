@@ -24,9 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.api.management.backend.ManagementBackend;
 import restless.api.management.model.CreateConfigRequest;
-import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListConfigResponse;
-import restless.api.management.model.ListJavaPkgResponse;
 import restless.common.http.Resp;
 import restless.common.util.Escapers;
 import restless.common.util.FailureReason;
@@ -285,88 +283,4 @@ public final class ManagementResourceImpl implements ManagementResource
 		}
 	}
 
-	/**
-	 * Handles listing classifiers within a java package (GET)
-	 */
-	@GET
-	@Path("java-pkg/{pkg}")
-	@Produces("application/json")
-	public Response listJavaPkgClassifiers(@PathParam("pkg") final String pkg)
-	{
-		LOGGER.info("GET java-pkg/{}", pkg);
-		try
-		{
-			final Possible<ListClassifierResponse> result = backend.listJavaPackageClassifiers(pkg);
-			return resp.possibleToJson(result);
-		}
-		catch (final RuntimeException ex)
-		{
-			return resp.unexpectedError(ex);
-		}
-	}
-
-	/**
-	 * Handles listing java packages (GET)
-	 */
-	@GET
-	@Path("java-pkg")
-	@Produces("application/json")
-	public Response listJavaPkg()
-	{
-		LOGGER.info("GET java-pkg");
-		try
-		{
-			final ListJavaPkgResponse result = backend.listJavaPackages();
-			return resp.toJson(result);
-		}
-		catch (final RuntimeException ex)
-		{
-			return resp.unexpectedError(ex);
-		}
-	}
-
-	/**
-	 * Handles the java management function (PUT)
-	 */
-	@PUT
-	@Path("java-pkg/{pkg}/file/{file}/data")
-	@Consumes("text/plain")
-	public Response putJerseyFile(
-			@PathParam("pkg") final String pkg,
-			@PathParam("file") final String file,
-			final String data)
-	{
-		LOGGER.info("PUT java-pkg/{}/file/{}/data", pkg, file);
-		try
-		{
-			final Possible<Void> result = backend.putJavaFile(pkg, file, data);
-			return resp.possibleEmpty(result);
-		}
-		catch (final RuntimeException ex)
-		{
-			return resp.unexpectedError(ex);
-		}
-	}
-
-	/**
-	 * Handles the java management function (GET)
-	 */
-	@GET
-	@Path("java-pkg/{pkg}/file/{file}/data")
-	@Produces("text/plain")
-	public Response getJerseyFile(
-			@PathParam("pkg") final String pkg,
-			@PathParam("file") final String file)
-	{
-		LOGGER.info("GET java-pkg/{}/file/{}/data", pkg, file);
-		try
-		{
-			final Possible<String> result = backend.getJavaFile(pkg, file);
-			return resp.possibleData(result);
-		}
-		catch (final RuntimeException ex)
-		{
-			return resp.unexpectedError(ex);
-		}
-	}
 }

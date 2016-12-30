@@ -2,6 +2,8 @@ package restless.system.main;
 
 import com.google.inject.PrivateModule;
 
+import restless.api.java.backend.ApiJavaBackendModule;
+import restless.api.java.resource.ApiJavaResourceModule;
 import restless.api.kind.backend.ApiKindBackendModule;
 import restless.api.kind.model.ApiKindModelModule;
 import restless.api.kind.resource.ApiKindResourceModule;
@@ -34,6 +36,8 @@ public class AllRestlessModule extends PrivateModule
 	protected void configure()
 	{
 		expose(Initializer.class);
+		install(new ApiJavaBackendModule());
+		install(new ApiJavaResourceModule());
 		install(new ApiKindBackendModule());
 		install(new ApiKindModelModule());
 		install(new ApiKindResourceModule());
