@@ -32,4 +32,11 @@ public interface JavaStore
 	Optional<JavaFileId> findFileByName(String fileName);
 
 	AntiIterator<JavaFileId> allJavaFiles();
+
+	/**
+	 * Returns true if the package path exists and contains java files.
+	 *
+	 * Will not return true if it's only subpackages that exist.
+	 */
+	boolean packageExists(String pkg);
 }

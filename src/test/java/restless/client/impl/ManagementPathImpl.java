@@ -12,8 +12,10 @@ import restless.api.kind.model.ApiEntity;
 import restless.api.kind.model.ListComponentItem;
 import restless.api.kind.model.ListComponentResponse;
 import restless.api.kind.model.ListEntityResponse;
+import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
+import restless.api.management.model.ListJavaPkgResponse;
 import restless.client.api.ManagementData;
 import restless.client.api.ManagementDataSchema;
 import restless.client.api.ManagementPathEntity;
@@ -230,5 +232,29 @@ final class ManagementPathImpl implements
 	public ListEntityResponse listEntities()
 	{
 		return target.withSegment(ENTITY).getJson(ListEntityResponse.class);
+	}
+
+	@Override
+	public ListClassifierResponse listClassifiers()
+	{
+		return target.getJson(ListClassifierResponse.class);
+	}
+
+	@Override
+	public String urlOfService(final String classifierSegment)
+	{
+		return target.withSegment(classifierSegment).url();
+	}
+
+	@Override
+	public ResponseType listClassifierResponseType()
+	{
+		return target.getResponseType(APPLICATION_JSON);
+	}
+
+	@Override
+	public ListJavaPkgResponse listJavaPackages()
+	{
+		return target.withSegment(JAVA_PKG).getJson(ListJavaPkgResponse.class);
 	}
 }

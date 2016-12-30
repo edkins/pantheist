@@ -8,6 +8,7 @@ import com.google.inject.assistedinject.Assisted;
 
 import restless.handler.java.model.JavaComponent;
 import restless.handler.schema.model.SchemaComponent;
+import restless.handler.uri.ListClassifierItem;
 
 public interface ApiKindModelFactory
 {
@@ -16,7 +17,8 @@ public interface ApiKindModelFactory
 			@Nullable @Assisted("kindUrl") String kindUrl,
 			@Nullable @Assisted("jsonSchemaUrl") String jsonSchemaUrl,
 			@Nullable @Assisted("javaUrl") String javaUrl,
-			@Assisted("valid") boolean valid);
+			@Assisted("valid") boolean valid,
+			@Nullable List<ListClassifierItem> childResources);
 
 	ApiComponent component(
 			@Nullable SchemaComponent jsonSchema,

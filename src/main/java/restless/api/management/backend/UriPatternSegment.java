@@ -10,4 +10,6 @@ interface UriPatternSegment
 	Optional<String> name();
 
 	String generate(Map<String, String> values);
+
+	boolean isEmpty();
 }

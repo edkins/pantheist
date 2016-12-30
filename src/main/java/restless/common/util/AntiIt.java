@@ -20,6 +20,16 @@ public final class AntiIt
 		};
 	}
 
+	public static <T> AntiIterator<T> array(final T[] items)
+	{
+		return consumer -> {
+			for (final T x : items)
+			{
+				consumer.accept(x);
+			}
+		};
+	}
+
 	public static <T> AntiIterator<T> single(final T item)
 	{
 		return consumer -> consumer.accept(item);

@@ -246,7 +246,8 @@ final class KindBackendImpl implements KindBackend
 				nullable(urlTranslation::kindToUrl, entity.kindId()),
 				nullable(urlTranslation::jsonSchemaToUrl, entity.jsonSchemaId()),
 				nullable(urlTranslation::javaToUrl, entity.javaFileId()),
-				valid);
+				valid,
+				urlTranslation.listEntityClassifiers(entity.entityId()));
 	}
 
 	private boolean validateEntityAgainstStoredKind(final Entity entity)

@@ -17,6 +17,7 @@ import restless.handler.kind.model.KindLevel;
 
 public class KindTest extends BaseTest
 {
+	private static final String JAVA_PKG = "restless.examples";
 	private static final String JAVA_INTLIST_NAME = "NonEmptyNonNegativeIntList";
 	private static final String JAVA_INTLIST_RES = "/java-example/NonEmptyNonNegativeIntList";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
@@ -50,7 +51,7 @@ public class KindTest extends BaseTest
 	@Test
 	public void entity_withKind_isValid() throws Exception
 	{
-		final ManagementPathJavaFile java = manage.javaPackage("restless.examples").file(JAVA_INTLIST_NAME);
+		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
 		java.data().putResource(JAVA_INTLIST_RES, "text/plain");
 
 		final ManagementPathKind kindPath = manage.kind("my-kind");
@@ -78,7 +79,7 @@ public class KindTest extends BaseTest
 	@Test
 	public void entity_kindSaysInterface_actuallyClass_invalid() throws Exception
 	{
-		final ManagementPathJavaFile java = manage.javaPackage("restless.examples").file("EmptyClass");
+		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file("EmptyClass");
 		java.data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
 
 		final ManagementPathKind kindPath = manage.kind("my-kind");

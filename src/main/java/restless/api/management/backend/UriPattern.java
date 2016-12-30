@@ -14,5 +14,5 @@ public interface UriPattern
 
 	String getVar(String name, String url);
 
-	String generate(Map<String, String> values, boolean trailingSlash);
+	String generate(Map<String, String> values);
 }

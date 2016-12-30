@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import restless.api.kind.model.ApiComponent;
 import restless.api.kind.model.ApiEntity;
+import restless.api.management.model.ListClassifierResponse;
 
 public interface ManagementPathEntity
 {
@@ -23,5 +24,11 @@ public interface ManagementPathEntity
 	ApiComponent getComponent(String componentId);
 
 	ResponseType getComponentResponseType(String componentId);
+
+	ListClassifierResponse listClassifiers();
+
+	ResponseType listClassifierResponseType();
+
+	String urlOfService(String classifierSegment);
 
 }

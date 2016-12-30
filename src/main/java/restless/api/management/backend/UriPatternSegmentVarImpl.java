@@ -50,4 +50,10 @@ final class UriPatternSegmentVarImpl implements UriPatternSegment
 		}
 	}
 
+	@Override
+	public boolean isEmpty()
+	{
+		return false;
+	}
+
 }

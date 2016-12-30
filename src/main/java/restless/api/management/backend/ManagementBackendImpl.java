@@ -2,8 +2,10 @@ package restless.api.management.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -14,8 +16,11 @@ import com.google.common.collect.Lists;
 
 import restless.api.management.model.ApiManagementModelFactory;
 import restless.api.management.model.CreateConfigRequest;
+import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
+import restless.api.management.model.ListJavaPkgResponse;
+import restless.common.util.AntiIt;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
 import restless.common.util.View;
@@ -177,5 +182,36 @@ final class ManagementBackendImpl implements ManagementBackend
 	public Possible<Void> validateAgainstJsonSchema(final String schemaId, final String text)
 	{
 		return schemaStore.validateAgainstJsonSchema(schemaId, text);
+	}
+
+	@Override
+	public ListClassifierResponse listRootClassifiers()
+	{
+		return modelFactory.listClassifierResponse(urlTranslation.listRootClassifiers());
+	}
+
+	@Override
+	public ListJavaPkgResponse listJavaPackages()
+	{
+		final Set<String> packages = new HashSet<>();
+		javaStore.allJavaFiles()
+				.forEach(javaFileId -> packages.add(javaFileId.pkg()));
+
+		return AntiIt.from(packages)
+				.map(pkg -> modelFactory.listJavaPkgItem(urlTranslation.javaPkgToUrl(pkg)))
+				.wrap(modelFactory::listJavaPkgResponse);
+	}
+
+	@Override
+	public Possible<ListClassifierResponse> listJavaPackageClassifiers(final String pkg)
+	{
+		if (javaStore.packageExists(pkg))
+		{
+			return View.ok(modelFactory.listClassifierResponse(urlTranslation.listJavaPkgClassifiers(pkg)));
+		}
+		else
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
 	}
 }

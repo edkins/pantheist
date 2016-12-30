@@ -34,4 +34,10 @@ final class UriPatternSegmentEmptyImpl implements UriPatternSegment
 	{
 		return "{{empty}}";
 	}
+
+	@Override
+	public boolean isEmpty()
+	{
+		return true;
+	}
 }

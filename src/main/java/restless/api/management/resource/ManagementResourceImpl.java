@@ -24,7 +24,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.api.management.backend.ManagementBackend;
 import restless.api.management.model.CreateConfigRequest;
+import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListConfigResponse;
+import restless.api.management.model.ListJavaPkgResponse;
 import restless.common.http.Resp;
 import restless.common.util.Escapers;
 import restless.common.util.FailureReason;
@@ -48,13 +50,19 @@ public final class ManagementResourceImpl implements ManagementResource
 		this.resp = checkNotNull(resp);
 	}
 
-	/**
-	 * Right now just used for the test checking that the server is alive
-	 */
 	@GET
-	public Response root()
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response listRoot()
 	{
-		return Response.ok("need a home page I suppose").build();
+		LOGGER.info("GET /");
+		try
+		{
+			return resp.toJson(backend.listRootClassifiers());
+		}
+		catch (final RuntimeException e)
+		{
+			return resp.unexpectedError(e);
+		}
 	}
 
 	/**
@@ -270,6 +278,46 @@ public final class ManagementResourceImpl implements ManagementResource
 		{
 			final Possible<Void> result = backend.validateAgainstJsonSchema(schemaId, data);
 			return resp.possibleEmpty(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles listing classifiers within a java package (GET)
+	 */
+	@GET
+	@Path("java-pkg/{pkg}")
+	@Produces("application/json")
+	public Response listJavaPkgClassifiers(@PathParam("pkg") final String pkg)
+	{
+		LOGGER.info("GET java-pkg/{}", pkg);
+		try
+		{
+			final Possible<ListClassifierResponse> result = backend.listJavaPackageClassifiers(pkg);
+			return resp.possibleToJson(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles listing java packages (GET)
+	 */
+	@GET
+	@Path("java-pkg")
+	@Produces("application/json")
+	public Response listJavaPkg()
+	{
+		LOGGER.info("GET java-pkg");
+		try
+		{
+			final ListJavaPkgResponse result = backend.listJavaPackages();
+			return resp.toJson(result);
 		}
 		catch (final RuntimeException ex)
 		{

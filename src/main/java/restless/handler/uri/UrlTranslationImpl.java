@@ -2,6 +2,9 @@ package restless.handler.uri;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
@@ -9,36 +12,48 @@ import com.google.common.collect.ImmutableMap;
 
 import restless.api.management.backend.UriPattern;
 import restless.api.management.backend.UriPatternImpl;
+import restless.common.util.AntiIt;
 import restless.handler.java.model.JavaFileId;
 import restless.handler.java.model.JavaModelFactory;
 import restless.system.config.RestlessConfig;
 
 final class UrlTranslationImpl implements UrlTranslation
 {
+	private final JavaModelFactory javaFactory;
+	private final HandlerUriModelFactory modelFactory;
+
+	private final UriPattern managementRoot;
 	private final UriPattern kind;
 	private final UriPattern jsonSchema;
+	private final UriPattern javaPkg;
 	private final UriPattern java;
 	private final UriPattern location;
-	private final JavaModelFactory javaFactory;
+	private final UriPattern entity;
 
 	@Inject
-	private UrlTranslationImpl(final RestlessConfig config, final JavaModelFactory javaFactory)
+	private UrlTranslationImpl(
+			final RestlessConfig config,
+			final JavaModelFactory javaFactory,
+			final HandlerUriModelFactory modelFactory)
 	{
-		final UriPattern root = UriPatternImpl
-				.hostAndPort("http", "localhost:" + config.managementPort())
+		final UriPattern root = UriPatternImpl.hostAndPort("http", "localhost:" + config.managementPort())
 				.emptySegment();
 
+		this.managementRoot = root;
+		this.entity = root.segment("entity").var("entityId");
 		this.kind = root.segment("kind").var("kindId");
 		this.jsonSchema = root.segment("json-schema").var("schemaId");
-		this.java = root.segment("java-pkg").var("pkg").segment("file").var("file");
+		this.javaPkg = root.segment("java-pkg").var("pkg");
+		this.java = javaPkg.segment("file").var("file");
 		this.location = root.segment("server").var("serverId").segment("location").var("locationId");
 		this.javaFactory = checkNotNull(javaFactory);
+		this.modelFactory = checkNotNull(modelFactory);
 	}
 
 	@Override
 	public String jsonSchemaToUrl(final String jsonSchemaId)
 	{
-		return jsonSchema.generate(ImmutableMap.of("schemaId", jsonSchemaId), false);
+		return jsonSchema.generate(ImmutableMap.of("schemaId", jsonSchemaId));
 	}
 
 	@Override
@@ -50,7 +65,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public String javaToUrl(final JavaFileId javaFileId)
 	{
-		return java.generate(ImmutableMap.of("pkg", javaFileId.pkg(), "file", javaFileId.file()), false);
+		return java.generate(ImmutableMap.of("pkg", javaFileId.pkg(), "file", javaFileId.file()));
 	}
 
 	@Override
@@ -62,7 +77,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public String kindToUrl(final String kindId)
 	{
-		return kind.generate(ImmutableMap.of("kindId", kindId), false);
+		return kind.generate(ImmutableMap.of("kindId", kindId));
 	}
 
 	@Override
@@ -74,7 +89,46 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public String locationToUrl(final String serverId, final String locationId)
 	{
-		return location.generate(ImmutableMap.of("serverId", serverId, "locationId", locationId), false);
+		return location.generate(ImmutableMap.of("serverId", serverId, "locationId", locationId));
+	}
+
+	private List<ListClassifierItem> classifiers(
+			final UriPattern pattern,
+			final Map<String, String> values,
+			final String... classifierSegments)
+	{
+		return AntiIt.array(classifierSegments)
+				.<ListClassifierItem>map(seg -> {
+					final String url = pattern.segment(seg).generate(values);
+					return modelFactory.listClassifierItem(url, seg);
+				})
+				.toList();
+	}
+
+	@Override
+	public List<ListClassifierItem> listRootClassifiers()
+	{
+		return classifiers(managementRoot, ImmutableMap.of(),
+				"entity", "kind", "java-pkg", "json-schema", "server", "data");
+	}
+
+	@Override
+	public List<ListClassifierItem> listEntityClassifiers(final String entityId)
+	{
+		return classifiers(entity, ImmutableMap.of("entityId", entityId),
+				"component");
+	}
+
+	@Override
+	public String javaPkgToUrl(final String pkg)
+	{
+		return javaPkg.generate(ImmutableMap.of("pkg", pkg));
+	}
+
+	@Override
+	public List<ListClassifierItem> listJavaPkgClassifiers(final String pkg)
+	{
+		return classifiers(javaPkg, ImmutableMap.of("pkg", pkg), "file");
 	}
 
 }

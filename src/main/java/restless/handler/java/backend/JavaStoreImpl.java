@@ -56,13 +56,19 @@ final class JavaStoreImpl implements JavaStore
 	{
 		OtherPreconditions.checkNotNullOrEmpty(pkg);
 		OtherPreconditions.checkNotNullOrEmpty(file);
-		if (pkg.startsWith(".") || pkg.contains("..") || pkg.endsWith(".") || pkg.contains("/"))
-		{
-			throw new IllegalArgumentException("Bad pkg: " + pkg);
-		}
 		if (file.contains(".") || file.contains("/"))
 		{
 			throw new IllegalArgumentException("Bad filename: " + file);
+		}
+		return packagePath(pkg).segment(file + DOT_JAVA);
+	}
+
+	private FsPath packagePath(final String pkg)
+	{
+		OtherPreconditions.checkNotNullOrEmpty(pkg);
+		if (pkg.startsWith(".") || pkg.contains("..") || pkg.endsWith(".") || pkg.contains("/"))
+		{
+			throw new IllegalArgumentException("Bad pkg: " + pkg);
 		}
 
 		FsPath path = rootJavaPath();
@@ -70,7 +76,7 @@ final class JavaStoreImpl implements JavaStore
 		{
 			path = path.segment(seg);
 		}
-		return path.segment(file + DOT_JAVA);
+		return path;
 	}
 
 	private FsPath rootJavaPath()
@@ -278,5 +284,16 @@ final class JavaStoreImpl implements JavaStore
 				.filter(snapshot::safeIsFile)
 				.filter(path -> path.lastSegment().endsWith(DOT_JAVA))
 				.map(this::fileIdFromPath);
+	}
+
+	@Override
+	public boolean packageExists(final String pkg)
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		return snapshot
+				.listFilesAndDirectories(packagePath(pkg))
+				.filter(snapshot::safeIsFile)
+				.filter(path -> path.lastSegment().endsWith(DOT_JAVA))
+				.foundAny();
 	}
 }

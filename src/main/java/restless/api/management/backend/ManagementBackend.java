@@ -1,7 +1,9 @@
 package restless.api.management.backend;
 
 import restless.api.management.model.CreateConfigRequest;
+import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListConfigResponse;
+import restless.api.management.model.ListJavaPkgResponse;
 import restless.common.util.Possible;
 
 public interface ManagementBackend
@@ -27,4 +29,10 @@ public interface ManagementBackend
 	Possible<String> getJavaFile(String pkg, String file);
 
 	Possible<Void> deleteConfig(String serverId, String locationId);
+
+	ListClassifierResponse listRootClassifiers();
+
+	ListJavaPkgResponse listJavaPackages();
+
+	Possible<ListClassifierResponse> listJavaPackageClassifiers(String pkg);
 }

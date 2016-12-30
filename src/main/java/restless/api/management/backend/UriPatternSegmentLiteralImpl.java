@@ -45,4 +45,10 @@ final class UriPatternSegmentLiteralImpl implements UriPatternSegment
 	{
 		return segment;
 	}
+
+	@Override
+	public boolean isEmpty()
+	{
+		return false;
+	}
 }

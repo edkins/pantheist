@@ -2,6 +2,7 @@ package restless.common.util;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
@@ -15,6 +16,8 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * An iterator which calls you
+ *
+ * You can only call one method on an AntiIterator; after that it will be drained of items.
  */
 public interface AntiIterator<T>
 {
@@ -195,5 +198,15 @@ public interface AntiIterator<T>
 				}
 			});
 		};
+	}
+
+	/**
+	 * Returns true if this iterator yielded any items.
+	 */
+	default boolean foundAny()
+	{
+		final AtomicBoolean result = new AtomicBoolean(false);
+		forEach(x -> result.set(true));
+		return result.get();
 	}
 }

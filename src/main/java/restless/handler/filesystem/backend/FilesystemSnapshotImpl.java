@@ -273,30 +273,6 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 		writeSingle(path, file -> FileUtils.writeStringToFile(file, text, StandardCharsets.UTF_8));
 	}
 
-	private void findFilesRecursive(
-			final Consumer<FsPath> consumer,
-			final FsPath path,
-			final String fileName)
-	{
-		switch (checkFileState(path)) {
-		case REGULAR_FILE:
-			if (path.lastSegment().equals(fileName))
-			{
-				consumer.accept(path);
-			}
-			break;
-		case DIRECTORY:
-			listFilesAndDirectories(path).forEach(child -> {
-				findFilesRecursive(consumer, child, fileName);
-			});
-			break;
-		case DOES_NOT_EXIST:
-			throw new IllegalStateException("findFilesRecursive: should not visit missing files");
-		default:
-			// do nothing for unknown types of filesystem object
-		}
-	}
-
 	@Override
 	public AntiIterator<FsPath> listFilesAndDirectories(final FsPath dir)
 	{

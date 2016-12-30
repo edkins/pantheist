@@ -5,8 +5,10 @@ import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import restless.api.management.model.ListClassifierResponse;
+
 @JsonDeserialize(as = ApiEntityImpl.class)
-public interface ApiEntity
+public interface ApiEntity extends ListClassifierResponse
 {
 	@JsonProperty("discovered")
 	boolean discovered();

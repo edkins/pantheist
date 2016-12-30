@@ -44,6 +44,10 @@ public class UriPatternImpl implements UriPattern
 		{
 			throw new IllegalStateException("Can't chain more things after allowTrailingSlash");
 		}
+		if (segments.isEmpty() && !segment.isEmpty())
+		{
+			throw new IllegalStateException("Only empty segment can be appended as the first item after authority");
+		}
 		return Make.<UriPatternSegment, UriPattern>wrappedList(xs -> new UriPatternImpl(scheme, authority, xs, false))
 				.withLast(segment)
 				.from(segments);
@@ -137,7 +141,12 @@ public class UriPatternImpl implements UriPattern
 	}
 
 	@Override
-	public String generate(final Map<String, String> values, final boolean trailingSlash)
+	public String generate(final Map<String, String> values)
+	{
+		return generate(values, false);
+	}
+
+	private String generate(final Map<String, String> values, final boolean trailingSlash)
 	{
 		if (trailingSlash && !allowTrailingSlash)
 		{
