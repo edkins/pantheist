@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
+import restless.common.util.AntiIterator;
 import restless.handler.entity.model.Entity;
 import restless.handler.entity.model.EntityModelFactory;
 import restless.handler.java.backend.JavaStore;
@@ -82,5 +83,17 @@ final class KindValidationImpl implements KindValidation
 		}
 		final Kind kind = kindStore.getKind(entity.kindId()).get();
 		return validateEntityAgainstKind(entity, kind);
+	}
+
+	@Override
+	public AntiIterator<Entity> discoverEntitiesWithKind(final Kind kind)
+	{
+		if (!kind.discoverable())
+		{
+			throw new IllegalArgumentException("Can only be called for discoverable kinds");
+		}
+		return javaStore.allJavaFiles()
+				.map(jf -> entityFactory.entity(jf.file(), true, null, null, jf))
+				.filter(entity -> validateEntityAgainstKind(entity, kind));
 	}
 }

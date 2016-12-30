@@ -7,11 +7,20 @@ import javax.annotation.Nullable;
 import com.google.inject.assistedinject.Assisted;
 
 import restless.handler.java.model.JavaComponent;
+import restless.handler.kind.model.JavaClause;
+import restless.handler.kind.model.KindLevel;
 import restless.handler.schema.model.SchemaComponent;
 import restless.handler.uri.ListClassifierItem;
 
 public interface ApiKindModelFactory
 {
+	ApiKind kind(
+			@Nullable List<ListClassifierItem> childResources,
+			@Nullable @Assisted("kindId") String kindId,
+			KindLevel level,
+			@Assisted("discoverable") Boolean discoverable,
+			@Nullable JavaClause java);
+
 	ApiEntity entity(
 			@Assisted("discovered") boolean discovered,
 			@Nullable @Assisted("kindUrl") String kindUrl,

@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import restless.api.kind.model.ApiComponent;
 import restless.api.kind.model.ApiEntity;
+import restless.api.kind.model.ApiKind;
 import restless.api.kind.model.ListComponentItem;
 import restless.api.kind.model.ListComponentResponse;
 import restless.api.kind.model.ListEntityResponse;
@@ -26,7 +27,6 @@ import restless.client.api.ManagementPathLocation;
 import restless.client.api.ManagementPathRoot;
 import restless.client.api.ManagementPathServer;
 import restless.client.api.ResponseType;
-import restless.handler.kind.model.Kind;
 
 final class ManagementPathImpl implements
 		ManagementPathServer,
@@ -211,9 +211,9 @@ final class ManagementPathImpl implements
 	}
 
 	@Override
-	public Kind getKind()
+	public ApiKind getKind()
 	{
-		return target.getJson(Kind.class);
+		return target.getJson(ApiKind.class);
 	}
 
 	@Override

@@ -8,6 +8,8 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.assistedinject.Assisted;
 
+import restless.common.util.OtherPreconditions;
+
 final class KindImpl implements Kind
 {
 	private final String kindId;
@@ -17,12 +19,12 @@ final class KindImpl implements Kind
 
 	@Inject
 	private KindImpl(
-			@Nullable @Assisted("kindId") @JsonProperty("kindId") final String kindId,
+			@Assisted("kindId") @JsonProperty("kindId") final String kindId,
 			@Assisted @JsonProperty("level") final KindLevel level,
 			@Assisted("discoverable") @JsonProperty("discoverable") final Boolean discoverable,
 			@Nullable @Assisted @JsonProperty("java") final JavaClause java)
 	{
-		this.kindId = kindId;
+		this.kindId = OtherPreconditions.checkNotNullOrEmpty(kindId);
 		this.discoverable = checkNotNull(discoverable);
 		this.level = checkNotNull(level);
 		this.java = java;

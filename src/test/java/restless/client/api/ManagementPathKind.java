@@ -1,6 +1,8 @@
 package restless.client.api;
 
-import restless.handler.kind.model.Kind;
+import restless.api.kind.model.ApiKind;
+import restless.api.kind.model.ListEntityResponse;
+import restless.api.management.model.ListClassifierResponse;
 
 public interface ManagementPathKind
 {
@@ -8,7 +10,13 @@ public interface ManagementPathKind
 
 	ResponseType putJsonResourceResponseType(String resourcePath);
 
-	Kind getKind();
+	ApiKind getKind();
 
 	String url();
+
+	ListEntityResponse listEntities();
+
+	ListClassifierResponse listClassifiers();
+
+	String urlOfService(String classifierSegment);
 }

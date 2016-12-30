@@ -15,6 +15,7 @@ import com.google.common.collect.Lists;
 import restless.api.management.model.ListJavaPkgItem;
 import restless.client.api.ManagementPathEntity;
 import restless.client.api.ManagementPathJavaPackage;
+import restless.client.api.ManagementPathKind;
 import restless.client.api.ResponseType;
 import restless.handler.uri.ListClassifierItem;
 
@@ -23,6 +24,7 @@ public class ListClassifierTest extends BaseTest
 	private static final String JAVA_PKG = "restless.examples";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
+	private static final String KIND_SCHEMA_RES = "/kind-schema/kind-test-example";
 
 	@Test
 	public void root_classifiers() throws Exception
@@ -102,5 +104,20 @@ public class ListClassifierTest extends BaseTest
 
 		assertThat(response1, is(ResponseType.OK));
 		assertThat(response2, is(ResponseType.NOT_FOUND));
+	}
+
+	@Test
+	public void kind_classifiers() throws Exception
+	{
+		final ManagementPathKind kind = manage.kind("my-kind");
+		kind.putJsonResource(KIND_SCHEMA_RES);
+
+		final List<? extends ListClassifierItem> list = kind.listClassifiers().childResources();
+
+		final List<String> urls = Lists.transform(list, ListClassifierItem::url);
+		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
+
+		assertThat(urls, containsInAnyOrder(kind.urlOfService("entity")));
+		assertThat(segs, containsInAnyOrder("entity"));
 	}
 }

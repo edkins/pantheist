@@ -74,4 +74,22 @@ public class DiscoveryTest extends BaseTest
 		assertThat(result.get(0).entityId(), is(JAVA_INTLIST_NAME));
 		assertThat(result.get(0).discovered(), is(true));
 	}
+
+	@Test
+	public void discoveredJavaEntity_isListed_underKind() throws Exception
+	{
+		manage.kind("java-interface-file").putJsonResource(KIND_SCHEMA_JAVA_DISCOVERABLE_INTERFACE_RES);
+
+		final ManagementPathJavaFile jclass = manage.javaPackage(JAVA_PKG).file("EmptyClass");
+		jclass.data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+
+		final ManagementPathJavaFile jinterface = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
+		jinterface.data().putResource(JAVA_INTLIST_RES, "text/plain");
+
+		final List<ListEntityItem> list = manage.kind("java-interface-file").listEntities().childResources();
+
+		assertThat(list.size(), is(1));
+
+		assertThat(list.get(0).entityId(), is(JAVA_INTLIST_NAME));
+	}
 }

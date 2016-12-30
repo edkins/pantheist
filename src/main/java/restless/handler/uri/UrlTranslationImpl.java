@@ -131,4 +131,10 @@ final class UrlTranslationImpl implements UrlTranslation
 		return classifiers(javaPkg, ImmutableMap.of("pkg", pkg), "file");
 	}
 
+	@Override
+	public List<ListClassifierItem> listKindClassifiers(final String kindId)
+	{
+		return classifiers(kind, ImmutableMap.of("kindId", kindId), "entity");
+	}
+
 }

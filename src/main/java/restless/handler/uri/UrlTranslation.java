@@ -26,5 +26,7 @@ public interface UrlTranslation
 
 	List<ListClassifierItem> listEntityClassifiers(String entityId);
 
+	List<ListClassifierItem> listKindClassifiers(String kindId);
+
 	List<ListClassifierItem> listJavaPkgClassifiers(String pkg);
 }

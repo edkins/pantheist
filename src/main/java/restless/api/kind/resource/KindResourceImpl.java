@@ -17,10 +17,11 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import restless.api.kind.backend.KindBackend;
+import restless.api.kind.model.ApiKind;
+import restless.api.kind.model.ListEntityResponse;
 import restless.common.annotations.ResourceTag;
 import restless.common.http.Resp;
 import restless.common.util.Possible;
-import restless.handler.kind.model.Kind;
 
 @Path("/")
 public class KindResourceImpl implements ResourceTag
@@ -53,7 +54,7 @@ public class KindResourceImpl implements ResourceTag
 		try
 		{
 			return resp.possibleEmpty(
-					resp.request(data, Kind.class)
+					resp.request(data, ApiKind.class)
 							.posMap(kind -> backend.putKind(kindId, kind)));
 		}
 		catch (final RuntimeException ex)
@@ -74,7 +75,28 @@ public class KindResourceImpl implements ResourceTag
 		LOGGER.info("GET kind/{}", kindId);
 		try
 		{
-			final Possible<Kind> result = backend.getKind(kindId);
+			final Possible<ApiKind> result = backend.getKind(kindId);
+			return resp.possibleToJson(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles listing entities by kind (GET)
+	 */
+	@GET
+	@Path("kind/{kindId}/entity")
+	@Produces("application/json")
+	public Response listEntitiesWithKind(
+			@PathParam("kindId") final String kindId)
+	{
+		LOGGER.info("GET kind/{}/entity", kindId);
+		try
+		{
+			final Possible<ListEntityResponse> result = backend.listEntitiesWithKind(kindId);
 			return resp.possibleToJson(result);
 		}
 		catch (final RuntimeException ex)

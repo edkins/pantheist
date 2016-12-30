@@ -101,6 +101,7 @@ public final class RespImpl implements Resp
 		}
 		catch (final IOException e)
 		{
+			LOGGER.catching(e);
 			return FailureReason.REQUEST_HAS_INVALID_SYNTAX.happened();
 		}
 	}

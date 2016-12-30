@@ -5,14 +5,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.junit.Test;
 
 import restless.api.kind.model.ApiEntity;
+import restless.api.kind.model.ApiKind;
+import restless.api.kind.model.ListEntityItem;
 import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ManagementPathKind;
 import restless.client.api.ResponseType;
 import restless.handler.kind.model.JavaKind;
-import restless.handler.kind.model.Kind;
 import restless.handler.kind.model.KindLevel;
 
 public class KindTest extends BaseTest
@@ -30,7 +33,7 @@ public class KindTest extends BaseTest
 	{
 		manage.kind("my-kind").putJsonResource(KIND_SCHEMA_RES);
 
-		final Kind kind = manage.kind("my-kind").getKind();
+		final ApiKind kind = manage.kind("my-kind").getKind();
 
 		assertThat(kind.level(), is(KindLevel.entity));
 		assertThat(kind.java().required(), is(true));
@@ -62,6 +65,40 @@ public class KindTest extends BaseTest
 		final ApiEntity result = manage.entity("my-entity").getEntity();
 		assertThat(result.kindUrl(), is(kindPath.url()));
 		assertTrue("Entity should be valid", result.valid());
+	}
+
+	@Test
+	public void entity_withKind_isListed() throws Exception
+	{
+		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
+		java.data().putResource(JAVA_INTLIST_RES, "text/plain");
+
+		final ManagementPathKind kindPath = manage.kind("my-kind");
+		kindPath.putJsonResource(KIND_SCHEMA_RES);
+
+		manage.entity("my-entity").putEntity(kindPath.url(), null, java.url());
+
+		final List<ListEntityItem> list = kindPath.listEntities().childResources();
+		assertThat(list.size(), is(1));
+		assertThat(list.get(0).entityId(), is("my-entity"));
+	}
+
+	@Test
+	public void entity_withDifferentKind_isNotListed() throws Exception
+	{
+		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
+		java.data().putResource(JAVA_INTLIST_RES, "text/plain");
+
+		final ManagementPathKind kindPath = manage.kind("my-kind");
+		kindPath.putJsonResource(KIND_SCHEMA_RES);
+
+		final ManagementPathKind kindPath2 = manage.kind("my-kind2");
+		kindPath2.putJsonResource(KIND_SCHEMA_RES);
+
+		manage.entity("my-entity").putEntity(kindPath.url(), null, java.url());
+
+		final List<ListEntityItem> list = kindPath2.listEntities().childResources();
+		assertThat(list.size(), is(0));
 	}
 
 	@Test
