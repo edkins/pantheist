@@ -6,6 +6,7 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -194,6 +195,49 @@ public final class ManagementResource implements ResourceTag
 			final Possible<String> data = backend.getData(path);
 
 			return resp.possibleData(data);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles the system management function: terminate (POST)
+	 */
+	@POST
+	@Path("system/terminate")
+	public Response terminate()
+	{
+		LOGGER.info("POST system/terminate");
+
+		try
+		{
+			backend.scheduleTerminate();
+
+			return Response.noContent().build();
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles the system management function: reload configuration (POST)
+	 */
+	@POST
+	@Path("system/reload")
+	public Response reloadConfiguration()
+	{
+		LOGGER.info("POST system/reload");
+
+		try
+		{
+			backend.reloadConfiguration();
+
+			// This is status 202 ACCEPTED. It means processing of the request has not completed.
+			return Response.accepted().build();
 		}
 		catch (final RuntimeException ex)
 		{

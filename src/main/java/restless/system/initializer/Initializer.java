@@ -6,4 +6,9 @@ public interface Initializer extends AutoCloseable
 
 	@Override
 	void close();
+
+	/**
+	 * Start another thread which will schedule shutdown.
+	 */
+	void stopAsync();
 }

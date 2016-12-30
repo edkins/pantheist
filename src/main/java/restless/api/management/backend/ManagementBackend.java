@@ -20,4 +20,8 @@ public interface ManagementBackend
 	Possible<Void> deleteConfig(String serverId, String locationId);
 
 	ListClassifierResponse listRootClassifiers();
+
+	void reloadConfiguration();
+
+	void scheduleTerminate();
 }

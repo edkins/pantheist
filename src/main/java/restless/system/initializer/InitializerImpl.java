@@ -81,4 +81,12 @@ final class InitializerImpl implements Initializer
 		snapshot.isFile(nginxAnonConf);
 		snapshot.writeSingleText(nginxAnonConf, text);
 	}
+
+	@Override
+	public void stopAsync()
+	{
+		new Thread(() -> {
+			this.close();
+		}).start();
+	}
 }

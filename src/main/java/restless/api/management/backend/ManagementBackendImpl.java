@@ -26,6 +26,7 @@ import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.kind.backend.KindStore;
 import restless.handler.nginx.manage.NginxService;
 import restless.handler.uri.UrlTranslation;
+import restless.system.initializer.Initializer;
 
 final class ManagementBackendImpl implements ManagementBackend
 {
@@ -34,6 +35,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	private final ApiManagementModelFactory modelFactory;
 	private final NginxService nginxService;
 	private final UrlTranslation urlTranslation;
+	private final Initializer initializer;
 
 	@Inject
 	ManagementBackendImpl(
@@ -43,12 +45,14 @@ final class ManagementBackendImpl implements ManagementBackend
 			final EntityStore entityStore,
 			final UrlTranslation urlTranslation,
 			final EntityModelFactory entityFactory,
-			final KindStore kindStore)
+			final KindStore kindStore,
+			final Initializer initializer)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.nginxService = checkNotNull(nginxService);
 		this.urlTranslation = checkNotNull(urlTranslation);
+		this.initializer = checkNotNull(initializer);
 	}
 
 	@Override
@@ -139,5 +143,17 @@ final class ManagementBackendImpl implements ManagementBackend
 	public ListClassifierResponse listRootClassifiers()
 	{
 		return modelFactory.listClassifierResponse(urlTranslation.listRootClassifiers());
+	}
+
+	@Override
+	public void reloadConfiguration()
+	{
+		nginxService.startOrRestart();
+	}
+
+	@Override
+	public void scheduleTerminate()
+	{
+		initializer.stopAsync();
 	}
 }
