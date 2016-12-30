@@ -10,6 +10,8 @@ import restless.api.kind.resource.ApiKindResourceModule;
 import restless.api.management.backend.ApiManagementBackendModule;
 import restless.api.management.model.ApiManagementModelModule;
 import restless.api.management.resource.ApiManagementResourceModule;
+import restless.api.schema.backend.ApiSchemaBackendModule;
+import restless.api.schema.resource.ApiSchemaResourceModule;
 import restless.common.http.CommonHttpModule;
 import restless.handler.entity.backend.HandlerEntityBackendModule;
 import restless.handler.entity.model.HandlerEntityModuleModule;
@@ -44,6 +46,8 @@ public class AllRestlessModule extends PrivateModule
 		install(new ApiManagementBackendModule());
 		install(new ApiManagementModelModule());
 		install(new ApiManagementResourceModule());
+		install(new ApiSchemaBackendModule());
+		install(new ApiSchemaResourceModule());
 		install(new CommonHttpModule());
 		install(new HandlerEntityBackendModule());
 		install(new HandlerEntityModuleModule());

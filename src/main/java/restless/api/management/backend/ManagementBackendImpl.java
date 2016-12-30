@@ -83,18 +83,6 @@ final class ManagementBackendImpl implements ManagementBackend
 	}
 
 	@Override
-	public Possible<Void> putJsonSchema(final String schemaId, final String schemaText)
-	{
-		return schemaStore.putJsonSchema(schemaId, schemaText);
-	}
-
-	@Override
-	public Possible<String> getJsonSchema(final String schemaId)
-	{
-		return schemaStore.getJsonSchema(schemaId);
-	}
-
-	@Override
 	public boolean configExists(final String serverId, final String locationId)
 	{
 		try
@@ -149,12 +137,6 @@ final class ManagementBackendImpl implements ManagementBackend
 			LOGGER.catching(e);
 			return FailureReason.PARENT_DOES_NOT_EXIST.happened();
 		}
-	}
-
-	@Override
-	public Possible<Void> validateAgainstJsonSchema(final String schemaId, final String text)
-	{
-		return schemaStore.validateAgainstJsonSchema(schemaId, text);
 	}
 
 	@Override

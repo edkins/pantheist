@@ -17,6 +17,7 @@ import com.google.common.base.Throwables;
 import restless.api.java.resource.JavaResource;
 import restless.api.kind.resource.KindResource;
 import restless.api.management.resource.ManagementResource;
+import restless.api.schema.resource.SchemaResource;
 import restless.common.util.MutableOpt;
 import restless.common.util.View;
 import restless.system.config.RestlessConfig;
@@ -28,6 +29,7 @@ final class RestlessServerImpl implements RestlessServer
 	private final ManagementResource managementResource;
 	private final KindResource kindResource;
 	private final JavaResource javaResource;
+	private final SchemaResource schemaResource;
 
 	// State
 	MutableOpt<Server> serverOpt;
@@ -37,13 +39,15 @@ final class RestlessServerImpl implements RestlessServer
 			final RestlessConfig config,
 			final ManagementResource managementResource,
 			final KindResource kindResource,
-			final JavaResource javaResource)
+			final JavaResource javaResource,
+			final SchemaResource schemaResource)
 	{
 		this.serverOpt = View.mutableOpt();
 		this.config = checkNotNull(config);
 		this.managementResource = checkNotNull(managementResource);
 		this.kindResource = checkNotNull(kindResource);
 		this.javaResource = checkNotNull(javaResource);
+		this.schemaResource = checkNotNull(schemaResource);
 	}
 
 	@Override
@@ -64,7 +68,8 @@ final class RestlessServerImpl implements RestlessServer
 			resourceConfig
 					.register(managementResource)
 					.register(kindResource)
-					.register(javaResource);
+					.register(javaResource)
+					.register(schemaResource);
 
 			context.addServlet(new ServletHolder(new ServletContainer(resourceConfig)), "/*");
 
