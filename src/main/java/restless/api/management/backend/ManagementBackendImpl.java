@@ -14,9 +14,10 @@ import com.google.common.collect.Lists;
 
 import restless.api.management.model.ApiManagementModelFactory;
 import restless.api.management.model.CreateConfigRequest;
-import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
+import restless.common.api.model.CommonApiModelFactory;
+import restless.common.api.model.ListClassifierResponse;
 import restless.common.api.url.UrlTranslation;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
@@ -36,6 +37,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	private final NginxService nginxService;
 	private final UrlTranslation urlTranslation;
 	private final Initializer initializer;
+	CommonApiModelFactory commonFactory;
 
 	@Inject
 	ManagementBackendImpl(
@@ -46,13 +48,15 @@ final class ManagementBackendImpl implements ManagementBackend
 			final UrlTranslation urlTranslation,
 			final EntityModelFactory entityFactory,
 			final KindStore kindStore,
-			final Initializer initializer)
+			final Initializer initializer,
+			final CommonApiModelFactory commonFactory)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.nginxService = checkNotNull(nginxService);
 		this.urlTranslation = checkNotNull(urlTranslation);
 		this.initializer = checkNotNull(initializer);
+		this.commonFactory = checkNotNull(commonFactory);
 	}
 
 	@Override
@@ -142,7 +146,7 @@ final class ManagementBackendImpl implements ManagementBackend
 	@Override
 	public ListClassifierResponse listRootClassifiers()
 	{
-		return modelFactory.listClassifierResponse(urlTranslation.listRootClassifiers());
+		return commonFactory.listClassifierResponse(urlTranslation.listRootClassifiers());
 	}
 
 	@Override

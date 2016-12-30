@@ -1,4 +1,4 @@
-package restless.api.management.model;
+package restless.common.api.model;
 
 import java.util.List;
 
@@ -7,8 +7,6 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.Assisted;
-
-import restless.common.api.model.ListClassifierItem;
 
 final class ListClassifierResponseImpl implements ListClassifierResponse
 {
@@ -26,5 +24,4 @@ final class ListClassifierResponseImpl implements ListClassifierResponse
 	{
 		return childResources;
 	}
-
 }

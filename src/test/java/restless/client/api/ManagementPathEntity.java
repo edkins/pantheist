@@ -5,7 +5,7 @@ import javax.annotation.Nullable;
 import restless.api.entity.model.ApiComponent;
 import restless.api.entity.model.ApiEntity;
 import restless.api.entity.model.ListComponentResponse;
-import restless.api.management.model.ListClassifierResponse;
+import restless.common.api.model.ListClassifierResponse;
 
 public interface ManagementPathEntity
 {

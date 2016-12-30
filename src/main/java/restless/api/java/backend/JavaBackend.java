@@ -1,8 +1,9 @@
 package restless.api.java.backend;
 
+import restless.api.java.model.ApiJavaFile;
 import restless.api.java.model.ListFileResponse;
 import restless.api.java.model.ListJavaPkgResponse;
-import restless.api.management.model.ListClassifierResponse;
+import restless.common.api.model.ListClassifierResponse;
 import restless.common.util.Possible;
 
 public interface JavaBackend
@@ -17,4 +18,5 @@ public interface JavaBackend
 
 	Possible<ListFileResponse> listFilesInPackage(String pkg);
 
+	Possible<ApiJavaFile> describeJavaFile(String pkg, String file);
 }

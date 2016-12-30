@@ -10,20 +10,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.Assisted;
 
-import restless.common.api.model.AdditionalStructureItem;
+import restless.common.api.model.CreateAction;
 
 final class ListJavaPkgResponseImpl implements ListJavaPkgResponse
 {
 	private final List<ListJavaPkgItem> childResources;
-	private final List<AdditionalStructureItem> additionalStructure;
+	private final CreateAction createAction;
 
 	@Inject
 	private ListJavaPkgResponseImpl(
 			@Assisted @JsonProperty("childResources") final List<ListJavaPkgItem> childResources,
-			@Assisted @JsonProperty("additionalStructure") final List<AdditionalStructureItem> additionalStructure)
+			@Assisted @JsonProperty("createAction") final CreateAction createAction)
 	{
 		this.childResources = ImmutableList.copyOf(childResources);
-		this.additionalStructure = checkNotNull(additionalStructure);
+		this.createAction = checkNotNull(createAction);
 	}
 
 	@Override
@@ -33,9 +33,9 @@ final class ListJavaPkgResponseImpl implements ListJavaPkgResponse
 	}
 
 	@Override
-	public List<AdditionalStructureItem> additionalStructure()
+	public CreateAction createAction()
 	{
-		return additionalStructure;
+		return createAction;
 	}
 
 }

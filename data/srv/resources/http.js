@@ -102,32 +102,23 @@ http.lastSegment = function(uri)
 
 http.home = http.schemeAndAuthority('' + window.location);
 
-http.getJson = function(url)
+http.getString = function(acceptContentType,url)
 {
 	return new Promise(
 		function(resolve,reject)
 		{
 			var xmlhttp = new XMLHttpRequest();
 			xmlhttp.open('GET', url, true);
-			xmlhttp.setRequestHeader('Accept', 'application/json');
+			xmlhttp.setRequestHeader('Accept', acceptContentType);
 			xmlhttp.onload = function()
 				{
-					if (xmlhttp.status == 200)
+					if (xmlhttp.status == 200 && typeof xmlhttp.responseText === 'string')
 					{
-						var obj;
-						try
-						{
-							obj = JSON.parse(xmlhttp.responseText)
-							resolve(obj);
-						}
-						catch(e)
-						{
-							reject(e);
-						}
+						resolve(xmlhttp.responseText);
 					}
 					else
 					{
-						reject(xmlhttp.status + ' ' + xmlhttp.statusText);
+						reject(xmlhttp.status + ' ' + xmlhttp.statusText + ':' + xmlhttp.responseText.substring(0,30));
 					}
 				};
 			xmlhttp.onerror = function()
@@ -138,6 +129,23 @@ http.getJson = function(url)
 		}
 	);
 };
+
+http.getJson = function(url)
+{
+	return http.getString('application/json', url).then(
+		text => {
+			try
+			{
+				var obj = JSON.parse(text)
+				return Promise.resolve(obj);
+			}
+			catch(e)
+			{
+				return Promise.reject(e);
+			}
+		}
+	);
+}
 
 http.putString = function(url,contentType,text)
 {
@@ -155,14 +163,14 @@ http.putString = function(url,contentType,text)
 					}
 					else
 					{
-						reject(xmlhttp.status + ' ' + xmlhttp.statusText);
+						reject(xmlhttp.status + ' ' + xmlhttp.statusText + ':' + xmlhttp.responseText.substring(0,30));
 					}
 				};
 			xmlhttp.onerror = function()
 				{
 					reject(xmlhttp.status + ' ' + xmlhttp.statusText);
 				};
-			xmlhttp.send();
+			xmlhttp.send(text);
 		}
 	);
 };
@@ -186,7 +194,7 @@ http.post = function(url,contentType,data)
 					}
 					else
 					{
-						reject(xmlhttp.status + ' ' + xmlhttp.statusText);
+						reject(xmlhttp.status + ' ' + xmlhttp.statusText + ':' + xmlhttp.responseText.substring(0,30));
 					}
 				};
 			xmlhttp.onerror = function()

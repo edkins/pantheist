@@ -15,6 +15,7 @@ public class ApiJavaModelModule extends PrivateModule
 				.implement(ListJavaPkgResponse.class, ListJavaPkgResponseImpl.class)
 				.implement(ListFileItem.class, ListFileItemImpl.class)
 				.implement(ListFileResponse.class, ListFileResponseImpl.class)
+				.implement(ApiJavaFile.class, ApiJavaFileImpl.class)
 				.build(ApiJavaModelFactory.class));
 	}
 

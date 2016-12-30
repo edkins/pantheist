@@ -2,7 +2,8 @@ package restless.common.api.url;
 
 import java.util.List;
 
-import restless.common.api.model.AdditionalStructureItem;
+import restless.common.api.model.CreateAction;
+import restless.common.api.model.DataAction;
 import restless.common.api.model.ListClassifierItem;
 import restless.handler.java.model.JavaFileId;
 
@@ -36,5 +37,7 @@ public interface UrlTranslation
 
 	List<ListClassifierItem> listJavaPkgClassifiers(String pkg);
 
-	List<AdditionalStructureItem> javaPkgStructure();
+	CreateAction javaPkgCreateAction();
+
+	DataAction javaFileDataAction(JavaFileId javaFileId);
 }

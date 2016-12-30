@@ -4,7 +4,8 @@ import java.util.List;
 
 import com.google.inject.assistedinject.Assisted;
 
-import restless.common.api.model.AdditionalStructureItem;
+import restless.common.api.model.CreateAction;
+import restless.common.api.model.DataAction;
 
 public interface ApiJavaModelFactory
 {
@@ -12,9 +13,11 @@ public interface ApiJavaModelFactory
 
 	ListJavaPkgResponse listJavaPkgResponse(
 			List<ListJavaPkgItem> childResources,
-			List<AdditionalStructureItem> additionalStructure);
+			CreateAction createAction);
 
 	ListFileItem listFileItem(@Assisted("url") String url);
 
 	ListFileResponse listFileResponse(List<ListFileItem> childResources);
+
+	ApiJavaFile javaFile(DataAction dataAction);
 }

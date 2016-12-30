@@ -1,7 +1,7 @@
 package restless.client.api;
 
 import restless.api.java.model.ListFileResponse;
-import restless.api.management.model.ListClassifierResponse;
+import restless.common.api.model.ListClassifierResponse;
 
 public interface ManagementPathJavaPackage
 {

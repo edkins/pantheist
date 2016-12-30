@@ -8,12 +8,13 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import restless.api.java.model.ApiJavaFile;
 import restless.api.java.model.ApiJavaModelFactory;
 import restless.api.java.model.ListFileResponse;
 import restless.api.java.model.ListJavaPkgItem;
 import restless.api.java.model.ListJavaPkgResponse;
-import restless.api.management.model.ApiManagementModelFactory;
-import restless.api.management.model.ListClassifierResponse;
+import restless.common.api.model.CommonApiModelFactory;
+import restless.common.api.model.ListClassifierResponse;
 import restless.common.api.url.UrlTranslation;
 import restless.common.util.AntiIt;
 import restless.common.util.FailureReason;
@@ -32,7 +33,7 @@ final class JavaBackendImpl implements JavaBackend
 	private final ApiJavaModelFactory modelFactory;
 	private final UrlTranslation urlTranslation;
 	private final JavaModelFactory javaFactory;
-	private final ApiManagementModelFactory managementFactory;
+	private final CommonApiModelFactory commonFactory;
 
 	@Inject
 	JavaBackendImpl(
@@ -43,20 +44,20 @@ final class JavaBackendImpl implements JavaBackend
 			final EntityModelFactory entityFactory,
 			final KindStore kindStore,
 			final JavaModelFactory javaFactory,
-			final ApiManagementModelFactory managementFactory)
+			final CommonApiModelFactory commonFactory)
 	{
 		this.javaStore = checkNotNull(javaStore);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.urlTranslation = checkNotNull(urlTranslation);
 		this.javaFactory = checkNotNull(javaFactory);
-		this.managementFactory = checkNotNull(managementFactory);
+		this.commonFactory = checkNotNull(commonFactory);
 	}
 
 	@Override
 	public Possible<Void> putJavaFile(final String pkg, final String file, final String code)
 	{
 		final JavaFileId id = javaFactory.fileId(pkg, file);
-		return javaStore.putJava(id, code);
+		return javaStore.putJava(id, code, false);
 	}
 
 	@Override
@@ -68,7 +69,7 @@ final class JavaBackendImpl implements JavaBackend
 
 	private ListJavaPkgResponse toListJavaPkgResponse(final List<ListJavaPkgItem> childResources)
 	{
-		return modelFactory.listJavaPkgResponse(childResources, urlTranslation.javaPkgStructure());
+		return modelFactory.listJavaPkgResponse(childResources, urlTranslation.javaPkgCreateAction());
 	}
 
 	@Override
@@ -88,7 +89,7 @@ final class JavaBackendImpl implements JavaBackend
 	{
 		if (javaStore.packageExists(pkg))
 		{
-			return View.ok(managementFactory.listClassifierResponse(urlTranslation.listJavaPkgClassifiers(pkg)));
+			return View.ok(commonFactory.listClassifierResponse(urlTranslation.listJavaPkgClassifiers(pkg)));
 		}
 		else
 		{
@@ -105,6 +106,20 @@ final class JavaBackendImpl implements JavaBackend
 					.map(urlTranslation::javaToUrl)
 					.map(modelFactory::listFileItem)
 					.wrap(xs -> View.ok(modelFactory.listFileResponse(xs)));
+		}
+		else
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
+	}
+
+	@Override
+	public Possible<ApiJavaFile> describeJavaFile(final String pkg, final String file)
+	{
+		final JavaFileId id = javaFactory.fileId(pkg, file);
+		if (javaStore.fileExists(id))
+		{
+			return View.ok(modelFactory.javaFile(urlTranslation.javaFileDataAction(id)));
 		}
 		else
 		{

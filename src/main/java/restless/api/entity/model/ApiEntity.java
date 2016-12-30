@@ -5,7 +5,7 @@ import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import restless.api.management.model.ListClassifierResponse;
+import restless.common.api.model.ListClassifierResponse;
 
 @JsonDeserialize(as = ApiEntityImpl.class)
 public interface ApiEntity extends ListClassifierResponse

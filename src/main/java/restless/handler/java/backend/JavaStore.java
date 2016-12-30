@@ -17,13 +17,17 @@ public interface JavaStore
 	 * It will return REQUEST_HAS_INVALID_SYNTAX if it seems to be invalid java syntax.
 	 *
 	 * If there's something else we don't like about it, we'll return REQUEST_FAILED_SCHEMA.
+	 *
+	 * If you set failIfExists to true then it can fail with ALREADY_EXISTS.
 	 */
-	Possible<Void> putJava(JavaFileId fileId, String code);
+	Possible<Void> putJava(JavaFileId fileId, String code, boolean failIfExists);
 
 	/**
 	 * Return a java file
 	 */
 	Possible<String> getJava(JavaFileId fileId);
+
+	boolean fileExists(JavaFileId fileId);
 
 	Optional<JavaComponent> getJavaComponent(JavaFileId fileId, String componentId);
 

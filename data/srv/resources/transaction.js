@@ -49,7 +49,13 @@ Transaction.prototype.getJson = function(url)
 {
 	if (url === this.url)
 	{
-		return this.fetch();
+		return this.fetch().then( data => {
+			if (data === undefined)
+			{
+				return Promise.reject(this.error);
+			}
+			return data;
+		});
 	}
 	else
 	{

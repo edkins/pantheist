@@ -5,7 +5,7 @@ import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import restless.api.management.model.ListClassifierResponse;
+import restless.common.api.model.ListClassifierResponse;
 import restless.handler.kind.model.JavaClause;
 import restless.handler.kind.model.KindLevel;
 
@@ -25,5 +25,4 @@ public interface ApiKind extends ListClassifierResponse
 	@Nullable
 	@JsonProperty("java")
 	JavaClause java();
-
 }

@@ -71,5 +71,4 @@ final class ApiEntityImpl implements ApiEntity
 	{
 		return childResources;
 	}
-
 }

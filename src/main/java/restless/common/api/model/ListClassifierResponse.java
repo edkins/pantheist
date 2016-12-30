@@ -1,12 +1,10 @@
-package restless.api.management.model;
+package restless.common.api.model;
 
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
-import restless.common.api.model.ListClassifierItem;
 
 /**
  * A "classifier" is one of the path segments that isn't the id of something,

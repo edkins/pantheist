@@ -15,10 +15,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import restless.api.java.backend.JavaBackend;
+import restless.api.java.model.ApiJavaFile;
 import restless.api.java.model.ListFileResponse;
 import restless.api.java.model.ListJavaPkgResponse;
-import restless.api.management.model.ListClassifierResponse;
 import restless.common.annotations.ResourceTag;
+import restless.common.api.model.ListClassifierResponse;
 import restless.common.http.Resp;
 import restless.common.util.Possible;
 
@@ -97,12 +98,12 @@ public final class JavaResource implements ResourceTag
 	}
 
 	/**
-	 * Handles the java management function (PUT)
+	 * Handles java code (PUT)
 	 */
 	@PUT
 	@Path("java-pkg/{pkg}/file/{file}/data")
 	@Consumes("text/plain")
-	public Response putJerseyFile(
+	public Response putJavaCode(
 			@PathParam("pkg") final String pkg,
 			@PathParam("file") final String file,
 			final String data)
@@ -120,12 +121,12 @@ public final class JavaResource implements ResourceTag
 	}
 
 	/**
-	 * Handles the java management function (GET)
+	 * Handles java code (GET)
 	 */
 	@GET
 	@Path("java-pkg/{pkg}/file/{file}/data")
 	@Produces("text/plain")
-	public Response getJerseyFile(
+	public Response getJavaCode(
 			@PathParam("pkg") final String pkg,
 			@PathParam("file") final String file)
 	{
@@ -134,6 +135,28 @@ public final class JavaResource implements ResourceTag
 		{
 			final Possible<String> result = backend.getJavaFile(pkg, file);
 			return resp.possibleData(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles java file info (GET)
+	 */
+	@GET
+	@Path("java-pkg/{pkg}/file/{file}")
+	@Produces("application/json")
+	public Response getJerseyFile(
+			@PathParam("pkg") final String pkg,
+			@PathParam("file") final String file)
+	{
+		LOGGER.info("GET java-pkg/{}/file/{}", pkg, file);
+		try
+		{
+			final Possible<ApiJavaFile> result = backend.describeJavaFile(pkg, file);
+			return resp.possibleToJson(result);
 		}
 		catch (final RuntimeException ex)
 		{

@@ -14,7 +14,10 @@ import com.google.common.collect.ImmutableMap;
 import restless.api.management.backend.UriPattern;
 import restless.api.management.backend.UriPatternImpl;
 import restless.common.api.model.AdditionalStructureItem;
+import restless.common.api.model.BasicContentType;
 import restless.common.api.model.CommonApiModelFactory;
+import restless.common.api.model.CreateAction;
+import restless.common.api.model.DataAction;
 import restless.common.api.model.ListClassifierItem;
 import restless.common.util.AntiIt;
 import restless.handler.java.model.JavaFileId;
@@ -23,6 +26,7 @@ import restless.system.config.RestlessConfig;
 
 final class UrlTranslationImpl implements UrlTranslation
 {
+	private static final String TEXT_PLAIN = "text/plain";
 	private final JavaModelFactory javaFactory;
 	private final CommonApiModelFactory modelFactory;
 
@@ -156,16 +160,24 @@ final class UrlTranslationImpl implements UrlTranslation
 	}
 
 	@Override
-	public List<AdditionalStructureItem> javaPkgStructure()
+	public CreateAction javaPkgCreateAction()
 	{
 		// This looks mysterious, but what it's saying is:
 		// - the client already expects urls to look like "/java-pkg/{}"
 		// - we are telling it that additional segments need to be appended to create resources in there
 		// - and the additional structure is "file/{}"
 
-		return ImmutableList.of(
+		final ImmutableList<AdditionalStructureItem> additionalStructure = ImmutableList.of(
 				modelFactory.additionalStructureItem(true, "file"),
-				modelFactory.additionalStructureItem(false, "file"));
+				modelFactory.additionalStructureItem(false, "file"),
+				modelFactory.additionalStructureItem(true, "data"));
+		return modelFactory.createAction(BasicContentType.java, TEXT_PLAIN, additionalStructure);
+	}
+
+	@Override
+	public DataAction javaFileDataAction(final JavaFileId javaFileId)
+	{
+		return modelFactory.dataAction(BasicContentType.java, TEXT_PLAIN, true);
 	}
 
 }

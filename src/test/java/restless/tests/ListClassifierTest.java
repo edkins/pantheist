@@ -18,10 +18,14 @@ import com.google.common.collect.Lists;
 
 import restless.api.java.model.ListJavaPkgItem;
 import restless.client.api.ManagementPathEntity;
+import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ManagementPathJavaPackage;
 import restless.client.api.ManagementPathKind;
 import restless.client.api.ResponseType;
 import restless.common.api.model.AdditionalStructureItem;
+import restless.common.api.model.BasicContentType;
+import restless.common.api.model.CreateAction;
+import restless.common.api.model.DataAction;
 import restless.common.api.model.ListClassifierItem;
 
 public class ListClassifierTest extends BaseTest
@@ -127,16 +131,50 @@ public class ListClassifierTest extends BaseTest
 	}
 
 	@Test
-	public void javaPkg_additionalStructure() throws Exception
+	public void javaPkg_createAction() throws Exception
 	{
-		final List<AdditionalStructureItem> additional = manage.listJavaPackages().additionalStructure();
+		final CreateAction createAction = manage.listJavaPackages().createAction();
+		final List<AdditionalStructureItem> additional = createAction.additionalStructure();
 
-		assertThat(additional.size(), is(2));
+		assertThat(createAction.basicType(), is(BasicContentType.java));
+		assertThat(createAction.mimeType(), is("text/plain"));
+
+		assertThat(additional.size(), is(3));
 		assertTrue("First segment should be literal", additional.get(0).literal());
 		assertThat(additional.get(0).name(), is("file"));
-		assertFalse("Second segment should be var", additional.get(1).literal());
 
+		assertFalse("Second segment should be var", additional.get(1).literal());
 		// the actual name of the var doesn't really matter
 		assertThat(additional.get(1).name(), not(isEmptyOrNullString()));
+
+		assertTrue("Third segment should be literal", additional.get(2).literal());
+		assertThat(additional.get(2).name(), is("data"));
+	}
+
+	@Test
+	public void javaFile_dataAction() throws Exception
+	{
+		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
+		final ManagementPathJavaFile file = pkg.file(JAVA_EMPTY_CLASS_NAME);
+		file.data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+
+		final DataAction dataAction = file.describeJavaFile().dataAction();
+		assertThat(dataAction.basicType(), is(BasicContentType.java));
+		assertThat(dataAction.mimeType(), is("text/plain"));
+		assertTrue("Should say we can put", dataAction.canPut());
+	}
+
+	@Test
+	public void javaFile_notThere_noDataAction() throws Exception
+	{
+		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
+		final ManagementPathJavaFile file = pkg.file(JAVA_EMPTY_CLASS_NAME);
+		final ManagementPathJavaFile bad = pkg.file("FileThatIsNotThere");
+		file.data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+
+		final ResponseType response1 = file.getJavaFileResponseType();
+		final ResponseType response2 = bad.getJavaFileResponseType();
+		assertThat(response1, is(ResponseType.OK));
+		assertThat(response2, is(ResponseType.NOT_FOUND));
 	}
 }

@@ -66,5 +66,4 @@ final class ApiKindImpl implements ApiKind
 	{
 		return java;
 	}
-
 }

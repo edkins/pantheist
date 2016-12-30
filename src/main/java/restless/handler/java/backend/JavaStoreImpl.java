@@ -83,12 +83,20 @@ final class JavaStoreImpl implements JavaStore
 	}
 
 	@Override
-	public Possible<Void> putJava(final JavaFileId javaFileId, final String code)
+	public Possible<Void> putJava(final JavaFileId javaFileId, final String code, final boolean failIfExists)
 	{
 		checkNotNull(javaFileId);
+		checkNotNull(code);
 		final String pkg = javaFileId.pkg();
 		final String file = javaFileId.file();
 		final CompilationUnit compilationUnit;
+
+		if (code.isEmpty())
+		{
+			LOGGER.warn("Code is empty");
+			return FailureReason.REQUEST_HAS_INVALID_SYNTAX.happened();
+		}
+
 		try
 		{
 			compilationUnit = JavaParser.parse(code);
@@ -130,9 +138,12 @@ final class JavaStoreImpl implements JavaStore
 
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
 
-		if (snapshot.isFile(filePath))
+		if (snapshot.isFile(filePath)) // still need to call isFile even if we don't care
 		{
-			return FailureReason.ALREADY_EXISTS.happened();
+			if (failIfExists)
+			{
+				return FailureReason.ALREADY_EXISTS.happened();
+			}
 		}
 
 		filePath.parent().leadingPortions().forEach(dirPath -> snapshot.isDir(dirPath));
@@ -151,7 +162,7 @@ final class JavaStoreImpl implements JavaStore
 	public Possible<String> getJava(final JavaFileId javaFileId)
 	{
 		checkNotNull(javaFileId);
-		final FsPath filePath = pathToType(javaFileId.pkg(), javaFileId.file());
+		final FsPath filePath = idToPath(javaFileId);
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
 		if (snapshot.isFile(filePath))
 		{
@@ -163,6 +174,11 @@ final class JavaStoreImpl implements JavaStore
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
 		}
+	}
+
+	private FsPath idToPath(final JavaFileId javaFileId)
+	{
+		return pathToType(javaFileId.pkg(), javaFileId.file());
 	}
 
 	@Override
@@ -303,5 +319,12 @@ final class JavaStoreImpl implements JavaStore
 				.filter(snapshot::safeIsFile)
 				.filter(path -> path.lastSegment().endsWith(DOT_JAVA))
 				.map(this::fileIdFromPath);
+	}
+
+	@Override
+	public boolean fileExists(final JavaFileId fileId)
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		return snapshot.isFile(idToPath(fileId));
 	}
 }

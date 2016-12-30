@@ -19,6 +19,7 @@ body {
 	width: 30%;
 	vertical-align: top;
 	padding-right: 6pt;
+	cursor: default;
 }
 .panel-right {
 	display: table-cell;
@@ -35,6 +36,16 @@ body {
 	width: 30%;
 	vertical-align: top;
 	text-align: right;
+}
+
+ul {
+	margin: 0;
+}
+
+// tree-node is the <li> element.
+
+.tree-node {
+	display-type: list-style-item;
 }
 
 .tree-node.collapsed {
@@ -55,8 +66,10 @@ body {
 	color: #ccc;
 }
 
+// tree-item is the block of text inside the <li> element which represents
+// the item itself (as opposed to its children).
+
 .tree-item {
-	cursor: pointer;
 }
 
 .tree-item:hover {
@@ -82,7 +95,7 @@ body {
     border: solid #ccc 1px;
     margin-right: 4pt;
     padding: 4pt 10pt;
-	cursor: pointer;
+	cursor: default;
 }
 .tab-bar .tab.active {
 	background: #fdb;
@@ -91,11 +104,14 @@ body {
     border: solid black 1px;
     margin-right: 4pt;
     padding: 4pt 10pt;
-	cursor: pointer;
+	cursor: default;
 	background: #0a0;
 	color: white;
 }
 .tab-bar .action.hidden {
+	visibility: hidden;
+}
+.tab-bar .tab.hidden {
 	visibility: hidden;
 }
 

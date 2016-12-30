@@ -13,6 +13,9 @@ public class CommonApiModelModule extends PrivateModule
 		install(new FactoryModuleBuilder()
 				.implement(AdditionalStructureItem.class, AdditionalStructureItemImpl.class)
 				.implement(ListClassifierItem.class, ListClassifierItemImpl.class)
+				.implement(ListClassifierResponse.class, ListClassifierResponseImpl.class)
+				.implement(CreateAction.class, CreateActionImpl.class)
+				.implement(DataAction.class, DataActionImpl.class)
 				.build(CommonApiModelFactory.class));
 	}
 

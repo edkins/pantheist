@@ -10,11 +10,11 @@ import restless.api.entity.model.ApiComponent;
 import restless.api.entity.model.ApiEntity;
 import restless.api.entity.model.ListComponentResponse;
 import restless.api.entity.model.ListEntityResponse;
+import restless.api.java.model.ApiJavaFile;
 import restless.api.java.model.ListFileResponse;
 import restless.api.java.model.ListJavaPkgResponse;
 import restless.api.kind.model.ApiKind;
 import restless.api.kind.model.ListKindResponse;
-import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
 import restless.api.schema.model.ListSchemaResponse;
@@ -28,6 +28,7 @@ import restless.client.api.ManagementPathLocation;
 import restless.client.api.ManagementPathRoot;
 import restless.client.api.ManagementPathServer;
 import restless.client.api.ResponseType;
+import restless.common.api.model.ListClassifierResponse;
 
 final class ManagementPathImpl implements
 		ManagementPathServer,
@@ -276,5 +277,17 @@ final class ManagementPathImpl implements
 	public ListFileResponse listFiles()
 	{
 		return target.withSegment("file").getJson(ListFileResponse.class);
+	}
+
+	@Override
+	public ApiJavaFile describeJavaFile()
+	{
+		return target.getJson(ApiJavaFile.class);
+	}
+
+	@Override
+	public ResponseType getJavaFileResponseType()
+	{
+		return target.getResponseType(APPLICATION_JSON);
 	}
 }

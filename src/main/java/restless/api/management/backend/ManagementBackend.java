@@ -1,8 +1,8 @@
 package restless.api.management.backend;
 
 import restless.api.management.model.CreateConfigRequest;
-import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListConfigResponse;
+import restless.common.api.model.ListClassifierResponse;
 import restless.common.util.Possible;
 
 public interface ManagementBackend
