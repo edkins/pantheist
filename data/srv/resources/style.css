@@ -1,0 +1,51 @@
+#editor {
+	width: 100%;
+	height: 500pt;
+}
+
+.panel-holder {
+	display: table;
+	width: 100%;
+}
+.panel-row {
+	display: table-row;
+}
+.panel-left {
+	display: table-cell;
+	width: 30%;
+	vertical-align: top;
+}
+.panel-right {
+	display: table-cell;
+	width: 70%;
+}
+
+.tree-node.collapsed {
+	list-style-type: disc;
+}
+
+.tree-node.expanded {
+	list-style-type: circle;
+}
+
+.tree-node.error {
+	list-style-type: square;
+	color: red;
+}
+
+.tree-node.notice {
+	list-style-type: square;
+	color: #ccc;
+}
+
+.tree-item {
+	cursor: pointer;
+}
+
+.tree-item:hover {
+	background: #eef;
+}
+
+body {
+	font-family: sans-serif;
+}

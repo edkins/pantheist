@@ -54,7 +54,7 @@ public class FilesystemTest extends BaseTest
 	@Test
 	public void resourceFile_isServed() throws Exception
 	{
-		final String contents = mainApi.withSegment("resources").withSegment("example-client.html")
+		final String contents = mainApi.withSegment("resources").withSegment("ui.html")
 				.getString("text/html");
 		assertThat(contents, containsString("<html>"));
 	}

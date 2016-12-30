@@ -37,7 +37,7 @@ final class UrlTranslationImpl implements UrlTranslation
 			final JavaModelFactory javaFactory,
 			final HandlerUriModelFactory modelFactory)
 	{
-		final UriPattern root = UriPatternImpl.hostAndPort("http", "localhost:" + config.mainPort())
+		final UriPattern root = UriPatternImpl.hostAndPort("http", "127.0.0.1:" + config.mainPort())
 				.emptySegment();
 
 		this.managementRoot = root;

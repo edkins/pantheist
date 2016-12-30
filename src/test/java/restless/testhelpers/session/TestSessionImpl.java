@@ -75,7 +75,7 @@ public final class TestSessionImpl implements TestSession
 	{
 		try
 		{
-			return new URL("http://localhost:" + port);
+			return new URL("http://127.0.0.1:" + port);
 		}
 		catch (final MalformedURLException e)
 		{
