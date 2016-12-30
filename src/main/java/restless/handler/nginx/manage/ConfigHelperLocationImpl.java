@@ -4,7 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Optional;
 
-import restless.common.util.Make;
+import restless.common.util.AntiIt;
 import restless.handler.nginx.parser.NginxDirective;
 
 final class ConfigHelperLocationImpl implements ConfigHelperLocation
@@ -30,7 +30,7 @@ final class ConfigHelperLocationImpl implements ConfigHelperLocation
 	@Override
 	public String location()
 	{
-		return Make.<String>theOnly().from(directive.parameters());
+		return AntiIt.from(directive.parameters()).failIfMultiple().get();
 	}
 
 	@Override

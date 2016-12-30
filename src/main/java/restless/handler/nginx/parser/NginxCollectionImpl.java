@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.Assisted;
 
+import restless.common.util.AntiIt;
 import restless.common.util.Make;
 import restless.common.util.OtherPreconditions;
 
@@ -47,7 +48,7 @@ final class NginxCollectionImpl implements NginxCollection
 
 	private Optional<NginxDirective> byName(final String name)
 	{
-		return Make.<NginxDirective>failIfMultiple().from(getAll(name));
+		return AntiIt.from(getAll(name)).failIfMultiple();
 	}
 
 	private NginxDirective createSimple(final String name)
@@ -91,7 +92,7 @@ final class NginxCollectionImpl implements NginxCollection
 	public Optional<String> lookup(final String name)
 	{
 		return byName(name)
-				.map(d -> Make.<String>theOnly().from(d.parameters()));
+				.map(d -> AntiIt.from(d.parameters()).failIfMultiple().get());
 	}
 
 	@Override

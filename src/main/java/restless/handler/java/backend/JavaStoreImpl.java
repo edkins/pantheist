@@ -22,6 +22,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 
+import restless.common.util.AntiIt;
 import restless.common.util.AntiIterator;
 import restless.common.util.FailureReason;
 import restless.common.util.Make;
@@ -258,7 +259,7 @@ final class JavaStoreImpl implements JavaStore
 	{
 		final List<String> segs = path.segmentsRelativeTo(rootJavaPath());
 		final String file = withoutDotJava(Make.last(segs));
-		final String pkg = Make.join(".").init().from(segs).get();
+		final String pkg = AntiIt.from(segs).init().join(".").get();
 		return modelFactory.fileId(pkg, file);
 	}
 

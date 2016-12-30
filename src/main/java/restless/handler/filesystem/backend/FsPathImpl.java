@@ -9,14 +9,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
+import restless.common.util.AntiIt;
 import restless.common.util.Make;
-import restless.common.util.MakeList;
 import restless.common.util.OtherCollectors;
 import restless.common.util.OtherPreconditions;
 
 final class FsPathImpl implements FsPath
 {
-	private static final MakeList<FsPathSegment, FsPath> MAKE_FS_PATH = Make.wrappedList(FsPathImpl::fromSegments);
 	private final ImmutableList<FsPathSegment> segments;
 
 	private FsPathImpl(final List<FsPathSegment> segments)
@@ -88,21 +87,20 @@ final class FsPathImpl implements FsPath
 	@Override
 	public FsPath tail()
 	{
-		return MAKE_FS_PATH.tail().from(segments);
+		return AntiIt.from(segments).tail().wrap(FsPathImpl::fromSegments);
 	}
 
 	@Override
 	public File in(final File directory)
 	{
-		return Make.<File>single()
-				.<FsPathSegment>snowball(directory, (f, seg) -> new File(f, seg.toString()))
-				.from(segments);
+		return AntiIt.from(segments)
+				.snowball(directory, (f, seg) -> new File(f, seg.toString()));
 	}
 
 	@Override
 	public FsPath segment(final FsPathSegment seg)
 	{
-		return MAKE_FS_PATH.from(segments, seg);
+		return AntiIt.from(segments).append(seg).wrap(FsPathImpl::fromSegments);
 	}
 
 	@Override
@@ -120,7 +118,7 @@ final class FsPathImpl implements FsPath
 	@Override
 	public FsPath parent()
 	{
-		return MAKE_FS_PATH.init().from(segments);
+		return AntiIt.from(segments).init().wrap(FsPathImpl::fromSegments);
 	}
 
 	@Override
@@ -185,10 +183,10 @@ final class FsPathImpl implements FsPath
 		{
 			throw new IllegalArgumentException("Path " + this + " not contained within base " + base);
 		}
-		return Make.<String>list()
+		return AntiIt.from(segments)
+				.drop(base.segments().size(), true)
 				.map(FsPathSegment::toString)
-				.drop(base.segments().size())
-				.from(segments);
+				.toList();
 	}
 
 	@Override

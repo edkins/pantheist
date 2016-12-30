@@ -10,8 +10,8 @@ import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
 
+import restless.common.util.AntiIt;
 import restless.common.util.Escapers;
-import restless.common.util.Make;
 import restless.common.util.MutableOpt;
 import restless.common.util.OtherPreconditions;
 import restless.common.util.View;
@@ -48,9 +48,10 @@ public class UriPatternImpl implements UriPattern
 		{
 			throw new IllegalStateException("Only empty segment can be appended as the first item after authority");
 		}
-		return Make.<UriPatternSegment, UriPattern>wrappedList(xs -> new UriPatternImpl(scheme, authority, xs, false))
-				.withLast(segment)
-				.from(segments);
+
+		return AntiIt.from(segments)
+				.append(segment)
+				.wrap(xs -> new UriPatternImpl(scheme, authority, xs, false));
 	}
 
 	@Override
@@ -99,7 +100,7 @@ public class UriPatternImpl implements UriPattern
 			{
 				throw new UrlPatternMismatchException("Not expecting fragment component");
 			}
-			final List<String> path = Make.split('/', uri.getPath());
+			final List<String> path = AntiIt.split('/', uri.getPath()).toList();
 			if (path.size() != segments.size())
 			{
 				if (path.size() == segments.size() + 1 && path.get(path.size() - 1).isEmpty())

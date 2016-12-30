@@ -1,5 +1,7 @@
 package restless.common.util;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -51,6 +53,31 @@ public final class AntiIt
 	public static <T> AntiIterator<T> empty()
 	{
 		return consumer -> {
+		};
+	}
+
+	/**
+	 * A string splitter that behaves predictably.
+	 */
+	public static AntiIterator<String> split(final char separator, final String str)
+	{
+		checkNotNull(str);
+		return consumer -> {
+			final StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < str.length(); i++)
+			{
+				final char ch = str.charAt(i);
+				if (ch == separator)
+				{
+					consumer.accept(sb.toString());
+					sb.setLength(0);
+				}
+				else
+				{
+					sb.append(ch);
+				}
+			}
+			consumer.accept(sb.toString());
 		};
 	}
 }

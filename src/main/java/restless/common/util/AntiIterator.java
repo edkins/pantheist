@@ -209,4 +209,49 @@ public interface AntiIterator<T>
 		forEach(x -> result.set(true));
 		return result.get();
 	}
+
+	default AntiIterator<T> append(final T lastItem)
+	{
+		return consumer -> {
+			forEach(consumer);
+			consumer.accept(lastItem);
+		};
+	}
+
+	default AntiIterator<T> tail()
+	{
+		return drop(1, true);
+	}
+
+	/**
+	 * Join the elements with the specified delimiter in between, or return empty if the
+	 * sequence was empty.
+	 *
+	 * This is only intended to be used on sequences of strings. It won't call toString() for you.
+	 *
+	 * (I don't know of a convenient way to ensure the type safety of this)
+	 *
+	 * @throws ClassCastException if type parameter T is not String.
+	 */
+	default Optional<String> join(final String delim)
+	{
+		final AtomicBoolean first = new AtomicBoolean(true);
+		final StringBuilder sb = new StringBuilder();
+		forEach(x -> {
+			if (!first.get())
+			{
+				sb.append(delim);
+			}
+			first.set(false);
+			sb.append((String) x);
+		});
+		if (first.get())
+		{
+			return Optional.empty();
+		}
+		else
+		{
+			return Optional.of(sb.toString());
+		}
+	}
 }
