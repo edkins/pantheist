@@ -13,13 +13,14 @@ import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableMap;
 
-import restless.api.kind.model.ApiComponent;
-import restless.api.kind.model.ApiEntity;
+import restless.api.entity.model.ApiComponent;
+import restless.api.entity.model.ApiEntity;
+import restless.api.entity.model.ApiEntityModelFactory;
+import restless.api.entity.model.ListComponentItem;
+import restless.api.entity.model.ListComponentResponse;
+import restless.api.entity.model.ListEntityItem;
+import restless.api.entity.model.ListEntityResponse;
 import restless.api.kind.model.ApiKindModelFactory;
-import restless.api.kind.model.ListComponentItem;
-import restless.api.kind.model.ListComponentResponse;
-import restless.api.kind.model.ListEntityItem;
-import restless.api.kind.model.ListEntityResponse;
 import restless.common.util.AntiIterator;
 import restless.common.util.FailureReason;
 import restless.common.util.OtherCollectors;
@@ -42,9 +43,9 @@ final class EntityBackendImpl implements EntityBackend
 	private final UrlTranslation urlTranslation;
 	private final EntityModelFactory entityFactory;
 	private final JsonSchemaStore schemaStore;
-	private final ApiKindModelFactory modelFactory;
 	private final JavaStore javaStore;
 	private final KindValidation kindValidation;
+	private final ApiEntityModelFactory modelFactory;
 
 	@Inject
 	private EntityBackendImpl(
@@ -54,15 +55,16 @@ final class EntityBackendImpl implements EntityBackend
 			final JsonSchemaStore schemaStore,
 			final JavaStore javaStore,
 			final ApiKindModelFactory modelFactory,
-			final KindValidation kindValidation)
+			final KindValidation kindValidation,
+			final ApiEntityModelFactory apiEntityFactory)
 	{
 		this.entityStore = checkNotNull(entityStore);
 		this.urlTranslation = checkNotNull(urlTranslation);
 		this.entityFactory = checkNotNull(entityFactory);
 		this.schemaStore = checkNotNull(schemaStore);
-		this.modelFactory = checkNotNull(modelFactory);
 		this.javaStore = checkNotNull(javaStore);
 		this.kindValidation = checkNotNull(kindValidation);
+		this.modelFactory = checkNotNull(apiEntityFactory);
 	}
 
 	private Entity fromApiEntity(final String entityId, final ApiEntity entity)
@@ -109,7 +111,7 @@ final class EntityBackendImpl implements EntityBackend
 	@Override
 	public Possible<ApiComponent> getComponent(final String entityId, final String componentId)
 	{
-		return findEntity(entityId).posMap(e -> {
+		return findEntity(entityId).<ApiComponent>posMap(e -> {
 			SchemaComponent jsonSchema = null;
 			JavaComponent java = null;
 			if (e.jsonSchemaId() != null)
@@ -136,13 +138,15 @@ final class EntityBackendImpl implements EntityBackend
 	@Override
 	public Possible<ListComponentResponse> listComponents(final String entityId)
 	{
-		return findEntity(entityId).map(e -> {
+		return findEntity(entityId).<ListComponentResponse>map(e -> {
 			final Map<String, ListComponentItem> result = new HashMap<>();
 
 			if (e.jsonSchemaId() != null)
 			{
 				schemaStore.listComponents(e.jsonSchemaId()).forEach(c -> {
-					result.put(c.componentId(), modelFactory.listComponentItem(c.componentId()));
+					result.put(c.componentId(), modelFactory.listComponentItem(
+							urlTranslation.componentToUrl(entityId, c.componentId()),
+							c.componentId()));
 				});
 
 			}
@@ -152,7 +156,10 @@ final class EntityBackendImpl implements EntityBackend
 
 	private ListEntityItem toListEntityItem(final Entity entity)
 	{
-		return modelFactory.listEntityItem(entity.entityId(), entity.discovered());
+		return modelFactory.listEntityItem(
+				urlTranslation.entityToUrl(entity.entityId()),
+				entity.entityId(),
+				entity.discovered());
 	}
 
 	@Override

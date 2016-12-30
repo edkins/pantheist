@@ -1,4 +1,4 @@
-package restless.api.kind.model;
+package restless.api.entity.model;
 
 import javax.inject.Inject;
 
@@ -9,11 +9,15 @@ import restless.common.util.OtherPreconditions;
 
 final class ListComponentItemImpl implements ListComponentItem
 {
+	private final String url;
 	private final String componentId;
 
 	@Inject
-	private ListComponentItemImpl(@Assisted("componentId") @JsonProperty("componentId") final String componentId)
+	private ListComponentItemImpl(
+			@Assisted("url") @JsonProperty("url") final String url,
+			@Assisted("componentId") @JsonProperty("componentId") final String componentId)
 	{
+		this.url = OtherPreconditions.checkNotNullOrEmpty(url);
 		this.componentId = OtherPreconditions.checkNotNullOrEmpty(componentId);
 	}
 
@@ -21,6 +25,12 @@ final class ListComponentItemImpl implements ListComponentItem
 	public String componentId()
 	{
 		return componentId;
+	}
+
+	@Override
+	public String url()
+	{
+		return url;
 	}
 
 }

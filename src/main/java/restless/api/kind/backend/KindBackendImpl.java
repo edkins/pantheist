@@ -4,10 +4,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.inject.Inject;
 
+import restless.api.entity.model.ApiEntityModelFactory;
+import restless.api.entity.model.ListEntityItem;
+import restless.api.entity.model.ListEntityResponse;
 import restless.api.kind.model.ApiKind;
 import restless.api.kind.model.ApiKindModelFactory;
-import restless.api.kind.model.ListEntityItem;
-import restless.api.kind.model.ListEntityResponse;
 import restless.common.util.FailureReason;
 import restless.common.util.OtherPreconditions;
 import restless.common.util.Possible;
@@ -27,6 +28,7 @@ final class KindBackendImpl implements KindBackend
 	private final ApiKindModelFactory modelFactory;
 	private final UrlTranslation urlTranslation;
 	private final EntityStore entityStore;
+	private final ApiEntityModelFactory entityFactory;
 
 	@Inject
 	private KindBackendImpl(
@@ -35,7 +37,8 @@ final class KindBackendImpl implements KindBackend
 			final KindValidation kindValidation,
 			final ApiKindModelFactory modelFactory,
 			final UrlTranslation urlTranslation,
-			final EntityStore entityStore)
+			final EntityStore entityStore,
+			final ApiEntityModelFactory entityFactory)
 	{
 		this.kindStore = checkNotNull(kindStore);
 		this.kindFactory = checkNotNull(kindFactory);
@@ -43,6 +46,7 @@ final class KindBackendImpl implements KindBackend
 		this.modelFactory = checkNotNull(modelFactory);
 		this.urlTranslation = checkNotNull(urlTranslation);
 		this.entityStore = checkNotNull(entityStore);
+		this.entityFactory = checkNotNull(entityFactory);
 	}
 
 	private ApiKind toApiKind(final Kind k)
@@ -78,7 +82,10 @@ final class KindBackendImpl implements KindBackend
 
 	private ListEntityItem toListEntityItem(final Entity entity)
 	{
-		return modelFactory.listEntityItem(entity.entityId(), entity.discovered());
+		return entityFactory.listEntityItem(
+				urlTranslation.entityToUrl(entity.entityId()),
+				entity.entityId(),
+				entity.discovered());
 	}
 
 	@Override
@@ -90,7 +97,7 @@ final class KindBackendImpl implements KindBackend
 			{
 				return kindValidation.discoverEntitiesWithKind(kind)
 						.map(this::toListEntityItem)
-						.wrap(modelFactory::listEntityResponse);
+						.wrap(entityFactory::listEntityResponse);
 			}
 			else
 			{
@@ -105,6 +112,6 @@ final class KindBackendImpl implements KindBackend
 		return entityStore.listEntities()
 				.filter(e -> kindId.equals(e.kindId()))
 				.map(this::toListEntityItem)
-				.wrap(modelFactory::listEntityResponse);
+				.wrap(entityFactory::listEntityResponse);
 	}
 }

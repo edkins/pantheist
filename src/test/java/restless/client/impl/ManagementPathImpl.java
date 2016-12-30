@@ -5,14 +5,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import restless.api.kind.model.ApiComponent;
-import restless.api.kind.model.ApiEntity;
+import restless.api.entity.model.ApiComponent;
+import restless.api.entity.model.ApiEntity;
+import restless.api.entity.model.ListComponentResponse;
+import restless.api.entity.model.ListEntityResponse;
 import restless.api.kind.model.ApiKind;
-import restless.api.kind.model.ListComponentItem;
-import restless.api.kind.model.ListComponentResponse;
-import restless.api.kind.model.ListEntityResponse;
 import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
@@ -182,14 +180,9 @@ final class ManagementPathImpl implements
 	}
 
 	@Override
-	public List<String> listComponentIds()
+	public ListComponentResponse listComponents()
 	{
-		return target.withSegment(COMPONENT)
-				.getJson(ListComponentResponse.class)
-				.childResources()
-				.stream()
-				.map(ListComponentItem::componentId)
-				.collect(Collectors.toList());
+		return target.withSegment(COMPONENT).getJson(ListComponentResponse.class);
 	}
 
 	@Override
@@ -256,5 +249,11 @@ final class ManagementPathImpl implements
 	public ListJavaPkgResponse listJavaPackages()
 	{
 		return target.withSegment(JAVA_PKG).getJson(ListJavaPkgResponse.class);
+	}
+
+	@Override
+	public String urlOfComponent(final String componentId)
+	{
+		return target.withSegment(COMPONENT).withSegment(componentId).url();
 	}
 }

@@ -15,9 +15,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import restless.api.entity.backend.EntityBackend;
-import restless.api.kind.model.ApiComponent;
-import restless.api.kind.model.ApiEntity;
-import restless.api.kind.model.ListComponentResponse;
+import restless.api.entity.model.ApiComponent;
+import restless.api.entity.model.ApiEntity;
+import restless.api.entity.model.ListComponentResponse;
 import restless.common.annotations.ResourceTag;
 import restless.common.http.Resp;
 import restless.common.util.Possible;

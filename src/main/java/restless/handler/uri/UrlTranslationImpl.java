@@ -29,6 +29,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	private final UriPattern java;
 	private final UriPattern location;
 	private final UriPattern entity;
+	private final UriPattern component;
 
 	@Inject
 	private UrlTranslationImpl(
@@ -41,6 +42,7 @@ final class UrlTranslationImpl implements UrlTranslation
 
 		this.managementRoot = root;
 		this.entity = root.segment("entity").var("entityId");
+		this.component = entity.segment("component").var("componentId");
 		this.kind = root.segment("kind").var("kindId");
 		this.jsonSchema = root.segment("json-schema").var("schemaId");
 		this.javaPkg = root.segment("java-pkg").var("pkg");
@@ -135,6 +137,18 @@ final class UrlTranslationImpl implements UrlTranslation
 	public List<ListClassifierItem> listKindClassifiers(final String kindId)
 	{
 		return classifiers(kind, ImmutableMap.of("kindId", kindId), "entity");
+	}
+
+	@Override
+	public String entityToUrl(final String entityId)
+	{
+		return entity.generate(ImmutableMap.of("entityId", entityId));
+	}
+
+	@Override
+	public String componentToUrl(final String entityId, final String componentId)
+	{
+		return component.generate(ImmutableMap.of("entityId", entityId, "componentId", componentId));
 	}
 
 }

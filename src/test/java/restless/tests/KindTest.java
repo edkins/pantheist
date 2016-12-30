@@ -9,9 +9,9 @@ import java.util.List;
 
 import org.junit.Test;
 
-import restless.api.kind.model.ApiEntity;
+import restless.api.entity.model.ApiEntity;
+import restless.api.entity.model.ListEntityItem;
 import restless.api.kind.model.ApiKind;
-import restless.api.kind.model.ListEntityItem;
 import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ManagementPathKind;
 import restless.client.api.ResponseType;

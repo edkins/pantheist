@@ -1,7 +1,7 @@
 package restless.client.api;
 
+import restless.api.entity.model.ListEntityResponse;
 import restless.api.kind.model.ApiKind;
-import restless.api.kind.model.ListEntityResponse;
 import restless.api.management.model.ListClassifierResponse;
 
 public interface ManagementPathKind

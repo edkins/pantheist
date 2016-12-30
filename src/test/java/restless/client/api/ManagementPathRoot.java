@@ -1,6 +1,6 @@
 package restless.client.api;
 
-import restless.api.kind.model.ListEntityResponse;
+import restless.api.entity.model.ListEntityResponse;
 import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListJavaPkgResponse;
 

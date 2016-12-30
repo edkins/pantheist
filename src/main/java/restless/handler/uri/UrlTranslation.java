@@ -22,6 +22,10 @@ public interface UrlTranslation
 
 	String locationToUrl(String serverId, String locationId);
 
+	String entityToUrl(String entityId);
+
+	String componentToUrl(String entityId, String componentId);
+
 	List<ListClassifierItem> listRootClassifiers();
 
 	List<ListClassifierItem> listEntityClassifiers(String entityId);

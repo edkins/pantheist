@@ -1,6 +1,7 @@
 package restless.tests;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -10,15 +11,20 @@ import java.util.List;
 
 import org.junit.Test;
 
-import restless.api.kind.model.ApiComponent;
-import restless.api.kind.model.ApiEntity;
-import restless.api.kind.model.ListEntityItem;
+import com.google.common.collect.Lists;
+
+import restless.api.entity.model.ApiComponent;
+import restless.api.entity.model.ApiEntity;
+import restless.api.entity.model.ListComponentItem;
+import restless.api.entity.model.ListEntityItem;
 import restless.client.api.ManagementDataSchema;
+import restless.client.api.ManagementPathEntity;
 import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ResponseType;
 
 public class EntityTest extends BaseTest
 {
+	private static final String ENTITY_ID = "my-entity";
 	private static final String ROOT = ".";
 	private ManagementDataSchema schema;
 	private ManagementPathJavaFile java;
@@ -35,22 +41,22 @@ public class EntityTest extends BaseTest
 	private void schemaSetup()
 	{
 		entitySetup();
-		manage.entity("my-entity").putEntity(null, schema.url(), null);
+		manage.entity(ENTITY_ID).putEntity(null, schema.url(), null);
 	}
 
 	private void javaSetup()
 	{
 		entitySetup();
-		manage.entity("my-entity").putEntity(null, null, java.url());
+		manage.entity(ENTITY_ID).putEntity(null, null, java.url());
 	}
 
 	@Test
 	public void entity_canReadBack() throws Exception
 	{
 		entitySetup();
-		manage.entity("my-entity").putEntity(null, schema.url(), java.url());
+		manage.entity(ENTITY_ID).putEntity(null, schema.url(), java.url());
 
-		final ApiEntity result = manage.entity("my-entity").getEntity();
+		final ApiEntity result = manage.entity(ENTITY_ID).getEntity();
 
 		assertThat(result.javaUrl(), is(java.url()));
 		assertThat(result.jsonSchemaUrl(), is(schema.url()));
@@ -64,12 +70,14 @@ public class EntityTest extends BaseTest
 
 		assertThat(manage.listEntities().childResources().size(), is(0));
 
-		manage.entity("my-entity").putEntity(null, schema.url(), java.url());
+		final ManagementPathEntity entity = manage.entity(ENTITY_ID);
+		entity.putEntity(null, schema.url(), java.url());
 
 		final List<ListEntityItem> result = manage.listEntities().childResources();
 
 		assertThat(result.size(), is(1));
-		assertThat(result.get(0).entityId(), is("my-entity"));
+		assertThat(result.get(0).entityId(), is(ENTITY_ID));
+		assertThat(result.get(0).url(), is(entity.url()));
 		assertFalse("Listed entity should not be marked as discovered", result.get(0).discovered());
 	}
 
@@ -102,12 +110,12 @@ public class EntityTest extends BaseTest
 	public void entityWithNoHandlers_exists_but_cannotFindRootComponent() throws Exception
 	{
 		entitySetup();
-		manage.entity("my-entity").putEntity(null, null, null);
+		manage.entity(ENTITY_ID).putEntity(null, null, null);
 
-		assertThat(manage.entity("my-entity").getEntityResponseType(),
+		assertThat(manage.entity(ENTITY_ID).getEntityResponseType(),
 				is(ResponseType.OK));
 
-		assertThat(manage.entity("my-entity").getComponentResponseType(ROOT),
+		assertThat(manage.entity(ENTITY_ID).getComponentResponseType(ROOT),
 				is(ResponseType.NOT_FOUND));
 	}
 
@@ -116,7 +124,7 @@ public class EntityTest extends BaseTest
 	{
 		schemaSetup();
 
-		final ApiComponent result = manage.entity("my-entity").getComponent(ROOT);
+		final ApiComponent result = manage.entity(ENTITY_ID).getComponent(ROOT);
 
 		assertTrue("Component should be root", result.jsonSchema().isRoot());
 	}
@@ -126,8 +134,8 @@ public class EntityTest extends BaseTest
 	{
 		schemaSetup();
 
-		assertThat(manage.entity("my-entity").getComponentResponseType(ROOT), is(ResponseType.OK));
-		assertThat(manage.entity("my-entity").getComponentResponseType("asdf"), is(ResponseType.NOT_FOUND));
+		assertThat(manage.entity(ENTITY_ID).getComponentResponseType(ROOT), is(ResponseType.OK));
+		assertThat(manage.entity(ENTITY_ID).getComponentResponseType("asdf"), is(ResponseType.NOT_FOUND));
 	}
 
 	@Test
@@ -135,7 +143,7 @@ public class EntityTest extends BaseTest
 	{
 		schemaSetup();
 
-		final ApiComponent result = manage.entity("my-entity").getComponent("el");
+		final ApiComponent result = manage.entity(ENTITY_ID).getComponent("el");
 
 		assertFalse("Component should not be root", result.jsonSchema().isRoot());
 	}
@@ -145,9 +153,14 @@ public class EntityTest extends BaseTest
 	{
 		schemaSetup();
 
-		final List<String> componentIds = manage.entity("my-entity").listComponentIds();
+		final ManagementPathEntity entity = manage.entity(ENTITY_ID);
+		final List<ListComponentItem> list = entity.listComponents().childResources();
+		final List<String> componentIds = Lists.transform(list, ListComponentItem::componentId);
+		final List<String> urls = Lists.transform(list, ListComponentItem::url);
 
-		assertThat(componentIds, containsInAnyOrder(ROOT, "el"));
+		assertThat(list.size(), is(2));
+		assertThat(componentIds, containsInAnyOrder(".", "el"));
+		assertThat(urls, hasItem(entity.urlOfComponent("el")));
 	}
 
 	@Test
@@ -155,7 +168,7 @@ public class EntityTest extends BaseTest
 	{
 		javaSetup();
 
-		final ApiComponent result = manage.entity("my-entity").getComponent(ROOT);
+		final ApiComponent result = manage.entity(ENTITY_ID).getComponent(ROOT);
 
 		assertTrue("Component should be root", result.java().isRoot());
 	}
@@ -165,7 +178,7 @@ public class EntityTest extends BaseTest
 	{
 		javaSetup();
 
-		assertThat(manage.entity("my-entity").getComponentResponseType(ROOT), is(ResponseType.OK));
-		assertThat(manage.entity("my-entity").getComponentResponseType("asdf"), is(ResponseType.NOT_FOUND));
+		assertThat(manage.entity(ENTITY_ID).getComponentResponseType(ROOT), is(ResponseType.OK));
+		assertThat(manage.entity(ENTITY_ID).getComponentResponseType("asdf"), is(ResponseType.NOT_FOUND));
 	}
 }

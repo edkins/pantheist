@@ -1,11 +1,10 @@
 package restless.client.api;
 
-import java.util.List;
-
 import javax.annotation.Nullable;
 
-import restless.api.kind.model.ApiComponent;
-import restless.api.kind.model.ApiEntity;
+import restless.api.entity.model.ApiComponent;
+import restless.api.entity.model.ApiEntity;
+import restless.api.entity.model.ListComponentResponse;
 import restless.api.management.model.ListClassifierResponse;
 
 public interface ManagementPathEntity
@@ -19,7 +18,7 @@ public interface ManagementPathEntity
 
 	ResponseType getEntityResponseType();
 
-	List<String> listComponentIds();
+	ListComponentResponse listComponents();
 
 	ApiComponent getComponent(String componentId);
 
@@ -30,5 +29,9 @@ public interface ManagementPathEntity
 	ResponseType listClassifierResponseType();
 
 	String urlOfService(String classifierSegment);
+
+	String urlOfComponent(String componentId);
+
+	String url();
 
 }

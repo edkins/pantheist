@@ -3,6 +3,7 @@ package restless.system.main;
 import com.google.inject.AbstractModule;
 
 import restless.api.entity.backend.ApiEntityBackendModule;
+import restless.api.entity.model.ApiEntityModelModule;
 import restless.api.entity.resource.ApiEntityResourceModule;
 import restless.api.java.backend.ApiJavaBackendModule;
 import restless.api.java.resource.ApiJavaResourceModule;
@@ -39,6 +40,7 @@ public class AllRestlessModule extends AbstractModule
 	protected void configure()
 	{
 		install(new ApiEntityBackendModule());
+		install(new ApiEntityModelModule());
 		install(new ApiEntityResourceModule());
 		install(new ApiJavaBackendModule());
 		install(new ApiJavaResourceModule());
