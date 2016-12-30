@@ -3,7 +3,6 @@ package restless.handler.java.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -22,10 +21,8 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 
-import restless.common.util.AntiIt;
 import restless.common.util.AntiIterator;
 import restless.common.util.FailureReason;
-import restless.common.util.Make;
 import restless.common.util.OtherPreconditions;
 import restless.common.util.Possible;
 import restless.common.util.View;
@@ -257,9 +254,8 @@ final class JavaStoreImpl implements JavaStore
 
 	private JavaFileId fileIdFromPath(final FsPath path)
 	{
-		final List<String> segs = path.segmentsRelativeTo(rootJavaPath());
-		final String file = withoutDotJava(Make.last(segs));
-		final String pkg = AntiIt.from(segs).init().join(".").get();
+		final String file = withoutDotJava(path.lastSegment());
+		final String pkg = path.segmentsRelativeTo(rootJavaPath()).init().join(".").get();
 		return modelFactory.fileId(pkg, file);
 	}
 

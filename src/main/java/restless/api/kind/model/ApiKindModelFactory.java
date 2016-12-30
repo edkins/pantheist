@@ -18,4 +18,8 @@ public interface ApiKindModelFactory
 			KindLevel level,
 			@Assisted("discoverable") Boolean discoverable,
 			@Nullable JavaClause java);
+
+	ListKindResponse listKindResponse(List<ListKindItem> childResources);
+
+	ListKindItem listKindItem(@Assisted("url") String url);
 }

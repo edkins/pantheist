@@ -69,4 +69,19 @@ final class KindStoreImpl implements KindStore
 				.filter(kind -> kind.discoverable());
 	}
 
+	private String pathToKindId(final FsPath path)
+	{
+		return path.segmentsRelativeTo(kindDir()).failIfMultiple().get();
+	}
+
+	@Override
+	public AntiIterator<String> listKindIds()
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		return snapshot
+				.listFilesAndDirectories(kindDir())
+				.filter(snapshot::safeIsFile)
+				.map(this::pathToKindId);
+	}
+
 }

@@ -6,6 +6,8 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import restless.common.util.AntiIterator;
+
 @JsonDeserialize(as = FsPathImpl.class)
 public interface FsPath
 {
@@ -73,11 +75,11 @@ public interface FsPath
 	/**
 	 * Return a list of segments that need to be appended to base in order to get here.
 	 *
-	 * Returns the empty list if this is equal to base.
+	 * Returns an empty sequence if this is equal to base.
 	 *
 	 * @throws IllegalArgumentException if this is not a descendant of base.
 	 */
-	List<String> segmentsRelativeTo(FsPath base);
+	AntiIterator<String> segmentsRelativeTo(FsPath base);
 
 	/**
 	 * Returns the last segment, i.e. the name of the file.

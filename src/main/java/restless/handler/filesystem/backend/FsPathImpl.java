@@ -10,6 +10,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
 import restless.common.util.AntiIt;
+import restless.common.util.AntiIterator;
 import restless.common.util.Make;
 import restless.common.util.OtherCollectors;
 import restless.common.util.OtherPreconditions;
@@ -177,7 +178,7 @@ final class FsPathImpl implements FsPath
 	}
 
 	@Override
-	public List<String> segmentsRelativeTo(final FsPath base)
+	public AntiIterator<String> segmentsRelativeTo(final FsPath base)
 	{
 		if (!Make.listStartsWith(segments, base.segments()))
 		{
@@ -185,8 +186,7 @@ final class FsPathImpl implements FsPath
 		}
 		return AntiIt.from(segments)
 				.drop(base.segments().size(), true)
-				.map(FsPathSegment::toString)
-				.toList();
+				.map(FsPathSegment::toString);
 	}
 
 	@Override

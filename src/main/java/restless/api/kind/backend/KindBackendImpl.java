@@ -9,6 +9,7 @@ import restless.api.entity.model.ListEntityItem;
 import restless.api.entity.model.ListEntityResponse;
 import restless.api.kind.model.ApiKind;
 import restless.api.kind.model.ApiKindModelFactory;
+import restless.api.kind.model.ListKindResponse;
 import restless.common.util.FailureReason;
 import restless.common.util.OtherPreconditions;
 import restless.common.util.Possible;
@@ -113,5 +114,14 @@ final class KindBackendImpl implements KindBackend
 				.filter(e -> kindId.equals(e.kindId()))
 				.map(this::toListEntityItem)
 				.wrap(entityFactory::listEntityResponse);
+	}
+
+	@Override
+	public ListKindResponse listKinds()
+	{
+		return kindStore.listKindIds()
+				.map(urlTranslation::kindToUrl)
+				.map(modelFactory::listKindItem)
+				.wrap(modelFactory::listKindResponse);
 	}
 }

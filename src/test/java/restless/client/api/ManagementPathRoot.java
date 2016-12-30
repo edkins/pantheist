@@ -1,6 +1,7 @@
 package restless.client.api;
 
 import restless.api.entity.model.ListEntityResponse;
+import restless.api.kind.model.ListKindResponse;
 import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListJavaPkgResponse;
 
@@ -56,4 +57,6 @@ public interface ManagementPathRoot
 	String urlOfService(String classifierSegment);
 
 	ListJavaPkgResponse listJavaPackages();
+
+	ListKindResponse listKinds();
 }

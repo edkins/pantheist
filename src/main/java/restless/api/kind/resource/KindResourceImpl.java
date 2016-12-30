@@ -41,6 +41,25 @@ public class KindResourceImpl implements ResourceTag
 	}
 
 	/**
+	 * Handles listing kinds (GET)
+	 */
+	@GET
+	@Path("kind")
+	@Produces("application/json")
+	public Response listKinds()
+	{
+		LOGGER.info("GET kind");
+		try
+		{
+			return resp.toJson(backend.listKinds());
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
 	 * Handles kinds (PUT)
 	 */
 	@PUT

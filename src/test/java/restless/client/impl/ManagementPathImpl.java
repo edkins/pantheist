@@ -11,6 +11,7 @@ import restless.api.entity.model.ApiEntity;
 import restless.api.entity.model.ListComponentResponse;
 import restless.api.entity.model.ListEntityResponse;
 import restless.api.kind.model.ApiKind;
+import restless.api.kind.model.ListKindResponse;
 import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
@@ -255,5 +256,11 @@ final class ManagementPathImpl implements
 	public String urlOfComponent(final String componentId)
 	{
 		return target.withSegment(COMPONENT).withSegment(componentId).url();
+	}
+
+	@Override
+	public ListKindResponse listKinds()
+	{
+		return target.withSegment("kind").getJson(ListKindResponse.class);
 	}
 }

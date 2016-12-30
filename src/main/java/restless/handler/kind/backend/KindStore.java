@@ -14,4 +14,6 @@ public interface KindStore
 	 * Returns all kinds that are discoverable
 	 */
 	AntiIterator<Kind> discoverKinds();
+
+	AntiIterator<String> listKindIds();
 }

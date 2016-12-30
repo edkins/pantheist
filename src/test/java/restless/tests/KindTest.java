@@ -12,6 +12,7 @@ import org.junit.Test;
 import restless.api.entity.model.ApiEntity;
 import restless.api.entity.model.ListEntityItem;
 import restless.api.kind.model.ApiKind;
+import restless.api.kind.model.ListKindItem;
 import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ManagementPathKind;
 import restless.client.api.ResponseType;
@@ -39,6 +40,18 @@ public class KindTest extends BaseTest
 		assertThat(kind.java().required(), is(true));
 		assertThat(kind.java().javaKind(), is(JavaKind.INTERFACE));
 		assertThat(kind.kindId(), is("my-kind"));
+	}
+
+	@Test
+	public void kind_isListed() throws Exception
+	{
+		final ManagementPathKind kind = manage.kind("my-kind");
+		kind.putJsonResource(KIND_SCHEMA_RES);
+
+		final List<ListKindItem> list = manage.listKinds().childResources();
+
+		assertThat(list.size(), is(1));
+		assertThat(list.get(0).url(), is(kind.url()));
 	}
 
 	@Test

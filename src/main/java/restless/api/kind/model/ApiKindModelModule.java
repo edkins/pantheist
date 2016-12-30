@@ -12,6 +12,8 @@ public class ApiKindModelModule extends PrivateModule
 		expose(ApiKindModelFactory.class);
 		install(new FactoryModuleBuilder()
 				.implement(ApiKind.class, ApiKindImpl.class)
+				.implement(ListKindResponse.class, ListKindResponseImpl.class)
+				.implement(ListKindItem.class, ListKindItemImpl.class)
 				.build(ApiKindModelFactory.class));
 	}
 
