@@ -8,6 +8,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import restless.api.java.model.ApiJavaModelFactory;
+import restless.api.java.model.ListFileResponse;
 import restless.api.java.model.ListJavaPkgResponse;
 import restless.api.management.model.ApiManagementModelFactory;
 import restless.api.management.model.ListClassifierResponse;
@@ -81,6 +82,22 @@ final class JavaBackendImpl implements JavaBackend
 		if (javaStore.packageExists(pkg))
 		{
 			return View.ok(managementFactory.listClassifierResponse(urlTranslation.listJavaPkgClassifiers(pkg)));
+		}
+		else
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
+	}
+
+	@Override
+	public Possible<ListFileResponse> listFilesInPackage(final String pkg)
+	{
+		if (javaStore.packageExists(pkg))
+		{
+			return javaStore.filesInPackage(pkg)
+					.map(urlTranslation::javaToUrl)
+					.map(modelFactory::listFileItem)
+					.wrap(xs -> View.ok(modelFactory.listFileResponse(xs)));
 		}
 		else
 		{

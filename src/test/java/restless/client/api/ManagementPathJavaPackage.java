@@ -1,5 +1,6 @@
 package restless.client.api;
 
+import restless.api.java.model.ListFileResponse;
 import restless.api.management.model.ListClassifierResponse;
 
 public interface ManagementPathJavaPackage
@@ -16,4 +17,6 @@ public interface ManagementPathJavaPackage
 	ResponseType listClassifierResponseType();
 
 	String url();
+
+	ListFileResponse listFiles();
 }

@@ -10,6 +10,7 @@ import restless.api.entity.model.ApiComponent;
 import restless.api.entity.model.ApiEntity;
 import restless.api.entity.model.ListComponentResponse;
 import restless.api.entity.model.ListEntityResponse;
+import restless.api.java.model.ListFileResponse;
 import restless.api.java.model.ListJavaPkgResponse;
 import restless.api.kind.model.ApiKind;
 import restless.api.kind.model.ListKindResponse;
@@ -269,5 +270,11 @@ final class ManagementPathImpl implements
 	public ListSchemaResponse listJsonSchemas()
 	{
 		return target.withSegment("json-schema").getJson(ListSchemaResponse.class);
+	}
+
+	@Override
+	public ListFileResponse listFiles()
+	{
+		return target.withSegment("file").getJson(ListFileResponse.class);
 	}
 }

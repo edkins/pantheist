@@ -293,4 +293,15 @@ final class JavaStoreImpl implements JavaStore
 				.filter(path -> path.lastSegment().endsWith(DOT_JAVA))
 				.foundAny();
 	}
+
+	@Override
+	public AntiIterator<JavaFileId> filesInPackage(final String pkg)
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		return snapshot
+				.listFilesAndDirectories(packagePath(pkg))
+				.filter(snapshot::safeIsFile)
+				.filter(path -> path.lastSegment().endsWith(DOT_JAVA))
+				.map(this::fileIdFromPath);
+	}
 }

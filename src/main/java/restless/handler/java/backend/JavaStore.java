@@ -39,4 +39,6 @@ public interface JavaStore
 	 * Will not return true if it's only subpackages that exist.
 	 */
 	boolean packageExists(String pkg);
+
+	AntiIterator<JavaFileId> filesInPackage(String pkg);
 }

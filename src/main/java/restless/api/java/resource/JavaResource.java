@@ -15,6 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import restless.api.java.backend.JavaBackend;
+import restless.api.java.model.ListFileResponse;
 import restless.api.java.model.ListJavaPkgResponse;
 import restless.api.management.model.ListClassifierResponse;
 import restless.common.annotations.ResourceTag;
@@ -68,6 +69,26 @@ public final class JavaResource implements ResourceTag
 		{
 			final ListJavaPkgResponse result = backend.listJavaPackages();
 			return resp.toJson(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles listing java files within a package (GET)
+	 */
+	@GET
+	@Path("java-pkg/{pkg}/file")
+	@Produces("application/json")
+	public Response listFilesInJavaPkg(@PathParam("pkg") final String pkg)
+	{
+		LOGGER.info("GET java-pkg/{}/file", pkg);
+		try
+		{
+			final Possible<ListFileResponse> result = backend.listFilesInPackage(pkg);
+			return resp.possibleToJson(result);
 		}
 		catch (final RuntimeException ex)
 		{
