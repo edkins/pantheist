@@ -1,3 +1,5 @@
+'use strict';
+
 var editor = undefined;
 
 var expandedNodes = {};
@@ -46,16 +48,6 @@ function invertExpansion(url)
 	{
 		expandedNodes[url] = '';
 	}
-}
-
-function clickTreeItem(event)
-{
-	var url = event.target.dataset.url;
-	
-	showResource(url).then( () => {
-		invertExpansion(url);
-		listThings();
-	});
 }
 
 function listThings()
@@ -135,11 +127,18 @@ function createUl(parentUrl)
 	);
 }
 
+function setEditorText(mode,text)
+{
+	editor.setValue(text);
+    editor.getSession().setMode('ace/mode/' + mode);
+	editor.selection.clearSelection();
+}
+
 function showResource(url)
 {
 	return http.getJson(url).then(
-		text => editor.setValue(JSON.stringify(text, null, '    ')),
-		error => editor.setValue('Error:'+error)
+		text => setEditorText('json', JSON.stringify(text, null, '    ')),
+		error => setEditorText('text', 'Error:'+error)
 	);
 }
 
@@ -152,8 +151,94 @@ function setupAce()
     editor.$blockScrolling = Infinity;
 }
 
+function setActiveLocation(url)
+{
+	var panel = document.getElementById('resource-list');
+	var items = panel.getElementsByTagName('div');
+	for (var i = 0; i < items.length; i++)
+	{
+		var item = items.item(i);
+		var wasActive = item.classList.contains('active');
+		if (item.dataset.url === url && !wasActive)
+		{
+			item.classList.add('active');
+		}
+		if (item.dataset.url !== url && wasActive)
+		{
+			item.classList.remove('active');
+		}
+	}
+	
+	document.getElementById('address-bar').value = url;
+}
+
+function setActiveActionButton(buttonId)
+{
+	var panel = document.getElementById('tab-bar');
+	var items = panel.getElementsByTagName('span');
+	for (var i = 0; i < items.length; i++)
+	{
+		items.item(i).classList.remove('active');
+	}
+	if (buttonId !== undefined)
+	{
+		document.getElementById(buttonId).classList.add('active');
+	}
+}
+
+function clickTreeItem(event)
+{
+	var url = event.target.dataset.url;
+	
+	showResource(url).then( () => {
+		invertExpansion(url);
+		listThings().then( () => {
+			setActiveLocation(url);
+			setActiveActionButton('btn-get');
+		});
+	});
+}
+
+function clickReload(event)
+{
+	http.post(http.home + 'system/reload', undefined, undefined);
+}
+
+function clickShutdown(event)
+{
+	http.post(http.home + 'system/terminate', undefined, undefined);
+}
+
+function clickGet(event)
+{
+	var url = document.getElementById('address-bar').value;
+	showResource(url).then( () => {
+		setActiveLocation(url);
+		setActiveActionButton('btn-get');
+	});
+}
+
+function clickPut(event)
+{
+	setEditorText('json','');
+	setActiveActionButton('btn-put');
+}
+
+function changeAddressBar(event)
+{
+	setActiveActionButton(undefined);
+}
+
 window.onload = function()
 {
 	setupAce();
 	listThings();
+	
+	document.getElementById('address-bar').value = http.home;
+	
+	document.getElementById('address-bar').oninput = changeAddressBar;
+	document.getElementById('btn-reload').onclick = clickReload;
+	document.getElementById('btn-shutdown').onclick = clickShutdown;
+	document.getElementById('btn-get').onclick = clickGet;
+	document.getElementById('btn-put').onclick = clickPut;
 }

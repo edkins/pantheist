@@ -3,6 +3,10 @@
 	height: 500pt;
 }
 
+body {
+	font-family: sans-serif;
+}
+
 .panel-holder {
 	display: table;
 	width: 100%;
@@ -14,10 +18,23 @@
 	display: table-cell;
 	width: 30%;
 	vertical-align: top;
+	padding-right: 6pt;
 }
 .panel-right {
 	display: table-cell;
 	width: 70%;
+	vertical-align: top;
+}
+.panel-buttons-left {
+	display: table-cell;
+	width: 70%;
+	vertical-align: top;
+}
+.panel-buttons-right {
+	display: table-cell;
+	width: 30%;
+	vertical-align: top;
+	text-align: right;
 }
 
 .tree-node.collapsed {
@@ -46,6 +63,27 @@
 	background: #eef;
 }
 
-body {
-	font-family: sans-serif;
+.tree-item.active {
+	background: #fdb;
+}
+
+.tree-item.active:hover {
+	background: #fdb;
+}
+
+.address-bar {
+	width: 100%;
+}
+
+.tab-bar {
+	margin: 8pt 0pt;
+}
+.tab-bar span {
+    border: solid #ccc 1px;
+    margin-right: 4pt;
+    padding: 4pt 10pt;
+	cursor: pointer;
+}
+.tab-bar span.active {
+	background: #fdb;
 }
