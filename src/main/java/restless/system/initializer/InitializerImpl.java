@@ -68,11 +68,14 @@ final class InitializerImpl implements Initializer
 		final String replacementText = "${DATADIR}";
 		final String hiddenText2 = "127.0.0.1:" + config.mainPort();
 		final String replacementText2 = "127.0.0.1:${MAIN_PORT}";
+		final String hiddenText3 = "127.0.0.1:" + config.managementPort();
+		final String replacementText3 = "127.0.0.1:${MANAGEMENT_PORT}";
 		final FsPath nginxConf = filesystem.systemBucket().segment("nginx.conf");
 		final String text = snapshot
 				.readText(nginxConf)
 				.replace(hiddenText, replacementText)
-				.replace(hiddenText2, replacementText2);
+				.replace(hiddenText2, replacementText2)
+				.replace(hiddenText3, replacementText3);
 
 		final FsPath nginxAnonConf = filesystem.systemBucket().segment("nginx-anon.conf");
 		snapshot.isFile(nginxAnonConf);

@@ -51,7 +51,8 @@ public class DataFileImportRule implements TestRule
 						new File(source, "system/nginx-anon.conf"),
 						new File(target, "system/nginx.conf"),
 						target.getAbsolutePath(),
-						"127.0.0.1:" + session.mainPort());
+						"127.0.0.1:" + session.mainPort(),
+						"127.0.0.1:" + session.managementPort());
 				base.evaluate();
 			}
 		};
@@ -61,15 +62,18 @@ public class DataFileImportRule implements TestRule
 			final File nginxAnonConf,
 			final File nginxConf,
 			final String hiddenText,
-			final String hiddenText2) throws IOException
+			final String hiddenText2,
+			final String hiddenText3) throws IOException
 	{
 		final String replacementText = "${DATADIR}";
 		final String replacementText2 = "127.0.0.1:${MAIN_PORT}";
+		final String replacementText3 = "127.0.0.1:${MANAGEMENT_PORT}";
 
 		final String text = FileUtils
 				.readFileToString(nginxAnonConf, StandardCharsets.UTF_8)
 				.replace(replacementText, hiddenText)
-				.replace(replacementText2, hiddenText2);
+				.replace(replacementText2, hiddenText2)
+				.replace(replacementText3, hiddenText3);
 
 		FileUtils.write(nginxConf, text, StandardCharsets.UTF_8);
 	}

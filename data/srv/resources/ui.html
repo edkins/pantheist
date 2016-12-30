@@ -1,0 +1,36 @@
+<html>
+<head>
+<script src="/third-party/ace-builds/src-noconflict/ace.js"></script>
+<script>
+	
+	function setupAce()
+	{
+	    editor = ace.edit("editor");
+	    editor.setTheme("ace/theme/chrome");
+	    editor.getSession().setMode("ace/mode/json");
+	    editor.setShowPrintMargin(false);
+	    editor.$blockScrolling = Infinity;
+	}
+
+	window.onload = function()
+	{
+		setupAce();
+	}
+
+</script>
+</head>
+
+<body>
+	<p>
+		<input type="text" id="inputUri" autocomplete="off">
+		<input type="button" value="Get" id="btnGet">
+		<input type="button" value="Put" id="btnPut">
+		<input type="button" value="Home" id="btnHome">
+	</p>
+	<p id="displayMessage">&nbsp;
+	</p>
+
+	<div id="editor"></div>
+
+</body>
+</html>

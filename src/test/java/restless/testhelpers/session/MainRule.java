@@ -85,7 +85,9 @@ public class MainRule implements TestRule
 		}
 		else
 		{
-			return ManagementClientImpl.from(session.managementUrl(), session.mainUrl(), session.objectMapper());
+			// main url and management url are the same for now.
+			// "/" is a proxy pass to the management interface in nginx.conf
+			return ManagementClientImpl.from(session.mainUrl(), session.mainUrl(), session.objectMapper());
 		}
 	}
 
