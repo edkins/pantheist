@@ -4,7 +4,11 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -17,7 +21,8 @@ import restless.client.api.ManagementPathEntity;
 import restless.client.api.ManagementPathJavaPackage;
 import restless.client.api.ManagementPathKind;
 import restless.client.api.ResponseType;
-import restless.handler.uri.ListClassifierItem;
+import restless.common.api.model.AdditionalStructureItem;
+import restless.common.api.model.ListClassifierItem;
 
 public class ListClassifierTest extends BaseTest
 {
@@ -119,5 +124,19 @@ public class ListClassifierTest extends BaseTest
 
 		assertThat(urls, containsInAnyOrder(kind.urlOfService("entity")));
 		assertThat(segs, containsInAnyOrder("entity"));
+	}
+
+	@Test
+	public void javaPkg_additionalStructure() throws Exception
+	{
+		final List<AdditionalStructureItem> additional = manage.listJavaPackages().additionalStructure();
+
+		assertThat(additional.size(), is(2));
+		assertTrue("First segment should be literal", additional.get(0).literal());
+		assertThat(additional.get(0).name(), is("file"));
+		assertFalse("Second segment should be var", additional.get(1).literal());
+
+		// the actual name of the var doesn't really matter
+		assertThat(additional.get(1).name(), not(isEmptyOrNullString()));
 	}
 }

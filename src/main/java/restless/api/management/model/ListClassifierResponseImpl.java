@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.Assisted;
 
-import restless.handler.uri.ListClassifierItem;
+import restless.common.api.model.ListClassifierItem;
 
 final class ListClassifierResponseImpl implements ListClassifierResponse
 {

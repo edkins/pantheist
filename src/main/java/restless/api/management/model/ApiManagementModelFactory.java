@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.google.inject.assistedinject.Assisted;
 
-import restless.handler.uri.ListClassifierItem;
+import restless.common.api.model.ListClassifierItem;
 
 public interface ApiManagementModelFactory
 {

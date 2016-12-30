@@ -78,12 +78,47 @@ body {
 .tab-bar {
 	margin: 8pt 0pt;
 }
-.tab-bar span {
+.tab-bar .tab {
     border: solid #ccc 1px;
     margin-right: 4pt;
     padding: 4pt 10pt;
 	cursor: pointer;
 }
-.tab-bar span.active {
+.tab-bar .tab.active {
 	background: #fdb;
+}
+.tab-bar .action {
+    border: solid black 1px;
+    margin-right: 4pt;
+    padding: 4pt 10pt;
+	cursor: pointer;
+	background: #0a0;
+	color: white;
+}
+.tab-bar .action.hidden {
+	visibility: hidden;
+}
+
+.tab-bar .gap {
+	padding: 0pt 40pt;
+}
+
+.disappearing.hidden {
+	display: none;
+}
+
+.msg-flash {
+	animation-duration: 0.5s;
+	animation-name: flashtext;
+	color: #ccc;
+}
+
+@keyframes flashtext {
+	from {
+		color: #000;
+	}
+
+	to {
+		color: #ccc;
+	}
 }

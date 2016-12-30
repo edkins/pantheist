@@ -1,7 +1,9 @@
-package restless.handler.uri;
+package restless.common.api.url;
 
 import java.util.List;
 
+import restless.common.api.model.AdditionalStructureItem;
+import restless.common.api.model.ListClassifierItem;
 import restless.handler.java.model.JavaFileId;
 
 public interface UrlTranslation
@@ -33,4 +35,6 @@ public interface UrlTranslation
 	List<ListClassifierItem> listKindClassifiers(String kindId);
 
 	List<ListClassifierItem> listJavaPkgClassifiers(String pkg);
+
+	List<AdditionalStructureItem> javaPkgStructure();
 }

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import restless.handler.uri.ListClassifierItem;
+import restless.common.api.model.ListClassifierItem;
 
 /**
  * A "classifier" is one of the path segments that isn't the id of something,

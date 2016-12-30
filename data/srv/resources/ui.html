@@ -2,6 +2,7 @@
 <head>
 <script src="/third-party/ace-builds/src-noconflict/ace.js"></script>
 <script src="/resources/http.js"></script>
+<script src="/resources/transaction.js"></script>
 <script src="/resources/ui.js"></script>
 <link rel="stylesheet" href="/resources/style.css">
 </head>
@@ -21,19 +22,30 @@
 	</div>
 
 	<div class="panel-buttons-right">
-		<input id="btn-shutdown" type="button" value="Shutdown">
 		<input id="btn-reload" type="button" value="Reload">
+		<input id="btn-shutdown" type="button" value="Shutdown">
 	</div>
 	</div>
 	</div>
 	
 	<div class="tab-bar" id="tab-bar">
-		<span id="btn-get">
-			GET
+		<span class="tab" id="btn-get">
+			Get
 		</span>
-		<span id="btn-put">
-			PUT
+		<span class="tab" id="btn-create">
+			Create
 		</span>
+		<span class="gap">
+		</span>
+		<span class="action hidden" id="btn-send">
+			Send
+		</span>
+		<span class="msg-flash" id="send-response"></span>
+	</div>
+	<div class="disappearing hidden" id="create-form">
+		<span id="create-label-1"></span>
+		<input type="text" id="create-id-1" data-segtype="var" autocomplete="off">
+		<span id="create-additional"></span>
 	</div>
 
 	<div id="editor"></div>

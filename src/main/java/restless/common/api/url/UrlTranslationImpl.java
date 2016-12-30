@@ -1,4 +1,4 @@
-package restless.handler.uri;
+package restless.common.api.url;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -8,10 +8,14 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import restless.api.management.backend.UriPattern;
 import restless.api.management.backend.UriPatternImpl;
+import restless.common.api.model.AdditionalStructureItem;
+import restless.common.api.model.CommonApiModelFactory;
+import restless.common.api.model.ListClassifierItem;
 import restless.common.util.AntiIt;
 import restless.handler.java.model.JavaFileId;
 import restless.handler.java.model.JavaModelFactory;
@@ -20,7 +24,7 @@ import restless.system.config.RestlessConfig;
 final class UrlTranslationImpl implements UrlTranslation
 {
 	private final JavaModelFactory javaFactory;
-	private final HandlerUriModelFactory modelFactory;
+	private final CommonApiModelFactory modelFactory;
 
 	private final UriPattern managementRoot;
 	private final UriPattern kind;
@@ -35,7 +39,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	private UrlTranslationImpl(
 			final RestlessConfig config,
 			final JavaModelFactory javaFactory,
-			final HandlerUriModelFactory modelFactory)
+			final CommonApiModelFactory modelFactory)
 	{
 		final UriPattern root = UriPatternImpl.hostAndPort("http", "127.0.0.1:" + config.mainPort())
 				.emptySegment();
@@ -149,6 +153,19 @@ final class UrlTranslationImpl implements UrlTranslation
 	public String componentToUrl(final String entityId, final String componentId)
 	{
 		return component.generate(ImmutableMap.of("entityId", entityId, "componentId", componentId));
+	}
+
+	@Override
+	public List<AdditionalStructureItem> javaPkgStructure()
+	{
+		// This looks mysterious, but what it's saying is:
+		// - the client already expects urls to look like "/java-pkg/{}"
+		// - we are telling it that additional segments need to be appended to create resources in there
+		// - and the additional structure is "file/{}"
+
+		return ImmutableList.of(
+				modelFactory.additionalStructureItem(true, "file"),
+				modelFactory.additionalStructureItem(false, "file"));
 	}
 
 }

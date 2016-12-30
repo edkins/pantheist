@@ -6,9 +6,9 @@ import javax.annotation.Nullable;
 
 import com.google.inject.assistedinject.Assisted;
 
+import restless.common.api.model.ListClassifierItem;
 import restless.handler.kind.model.JavaClause;
 import restless.handler.kind.model.KindLevel;
-import restless.handler.uri.ListClassifierItem;
 
 public interface ApiKindModelFactory
 {

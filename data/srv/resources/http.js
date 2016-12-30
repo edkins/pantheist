@@ -69,6 +69,37 @@ http.schemeAndAuthority = function(uri)
 	return http.buildUri(parts.scheme, parts.authority, undefined);
 };
 
+http.withoutTrailingSlash = function(str)
+{
+	if (str.endsWith('/'))
+	{
+		return str.substring(0,str.length-1);
+	}
+	else
+	{
+		return str;
+	}
+};
+
+http.lastSegment = function(uri)
+{
+	uri = http.withoutTrailingSlash(uri);
+	var parts = http.splitUri(uri);
+	if (parts.path === undefined)
+	{
+		return '';
+	}
+	var i = parts.path.lastIndexOf('/');
+	if (i == -1)
+	{
+		return parts.path;
+	}
+	else
+	{
+		return parts.path.substring(i + 1);
+	}
+};
+
 http.home = http.schemeAndAuthority('' + window.location);
 
 http.getJson = function(url)
@@ -93,6 +124,34 @@ http.getJson = function(url)
 						{
 							reject(e);
 						}
+					}
+					else
+					{
+						reject(xmlhttp.status + ' ' + xmlhttp.statusText);
+					}
+				};
+			xmlhttp.onerror = function()
+				{
+					reject(xmlhttp.status + ' ' + xmlhttp.statusText);
+				};
+			xmlhttp.send();
+		}
+	);
+};
+
+http.putString = function(url,contentType,text)
+{
+	return new Promise(
+		function(resolve,reject)
+		{
+			var xmlhttp = new XMLHttpRequest();
+			xmlhttp.open('PUT', url, true);
+			xmlhttp.setRequestHeader('Content-Type', contentType);
+			xmlhttp.onload = function()
+				{
+					if (xmlhttp.status == 204)
+					{
+						resolve(undefined);
 					}
 					else
 					{

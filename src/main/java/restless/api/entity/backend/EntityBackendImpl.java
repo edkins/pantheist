@@ -21,6 +21,7 @@ import restless.api.entity.model.ListComponentResponse;
 import restless.api.entity.model.ListEntityItem;
 import restless.api.entity.model.ListEntityResponse;
 import restless.api.kind.model.ApiKindModelFactory;
+import restless.common.api.url.UrlTranslation;
 import restless.common.util.AntiIterator;
 import restless.common.util.FailureReason;
 import restless.common.util.OtherCollectors;
@@ -35,7 +36,6 @@ import restless.handler.java.model.JavaFileId;
 import restless.handler.kind.backend.KindValidation;
 import restless.handler.schema.backend.JsonSchemaStore;
 import restless.handler.schema.model.SchemaComponent;
-import restless.handler.uri.UrlTranslation;
 
 final class EntityBackendImpl implements EntityBackend
 {

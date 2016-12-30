@@ -8,7 +8,7 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.assistedinject.Assisted;
 
-import restless.handler.uri.ListClassifierItem;
+import restless.common.api.model.ListClassifierItem;
 
 final class ApiEntityImpl implements ApiEntity
 {

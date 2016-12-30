@@ -1,4 +1,4 @@
-package restless.handler.uri;
+package restless.common.api.model;
 
 import javax.inject.Inject;
 
@@ -7,7 +7,7 @@ import com.google.inject.assistedinject.Assisted;
 
 import restless.common.util.OtherPreconditions;
 
-public class ListClassifierItemImpl implements ListClassifierItem
+final class ListClassifierItemImpl implements ListClassifierItem
 {
 	private final String url;
 	private final String classifierSegment;

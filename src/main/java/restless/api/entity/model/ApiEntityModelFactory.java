@@ -6,9 +6,9 @@ import javax.annotation.Nullable;
 
 import com.google.inject.assistedinject.Assisted;
 
+import restless.common.api.model.ListClassifierItem;
 import restless.handler.java.model.JavaComponent;
 import restless.handler.schema.model.SchemaComponent;
-import restless.handler.uri.ListClassifierItem;
 
 public interface ApiEntityModelFactory
 {

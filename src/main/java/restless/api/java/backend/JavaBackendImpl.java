@@ -3,15 +3,18 @@ package restless.api.java.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
 
 import restless.api.java.model.ApiJavaModelFactory;
 import restless.api.java.model.ListFileResponse;
+import restless.api.java.model.ListJavaPkgItem;
 import restless.api.java.model.ListJavaPkgResponse;
 import restless.api.management.model.ApiManagementModelFactory;
 import restless.api.management.model.ListClassifierResponse;
+import restless.common.api.url.UrlTranslation;
 import restless.common.util.AntiIt;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
@@ -22,7 +25,6 @@ import restless.handler.java.backend.JavaStore;
 import restless.handler.java.model.JavaFileId;
 import restless.handler.java.model.JavaModelFactory;
 import restless.handler.kind.backend.KindStore;
-import restless.handler.uri.UrlTranslation;
 
 final class JavaBackendImpl implements JavaBackend
 {
@@ -64,6 +66,11 @@ final class JavaBackendImpl implements JavaBackend
 		return javaStore.getJava(id);
 	}
 
+	private ListJavaPkgResponse toListJavaPkgResponse(final List<ListJavaPkgItem> childResources)
+	{
+		return modelFactory.listJavaPkgResponse(childResources, urlTranslation.javaPkgStructure());
+	}
+
 	@Override
 	public ListJavaPkgResponse listJavaPackages()
 	{
@@ -73,7 +80,7 @@ final class JavaBackendImpl implements JavaBackend
 
 		return AntiIt.from(packages)
 				.map(pkg -> modelFactory.listJavaPkgItem(urlTranslation.javaPkgToUrl(pkg)))
-				.wrap(modelFactory::listJavaPkgResponse);
+				.wrap(this::toListJavaPkgResponse);
 	}
 
 	@Override

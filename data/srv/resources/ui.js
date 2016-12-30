@@ -2,34 +2,6 @@
 
 var editor = undefined;
 
-var expandedNodes = {};
-
-function withoutTrailingSlash(url)
-{
-	if (url.endsWith('/'))
-	{
-		return url.substring(0,url.length-1);
-	}
-	else
-	{
-		return url;
-	}
-}
-
-function lastSegment(url)
-{
-	url = withoutTrailingSlash(url);
-	var i = url.lastIndexOf('/');
-	if (i == -1)
-	{
-		return url;
-	}
-	else
-	{
-		return url.substring(i + 1);
-	}
-}
-
 function removeChildren(element)
 {
 	while (element.firstChild)
@@ -40,21 +12,19 @@ function removeChildren(element)
 
 function invertExpansion(url)
 {
-	if (url in expandedNodes)
+	if (url in ui.expandedNodes)
 	{
-		delete expandedNodes[url];
+		delete ui.expandedNodes[url];
 	}
 	else
 	{
-		expandedNodes[url] = '';
+		ui.expandedNodes[url] = '';
 	}
 }
 
-function listThings()
+function listThings(t)
 {
-	var url = http.home;
-	
-	return createUl(url).then(
+	return createUl(t,http.home).then(
 		ul => {
 			var panel = document.getElementById('resource-list');
 			removeChildren(panel);
@@ -75,12 +45,12 @@ function processList(i,array,fn)
 	}
 }
 
-function createUl(parentUrl)
+function createUl(t,parentUrl)
 {
 	var ul = document.createElement('ul');
-	return http.getJson(parentUrl).then(
-		text => {
-			if (text.childResources.length === 0)
+	return t.getJson(parentUrl).then(
+		data => {
+			if (data.childResources.length === 0)
 			{
 				var li = document.createElement('li');
 				li.append('empty');
@@ -90,8 +60,8 @@ function createUl(parentUrl)
 				return ul;
 			}
 		
-			return processList(0, text.childResources, child => {
-				var name = lastSegment(child.url);
+			return processList(0, data.childResources, child => {
+				var name = http.lastSegment(child.url);
 				
 				var li = document.createElement('li');
 				ul.append(li);
@@ -104,10 +74,10 @@ function createUl(parentUrl)
 				item.onclick = clickTreeItem;
 
 				li.classList.add('tree-node');
-				if (child.url in expandedNodes)
+				if (child.url in t.expandedNodes)
 				{
 					li.classList.add('expanded');
-					return createUl(child.url).then( cul => li.append(cul) );
+					return createUl(t,child.url).then( cul => li.append(cul) );
 				}
 				else
 				{
@@ -134,12 +104,16 @@ function setEditorText(mode,text)
 	editor.selection.clearSelection();
 }
 
-function showResource(url)
+function showData(t)
 {
-	return http.getJson(url).then(
-		text => setEditorText('json', JSON.stringify(text, null, '    ')),
-		error => setEditorText('text', 'Error:'+error)
-	);
+	if (t.data === undefined)
+	{
+		setEditorText('text', 'Error:'+t.error)
+	}
+	else
+	{
+		setEditorText('json', JSON.stringify(t.data, null, '    '))
+	}
 }
 
 function setupAce()
@@ -151,7 +125,7 @@ function setupAce()
     editor.$blockScrolling = Infinity;
 }
 
-function setActiveLocation(url)
+function highlightLocationInResourceList(url)
 {
 	var panel = document.getElementById('resource-list');
 	var items = panel.getElementsByTagName('div');
@@ -168,11 +142,9 @@ function setActiveLocation(url)
 			item.classList.remove('active');
 		}
 	}
-	
-	document.getElementById('address-bar').value = url;
 }
 
-function setActiveActionButton(buttonId)
+function highlightActiveTab(buttonId)
 {
 	var panel = document.getElementById('tab-bar');
 	var items = panel.getElementsByTagName('span');
@@ -186,15 +158,83 @@ function setActiveActionButton(buttonId)
 	}
 }
 
+function showCreateForm(t)
+{
+	document.getElementById('create-form').classList.remove('hidden');
+	document.getElementById('create-label-1').textContent = http.lastSegment(t.url);
+	
+	if (t.data !== undefined)
+	{
+		var panel = document.getElementById('create-additional');
+		removeChildren(panel);
+		if ('additionalStructure' in t.data)
+		{
+			for (var additional of t.data.additionalStructure)
+			{
+				if (additional.literal)
+				{
+					var span = document.createElement('span');
+					span.append(' ' + additional.name + ' ');
+					span.dataset.segtype = 'literal';
+					span.dataset.name = additional.name;
+					panel.append(span);
+				}
+				else
+				{
+					var inp = document.createElement('input');
+					inp.type = 'text';
+					inp.dataset.segtype = 'var';
+					panel.append(inp);
+				}
+			}
+		}
+	}
+}
+
+function hideCreateForm()
+{
+	document.getElementById('create-form').classList.add('hidden');
+}
+
+function refreshCurrentPane(t)
+{
+	switch(t.tab)
+	{
+	case 'btn-get':
+		document.getElementById('btn-send').classList.add('hidden');
+		hideCreateForm();
+		showData(t);
+
+		break;
+	case 'btn-create':
+		document.getElementById('btn-send').classList.remove('hidden');
+		showCreateForm(t);
+
+		break;
+	default:
+		document.getElementById('btn-send').classList.add('hidden');
+		hideCreateForm();
+	}
+}
+
 function clickTreeItem(event)
 {
 	var url = event.target.dataset.url;
-	
-	showResource(url).then( () => {
-		invertExpansion(url);
-		listThings().then( () => {
-			setActiveLocation(url);
-			setActiveActionButton('btn-get');
+
+	document.getElementById('address-bar').value = url;
+	invertExpansion(url);
+
+	Transaction.fetch().then( t => {
+		if (t.tab === undefined)
+		{
+			ui.tab = 'btn-get';
+			t.tab = 'btn-get';
+			highlightActiveTab('btn-get');
+		}
+		
+		refreshCurrentPane(t);
+		listThings(t).then( () => {
+			highlightLocationInResourceList(t.url);
 		});
 	});
 }
@@ -211,34 +251,105 @@ function clickShutdown(event)
 
 function clickGet(event)
 {
-	var url = document.getElementById('address-bar').value;
-	showResource(url).then( () => {
-		setActiveLocation(url);
-		setActiveActionButton('btn-get');
+	ui.tab = 'btn-get';
+	highlightActiveTab('btn-get');
+
+	Transaction.fetch().then( t => {
+		highlightLocationInResourceList(t.url);
+		refreshCurrentPane(t);
 	});
 }
 
-function clickPut(event)
+function clickCreate(event)
 {
-	setEditorText('json','');
-	setActiveActionButton('btn-put');
+	ui.tab = 'btn-create';
+	highlightActiveTab('btn-create');
+
+	Transaction.fetch().then( t => {
+		setEditorText('json','');
+		refreshCurrentPane(t);
+	});
+}
+
+function constructSendUrl(t)
+{
+	var url = t.url;
+	
+	var panel = document.getElementById('create-form');
+	var items = panel.getElementsByTagName('*');
+	for (var i = 0; i < items.length; i++)
+	{
+		var item = items.item(i);
+		if ('segtype' in item.dataset)
+		{
+			switch(item.dataset.segtype)
+			{
+			case 'literal':
+				url += '/' + item.dataset.name;
+				break;
+			case 'var':
+				if (item.value === '')
+				{
+					return Promise.reject('Values must be nonempty');
+				}
+				url += '/' + item.value;
+				break;
+			}
+		} 
+	}
+	return Promise.resolve(url);
+}
+
+function flashMsg(msg)
+{
+	var el = document.getElementById('send-response');
+	
+	el.textContent = '' + msg;
+	
+	// Dirty css/js hack
+	// Restart css animation by removing class, triggering reflow, then adding class back again
+	el.classList.remove('msg-flash');
+	var ignore = el.offsetWidth;
+	el.classList.add('msg-flash');
+}
+
+function clickSend(event)
+{
+	var t = new Transaction();
+	var text = editor.getValue();
+	
+	constructSendUrl(t)
+		.then( sendUrl => {
+			return http.putString(sendUrl, 'application/json', text)
+				.then( x => flashMsg('OK') );
+		} )
+		.catch (error => flashMsg(error) );
 }
 
 function changeAddressBar(event)
 {
-	setActiveActionButton(undefined);
+	if (ui.tab === 'btn-get')
+	{
+		ui.tab = undefined;
+		highlightActiveTab(undefined);
+	}
 }
 
 window.onload = function()
 {
 	setupAce();
-	listThings();
-	
-	document.getElementById('address-bar').value = http.home;
 	
 	document.getElementById('address-bar').oninput = changeAddressBar;
 	document.getElementById('btn-reload').onclick = clickReload;
 	document.getElementById('btn-shutdown').onclick = clickShutdown;
 	document.getElementById('btn-get').onclick = clickGet;
-	document.getElementById('btn-put').onclick = clickPut;
+	document.getElementById('btn-create').onclick = clickCreate;
+	document.getElementById('btn-send').onclick = clickSend;
+
+	document.getElementById('address-bar').value = http.home;
+
+	Transaction.fetch().then( t => {
+		refreshCurrentPane(t);
+		listThings(t);
+	});
 }

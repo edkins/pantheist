@@ -17,6 +17,7 @@ import restless.api.management.model.CreateConfigRequest;
 import restless.api.management.model.ListClassifierResponse;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
+import restless.common.api.url.UrlTranslation;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
 import restless.common.util.View;
@@ -25,7 +26,6 @@ import restless.handler.entity.model.EntityModelFactory;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.kind.backend.KindStore;
 import restless.handler.nginx.manage.NginxService;
-import restless.handler.uri.UrlTranslation;
 import restless.system.initializer.Initializer;
 
 final class ManagementBackendImpl implements ManagementBackend

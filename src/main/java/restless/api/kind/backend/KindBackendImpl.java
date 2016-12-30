@@ -10,6 +10,7 @@ import restless.api.entity.model.ListEntityResponse;
 import restless.api.kind.model.ApiKind;
 import restless.api.kind.model.ApiKindModelFactory;
 import restless.api.kind.model.ListKindResponse;
+import restless.common.api.url.UrlTranslation;
 import restless.common.util.FailureReason;
 import restless.common.util.OtherPreconditions;
 import restless.common.util.Possible;
@@ -19,7 +20,6 @@ import restless.handler.kind.backend.KindStore;
 import restless.handler.kind.backend.KindValidation;
 import restless.handler.kind.model.Kind;
 import restless.handler.kind.model.KindModelFactory;
-import restless.handler.uri.UrlTranslation;
 
 final class KindBackendImpl implements KindBackend
 {

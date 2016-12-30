@@ -6,9 +6,9 @@ import javax.inject.Inject;
 
 import restless.api.schema.model.ApiSchemaModelFactory;
 import restless.api.schema.model.ListSchemaResponse;
+import restless.common.api.url.UrlTranslation;
 import restless.common.util.Possible;
 import restless.handler.schema.backend.JsonSchemaStore;
-import restless.handler.uri.UrlTranslation;
 
 final class SchemaBackendImpl implements SchemaBackend
 {
