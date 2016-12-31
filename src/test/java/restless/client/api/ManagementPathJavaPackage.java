@@ -1,6 +1,6 @@
 package restless.client.api;
 
-import restless.api.java.model.ListFileResponse;
+import restless.api.java.model.ListJavaFileResponse;
 import restless.common.api.model.ListClassifierResponse;
 
 public interface ManagementPathJavaPackage
@@ -18,5 +18,5 @@ public interface ManagementPathJavaPackage
 
 	String url();
 
-	ListFileResponse listFiles();
+	ListJavaFileResponse listJavaFiles();
 }

@@ -13,8 +13,8 @@ public class ApiJavaModelModule extends PrivateModule
 		install(new FactoryModuleBuilder()
 				.implement(ListJavaPkgItem.class, ListJavaPkgItemImpl.class)
 				.implement(ListJavaPkgResponse.class, ListJavaPkgResponseImpl.class)
-				.implement(ListFileItem.class, ListFileItemImpl.class)
-				.implement(ListFileResponse.class, ListFileResponseImpl.class)
+				.implement(ListJavaFileItem.class, ListJavaFileItemImpl.class)
+				.implement(ListJavaFileResponse.class, ListJavaFileResponseImpl.class)
 				.implement(ApiJavaFile.class, ApiJavaFileImpl.class)
 				.implement(ApiJavaBinding.class, ApiJavaBindingImpl.class)
 				.build(ApiJavaModelFactory.class));

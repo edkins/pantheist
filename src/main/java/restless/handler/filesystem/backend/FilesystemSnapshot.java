@@ -54,6 +54,8 @@ public interface FilesystemSnapshot
 	 */
 	boolean safeIsFile(FsPath path);
 
+	boolean safeIsDir(FsPath path);
+
 	/**
 	 * Convenience method.
 	 *

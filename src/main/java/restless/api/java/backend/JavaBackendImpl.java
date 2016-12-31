@@ -12,7 +12,7 @@ import javax.inject.Inject;
 import restless.api.java.model.ApiJavaBinding;
 import restless.api.java.model.ApiJavaFile;
 import restless.api.java.model.ApiJavaModelFactory;
-import restless.api.java.model.ListFileResponse;
+import restless.api.java.model.ListJavaFileResponse;
 import restless.api.java.model.ListJavaPkgItem;
 import restless.api.java.model.ListJavaPkgResponse;
 import restless.common.api.model.CommonApiModelFactory;
@@ -104,7 +104,7 @@ final class JavaBackendImpl implements JavaBackend
 	}
 
 	@Override
-	public Possible<ListFileResponse> listFilesInPackage(final String pkg)
+	public Possible<ListJavaFileResponse> listFilesInPackage(final String pkg)
 	{
 		if (javaStore.packageExists(pkg))
 		{

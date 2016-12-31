@@ -20,9 +20,9 @@ public interface ApiJavaModelFactory
 			CreateAction createAction,
 			BindingAction bindingAction);
 
-	ListFileItem listFileItem(@Assisted("url") String url);
+	ListJavaFileItem listFileItem(@Assisted("url") String url);
 
-	ListFileResponse listFileResponse(List<ListFileItem> childResources);
+	ListJavaFileResponse listFileResponse(List<ListJavaFileItem> childResources);
 
 	ApiJavaFile javaFile(
 			DataAction dataAction,

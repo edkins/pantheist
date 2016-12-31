@@ -26,6 +26,7 @@ public class KindTest extends BaseTest
 	private static final String JAVA_INTLIST_RES = "/java-example/NonEmptyNonNegativeIntList";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String KIND_SCHEMA_RES = "/kind-schema/kind-test-example";
+	private static final String KIND_SCHEMA_SYSTEM_RES = "/kind-schema/kind-test-example-system";
 	private static final String KIND_EXAMPLE_CORRECT_ID_RES = "/kind-schema/kind-test-example-correct-id";
 	private static final String KIND_EXAMPLE_GARBAGE_ID_RES = "/kind-schema/kind-test-example-garbage-id";
 
@@ -40,6 +41,17 @@ public class KindTest extends BaseTest
 		assertThat(kind.java().required(), is(true));
 		assertThat(kind.java().javaKind(), is(JavaKind.INTERFACE));
 		assertThat(kind.kindId(), is("my-kind"));
+		assertFalse("This kind not part of system", kind.partOfSystem());
+	}
+
+	@Test
+	public void kind_canBeTaggedAsSystem() throws Exception
+	{
+		manage.kind("my-kind").putJsonResource(KIND_SCHEMA_SYSTEM_RES);
+
+		final ApiKind kind = manage.kind("my-kind").getKind();
+
+		assertTrue("This kind should be part of system", kind.partOfSystem());
 	}
 
 	@Test

@@ -102,6 +102,25 @@ http.lastSegment = function(uri)
 
 http.home = http.schemeAndAuthority('' + window.location);
 
+http._error = function(xmlhttp)
+{
+	if (xmlhttp.responseText === undefined || xmlhttp.responseText === '')
+	{
+		if (xmlhttp.status === 0)
+		{
+			return 'Unable to connect';
+		}
+		else
+		{
+			return xmlhttp.status + ' ' + xmlhttp.statusText;
+		}
+	}
+	else
+	{
+		return xmlhttp.status + ' ' + xmlhttp.statusText + ':' + xmlhttp.responseText.substring(0,30);
+	}
+}
+
 http.getString = function(acceptContentType,url)
 {
 	return new Promise(
@@ -118,12 +137,12 @@ http.getString = function(acceptContentType,url)
 					}
 					else
 					{
-						reject(xmlhttp.status + ' ' + xmlhttp.statusText + ':' + xmlhttp.responseText.substring(0,30));
+						reject(http._error(xmlhttp));
 					}
 				};
 			xmlhttp.onerror = function()
 				{
-					reject(xmlhttp.status + ' ' + xmlhttp.statusText);
+					reject(http._error(xmlhttp));
 				};
 			xmlhttp.send();
 		}
@@ -163,12 +182,12 @@ http.putString = function(url,contentType,text)
 					}
 					else
 					{
-						reject(xmlhttp.status + ' ' + xmlhttp.statusText + ':' + xmlhttp.responseText.substring(0,30));
+						reject(http._error(xmlhttp));
 					}
 				};
 			xmlhttp.onerror = function()
 				{
-					reject(xmlhttp.status + ' ' + xmlhttp.statusText);
+					reject(http._error(xmlhttp));
 				};
 			xmlhttp.send(text);
 		}
@@ -194,12 +213,12 @@ http.post = function(url,contentType,data)
 					}
 					else
 					{
-						reject(xmlhttp.status + ' ' + xmlhttp.statusText + ':' + xmlhttp.responseText.substring(0,30));
+						reject(http._error(xmlhttp));
 					}
 				};
 			xmlhttp.onerror = function()
 				{
-					reject(xmlhttp.status + ' ' + xmlhttp.statusText);
+					reject(http._error(xmlhttp));
 				};
 			xmlhttp.send(data);
 		}
@@ -221,12 +240,12 @@ http.del = function(url)
 					}
 					else
 					{
-						reject(xmlhttp.status + ' ' + xmlhttp.statusText + ':' + xmlhttp.responseText.substring(0,30));
+						reject(http._error(xmlhttp));
 					}
 				};
 			xmlhttp.onerror = function()
 				{
-					reject(xmlhttp.status + ' ' + xmlhttp.statusText);
+					reject(http._error(xmlhttp));
 				};
 			xmlhttp.send();
 		}

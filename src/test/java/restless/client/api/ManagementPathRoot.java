@@ -1,6 +1,7 @@
 package restless.client.api;
 
 import restless.api.entity.model.ListEntityResponse;
+import restless.api.flatdir.model.ListFlatDirResponse;
 import restless.api.java.model.ListJavaPkgResponse;
 import restless.api.kind.model.ListKindResponse;
 import restless.api.schema.model.ListSchemaResponse;
@@ -64,4 +65,18 @@ public interface ManagementPathRoot
 	ListSchemaResponse listJsonSchemas();
 
 	ManagementPathJavaBinding javaBinding();
+
+	/**
+	 * A view of the file system where directories are not presented hierarchically.
+	 *
+	 * Instead every directory path maps to a single path segment, and URL percent encoding
+	 * is used to encode the directory separators as %2F
+	 *
+	 * As a special case, the root directory is mapped to a single %2F, not to the empty segment.
+	 * This is to avoid accidental removal of empty URI segments. None of the other directories
+	 * will start or end with an escaped slash.
+	 */
+	ManagementFlatDirPath flatDir(String dir);
+
+	ListFlatDirResponse listFlatDirs();
 }

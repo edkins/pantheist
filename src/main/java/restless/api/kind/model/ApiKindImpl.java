@@ -21,6 +21,7 @@ final class ApiKindImpl implements ApiKind
 	private final KindLevel level;
 	private final boolean discoverable;
 	private final JavaClause java;
+	private final boolean partOfSystem;
 
 	@Inject
 	private ApiKindImpl(
@@ -28,13 +29,15 @@ final class ApiKindImpl implements ApiKind
 			@Nullable @Assisted("kindId") @JsonProperty("kindId") final String kindId,
 			@Assisted @JsonProperty("level") final KindLevel level,
 			@Assisted("discoverable") @JsonProperty("discoverable") final boolean discoverable,
-			@Nullable @Assisted @JsonProperty("java") final JavaClause java)
+			@Nullable @Assisted @JsonProperty("java") final JavaClause java,
+			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem)
 	{
 		this.childResources = childResources;
 		this.kindId = kindId;
 		this.level = checkNotNull(level);
 		this.discoverable = discoverable;
 		this.java = java;
+		this.partOfSystem = partOfSystem;
 	}
 
 	@Override
@@ -65,5 +68,11 @@ final class ApiKindImpl implements ApiKind
 	public JavaClause java()
 	{
 		return java;
+	}
+
+	@Override
+	public boolean partOfSystem()
+	{
+		return partOfSystem;
 	}
 }

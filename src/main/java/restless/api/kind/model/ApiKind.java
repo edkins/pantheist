@@ -25,4 +25,12 @@ public interface ApiKind extends ListClassifierResponse
 	@Nullable
 	@JsonProperty("java")
 	JavaClause java();
+
+	/**
+	 * Return whether this is used by the system itself.
+	 *
+	 * For now this is just a tag that is remembered but doesn't do anything.
+	 */
+	@JsonProperty("partOfSystem")
+	boolean partOfSystem();
 }

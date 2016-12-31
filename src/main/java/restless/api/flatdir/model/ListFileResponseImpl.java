@@ -1,4 +1,4 @@
-package restless.api.java.model;
+package restless.api.flatdir.model;
 
 import java.util.List;
 

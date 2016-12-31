@@ -18,7 +18,7 @@ import org.apache.logging.log4j.Logger;
 import restless.api.java.backend.JavaBackend;
 import restless.api.java.model.ApiJavaBinding;
 import restless.api.java.model.ApiJavaFile;
-import restless.api.java.model.ListFileResponse;
+import restless.api.java.model.ListJavaFileResponse;
 import restless.api.java.model.ListJavaPkgResponse;
 import restless.common.annotations.ResourceTag;
 import restless.common.api.model.ListClassifierResponse;
@@ -90,7 +90,7 @@ public final class JavaResource implements ResourceTag
 		LOGGER.info("GET java-pkg/{}/file", pkg);
 		try
 		{
-			final Possible<ListFileResponse> result = backend.listFilesInPackage(pkg);
+			final Possible<ListJavaFileResponse> result = backend.listFilesInPackage(pkg);
 			return resp.possibleToJson(result);
 		}
 		catch (final RuntimeException ex)

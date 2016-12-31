@@ -39,6 +39,8 @@ public interface UrlTranslation
 
 	List<ListClassifierItem> listJavaPkgClassifiers(String pkg);
 
+	List<ListClassifierItem> listFlatDirClassifiers(String dir);
+
 	CreateAction javaPkgCreateAction();
 
 	DataAction javaFileDataAction(JavaFileId javaFileId);
@@ -52,4 +54,9 @@ public interface UrlTranslation
 	DeleteAction jsonSchemaDeleteAction();
 
 	BindingAction javaPkgBindingAction();
+
+	String flatDirFileToUrl(String dir, String file);
+
+	String flatDirToUrl(String dir);
+
 }

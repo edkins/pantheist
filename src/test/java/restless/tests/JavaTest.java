@@ -8,7 +8,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import restless.api.java.model.ListFileItem;
+import restless.api.java.model.ListJavaFileItem;
 import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ResponseType;
 
@@ -70,7 +70,7 @@ public class JavaTest extends BaseTest
 		final ManagementPathJavaFile file = manage.javaPackage(JAVA_PKG).file(JAVA_EMPTY_CLASS_NAME);
 		file.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
 
-		final List<ListFileItem> list = manage.javaPackage(JAVA_PKG).listFiles().childResources();
+		final List<ListJavaFileItem> list = manage.javaPackage(JAVA_PKG).listJavaFiles().childResources();
 
 		assertThat(list.size(), is(1));
 		assertThat(list.get(0).url(), is(file.url()));

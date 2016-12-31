@@ -10,7 +10,8 @@ public interface KindModelFactory
 			@Nullable @Assisted("kindId") String kindId,
 			KindLevel level,
 			@Assisted("discoverable") Boolean discoverable,
-			@Nullable JavaClause java);
+			@Nullable JavaClause java,
+			@Assisted("partOfSystem") boolean partOfSystem);
 
 	JavaClause javaClause(@Assisted("required") boolean required, @Nullable JavaKind javaKind);
 }

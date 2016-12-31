@@ -7,12 +7,12 @@ import com.google.inject.assistedinject.Assisted;
 
 import restless.common.util.OtherPreconditions;
 
-final class ListFileItemImpl implements ListFileItem
+final class ListJavaFileItemImpl implements ListJavaFileItem
 {
 	private final String url;
 
 	@Inject
-	private ListFileItemImpl(@Assisted("url") @JsonProperty("url") final String url)
+	private ListJavaFileItemImpl(@Assisted("url") @JsonProperty("url") final String url)
 	{
 		this.url = OtherPreconditions.checkNotNullOrEmpty(url);
 	}

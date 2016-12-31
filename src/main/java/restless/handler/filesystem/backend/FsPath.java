@@ -44,6 +44,9 @@ public interface FsPath
 
 	FsPath segment(String seg);
 
+	/**
+	 * Returns whether this path is empty, i.e. representing the root directory.
+	 */
 	boolean isEmpty();
 
 	/**

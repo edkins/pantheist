@@ -18,6 +18,7 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import restless.api.java.model.ListJavaPkgItem;
+import restless.client.api.ManagementFlatDirPath;
 import restless.client.api.ManagementPathEntity;
 import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ManagementPathJavaPackage;
@@ -48,7 +49,7 @@ public class ListClassifierTest extends BaseTest
 		final List<String> urls = Lists.transform(list, ListClassifierItem::url);
 		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
 
-		assertThat(segs, hasItems("data", "server", "java-pkg", "json-schema", "entity", "kind"));
+		assertThat(segs, hasItems("data", "server", "java-pkg", "json-schema", "entity", "kind", "flat-dir"));
 		assertThat(urls, hasItem(manage.urlOfService("java-pkg")));
 	}
 
@@ -246,5 +247,28 @@ public class ListClassifierTest extends BaseTest
 		final BindingAction bindingAction = manage.listJavaPackages().bindingAction();
 		assertThat(bindingAction, notNullValue());
 		assertThat(bindingAction.url(), is(manage.urlOfService("java-binding")));
+	}
+
+	@Test
+	public void flatDir_classifiers() throws Exception
+	{
+		final ManagementFlatDirPath flatDir = manage.flatDir("srv/resources");
+		final List<? extends ListClassifierItem> list = flatDir
+				.listClassifiers()
+				.childResources();
+
+		assertThat(list.size(), is(1));
+		assertThat(list.get(0).classifierSegment(), is("file"));
+		assertThat(list.get(0).url(), is(flatDir.urlOfService("file")));
+	}
+
+	@Test
+	public void flatDir_thatDoesNotExist_noClassifiers() throws Exception
+	{
+		final ManagementFlatDirPath flatDir = manage.flatDir("srv/resources");
+		final ManagementFlatDirPath badDir = manage.flatDir("srv/xxx");
+
+		assertThat(flatDir.listClassifierResponseType(), is(ResponseType.OK));
+		assertThat(badDir.listClassifierResponseType(), is(ResponseType.NOT_FOUND));
 	}
 }

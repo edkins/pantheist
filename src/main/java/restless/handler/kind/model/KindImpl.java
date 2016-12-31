@@ -16,18 +16,21 @@ final class KindImpl implements Kind
 	private final KindLevel level;
 	private final JavaClause java;
 	private final boolean discoverable;
+	private final boolean partOfSystem;
 
 	@Inject
 	private KindImpl(
 			@Assisted("kindId") @JsonProperty("kindId") final String kindId,
 			@Assisted @JsonProperty("level") final KindLevel level,
 			@Assisted("discoverable") @JsonProperty("discoverable") final Boolean discoverable,
-			@Nullable @Assisted @JsonProperty("java") final JavaClause java)
+			@Nullable @Assisted @JsonProperty("java") final JavaClause java,
+			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem)
 	{
 		this.kindId = OtherPreconditions.checkNotNullOrEmpty(kindId);
 		this.discoverable = checkNotNull(discoverable);
 		this.level = checkNotNull(level);
 		this.java = java;
+		this.partOfSystem = partOfSystem;
 	}
 
 	@Override
@@ -52,6 +55,12 @@ final class KindImpl implements Kind
 	public String kindId()
 	{
 		return kindId;
+	}
+
+	@Override
+	public boolean partOfSystem()
+	{
+		return partOfSystem;
 	}
 
 }

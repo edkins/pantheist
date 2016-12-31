@@ -73,7 +73,7 @@ function createUl(t,parentUrl)
 
 function createTreeNode(t,url)
 {
-	var name = http.lastSegment(url);
+	var name = decodeURIComponent(http.lastSegment(url));
 	
 	var li = document.createElement('li');
 	
@@ -325,7 +325,7 @@ function constructCreateUrl(t)
 			switch(item.dataset.segtype)
 			{
 			case 'literal':
-				url += '/' + item.dataset.name;
+				url += '/' + encodeURIComponent(item.dataset.name);
 				break;
 			case 'var':
 				if (item.value === '')
@@ -333,7 +333,7 @@ function constructCreateUrl(t)
 					flashMsg('Values must be nonempty');
 					return undefined;
 				}
-				url += '/' + item.value;
+				url += '/' + encodeURIComponent(item.value);
 				break;
 			}
 		} 
@@ -436,7 +436,11 @@ function respondToClickingTreeItem(t)
 
 function clickReload(event)
 {
-	http.post(http.home + '/system/reload', undefined, undefined);
+	http.post(http.home + '/system/reload', undefined, undefined).then( () => {
+		flashMsg('Server has reloaded configuration');
+	}).catch( error => {
+		flashMsg(error);
+	});
 }
 
 function clickShutdown(event)
@@ -444,7 +448,9 @@ function clickShutdown(event)
 	var t = new Transaction();
 	http.post(http.home + '/system/terminate', undefined, undefined).then( () => {
 		flashMsg('Terminated');
-	});
+	}).catch( error => {
+		flashMsg(error);
+	});;
 }
 
 function clickInfo(event)

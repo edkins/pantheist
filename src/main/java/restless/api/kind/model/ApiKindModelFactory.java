@@ -17,7 +17,8 @@ public interface ApiKindModelFactory
 			@Nullable @Assisted("kindId") String kindId,
 			KindLevel level,
 			@Assisted("discoverable") Boolean discoverable,
-			@Nullable JavaClause java);
+			@Nullable JavaClause java,
+			@Assisted("partOfSystem") boolean partOfSystem);
 
 	ListKindResponse listKindResponse(List<ListKindItem> childResources);
 

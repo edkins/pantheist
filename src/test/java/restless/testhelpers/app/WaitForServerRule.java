@@ -51,7 +51,7 @@ public class WaitForServerRule implements TestRule
 		{
 			try
 			{
-				UriBuilder.fromUri(session.managementUrl().toURI()).path("system/ping").build().toURL().getContent();
+				UriBuilder.fromUri(session.mainUrl().toURI()).path("system/ping").build().toURL().getContent();
 				return;
 			}
 			catch (final IOException e)

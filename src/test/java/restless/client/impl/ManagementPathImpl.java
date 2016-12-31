@@ -10,9 +10,11 @@ import restless.api.entity.model.ApiComponent;
 import restless.api.entity.model.ApiEntity;
 import restless.api.entity.model.ListComponentResponse;
 import restless.api.entity.model.ListEntityResponse;
+import restless.api.flatdir.model.ListFileResponse;
+import restless.api.flatdir.model.ListFlatDirResponse;
 import restless.api.java.model.ApiJavaBinding;
 import restless.api.java.model.ApiJavaFile;
-import restless.api.java.model.ListFileResponse;
+import restless.api.java.model.ListJavaFileResponse;
 import restless.api.java.model.ListJavaPkgResponse;
 import restless.api.kind.model.ApiKind;
 import restless.api.kind.model.ListKindResponse;
@@ -21,6 +23,7 @@ import restless.api.management.model.ListConfigResponse;
 import restless.api.schema.model.ApiSchema;
 import restless.api.schema.model.ListSchemaResponse;
 import restless.client.api.ManagementData;
+import restless.client.api.ManagementFlatDirPath;
 import restless.client.api.ManagementPathEntity;
 import restless.client.api.ManagementPathJavaBinding;
 import restless.client.api.ManagementPathJavaFile;
@@ -42,7 +45,8 @@ final class ManagementPathImpl implements
 		ManagementPathKind,
 		ManagementPathJavaFile,
 		ManagementPathSchema,
-		ManagementPathJavaBinding
+		ManagementPathJavaBinding,
+		ManagementFlatDirPath
 {
 	// Path segments
 	private static final String JAVA_PKG = "java-pkg";
@@ -56,6 +60,7 @@ final class ManagementPathImpl implements
 	private static final String KIND = "kind";
 	private static final String VALIDATE = "validate";
 	private static final String JAVA_BINDING = "java-binding";
+	private static final String FLAT_DIR = "flat-dir";
 
 	// Content types
 	private static final String APPLICATION_JSON = "application/json";
@@ -281,9 +286,9 @@ final class ManagementPathImpl implements
 	}
 
 	@Override
-	public ListFileResponse listFiles()
+	public ListJavaFileResponse listJavaFiles()
 	{
-		return target.withSegment(FILE).getJson(ListFileResponse.class);
+		return target.withSegment(FILE).getJson(ListJavaFileResponse.class);
 	}
 
 	@Override
@@ -340,5 +345,23 @@ final class ManagementPathImpl implements
 		final Map<String, Object> map = new HashMap<>();
 		map.put("location", location);
 		target.putObjectAsJson(map);
+	}
+
+	@Override
+	public ManagementFlatDirPath flatDir(final String dir)
+	{
+		return new ManagementPathImpl(target.withSegment(FLAT_DIR).withEscapedSegment(dir));
+	}
+
+	@Override
+	public ListFileResponse listFlatDirFiles()
+	{
+		return target.withSegment(FILE).getJson(ListFileResponse.class);
+	}
+
+	@Override
+	public ListFlatDirResponse listFlatDirs()
+	{
+		return target.withSegment(FLAT_DIR).getJson(ListFlatDirResponse.class);
 	}
 }

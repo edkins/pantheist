@@ -339,6 +339,12 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 	}
 
 	@Override
+	public boolean safeIsDir(final FsPath path)
+	{
+		return checkFileState(path) == FileState.DIRECTORY;
+	}
+
+	@Override
 	public void incidentalWriteTask(final FsPath path, final SingleFileProcessor task)
 	{
 		checkNotNull(path);

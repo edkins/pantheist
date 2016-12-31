@@ -20,4 +20,7 @@ public interface Kind
 	@Nullable
 	@JsonProperty("java")
 	JavaClause java();
+
+	@JsonProperty("partOfSystem")
+	boolean partOfSystem();
 }

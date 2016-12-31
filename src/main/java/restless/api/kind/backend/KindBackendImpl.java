@@ -53,7 +53,7 @@ final class KindBackendImpl implements KindBackend
 	private ApiKind toApiKind(final Kind k)
 	{
 		return modelFactory.kind(urlTranslation.listKindClassifiers(k.kindId()),
-				k.kindId(), k.level(), k.discoverable(), k.java());
+				k.kindId(), k.level(), k.discoverable(), k.java(), k.partOfSystem());
 	}
 
 	@Override
@@ -66,7 +66,7 @@ final class KindBackendImpl implements KindBackend
 	private Kind supplyKindId(final String kindId, final ApiKind kind)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
-		return kindFactory.kind(kindId, kind.level(), kind.discoverable(), kind.java());
+		return kindFactory.kind(kindId, kind.level(), kind.discoverable(), kind.java(), kind.partOfSystem());
 	}
 
 	@Override

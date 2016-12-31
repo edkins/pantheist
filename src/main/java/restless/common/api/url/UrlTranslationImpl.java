@@ -42,6 +42,8 @@ final class UrlTranslationImpl implements UrlTranslation
 	private final UriPattern location;
 	private final UriPattern entity;
 	private final UriPattern component;
+	private final UriPattern flatDir;
+	private final UriPattern flatDirFile;
 
 	@Inject
 	private UrlTranslationImpl(
@@ -53,6 +55,8 @@ final class UrlTranslationImpl implements UrlTranslation
 				.emptySegment();
 
 		this.managementRoot = root;
+		this.javaFactory = checkNotNull(javaFactory);
+		this.modelFactory = checkNotNull(modelFactory);
 		this.entity = root.segment("entity").var("entityId");
 		this.component = entity.segment("component").var("componentId");
 		this.kind = root.segment("kind").var("kindId");
@@ -61,8 +65,8 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.javaPkg = root.segment("java-pkg").var("pkg");
 		this.javaFile = javaPkg.segment("file").var("file");
 		this.location = root.segment("server").var("serverId").segment("location").var("locationId");
-		this.javaFactory = checkNotNull(javaFactory);
-		this.modelFactory = checkNotNull(modelFactory);
+		this.flatDir = root.segment("flat-dir").var("dir");
+		this.flatDirFile = flatDir.segment("file").var("file");
 	}
 
 	@Override
@@ -125,7 +129,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	public List<ListClassifierItem> listRootClassifiers()
 	{
 		return classifiers(managementRoot, ImmutableMap.of(), false,
-				"entity", "kind", "java-pkg", "json-schema", "server", "data");
+				"entity", "kind", "java-pkg", "json-schema", "server", "data", "flat-dir");
 	}
 
 	@Override
@@ -217,6 +221,24 @@ final class UrlTranslationImpl implements UrlTranslation
 	{
 		final String url = javaBinding.generate(ImmutableMap.of());
 		return modelFactory.bindingAction(url);
+	}
+
+	@Override
+	public String flatDirFileToUrl(final String dir, final String file)
+	{
+		return flatDirFile.generate(ImmutableMap.of("dir", dir, "file", file));
+	}
+
+	@Override
+	public List<ListClassifierItem> listFlatDirClassifiers(final String dir)
+	{
+		return classifiers(flatDir, ImmutableMap.of("dir", dir), true, "file");
+	}
+
+	@Override
+	public String flatDirToUrl(final String dir)
+	{
+		return flatDir.generate(ImmutableMap.of("dir", dir));
 	}
 
 }

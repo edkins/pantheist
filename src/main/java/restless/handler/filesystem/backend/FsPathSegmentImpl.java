@@ -16,9 +16,9 @@ final class FsPathSegmentImpl implements FsPathSegment
 
 		// Note this covers the special cases . and ..
 		// Even if we start allowing files that start with a dot, we need to exclude those.
-		if (segment.startsWith("."))
+		if (segment.equals(".") || segment.equals(".."))
 		{
-			throw new IllegalArgumentException("Not allowing files or directories starting with .");
+			throw new IllegalArgumentException("Special file names . and .. not allowed in FsPathSegment");
 		}
 		if (segment.contains("/"))
 		{

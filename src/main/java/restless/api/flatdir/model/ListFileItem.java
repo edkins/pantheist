@@ -1,4 +1,4 @@
-package restless.api.java.model;
+package restless.api.flatdir.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -8,4 +8,7 @@ public interface ListFileItem
 {
 	@JsonProperty("url")
 	String url();
+
+	@JsonProperty("fileName")
+	String fileName();
 }
