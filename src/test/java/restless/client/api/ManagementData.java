@@ -14,12 +14,6 @@ public interface ManagementData
 	String getString(String contentType);
 
 	/**
-	 * Returns the class of response that we receive when we call GET on this
-	 * data resource.
-	 */
-	ResponseType getResponseType();
-
-	/**
 	 * Puts the data for this resource
 	 *
 	 * @param data
@@ -42,4 +36,10 @@ public interface ManagementData
 	 * Attempt to put a resource and return the response type.
 	 */
 	ResponseType putResourceResponseType(String resourcePath, String contentType);
+
+	/**
+	 * Returns the class of response that we receive when we call GET on this
+	 * data resource.
+	 */
+	ResponseType getResponseTypeForContentType(String jsonSchemaMime);
 }

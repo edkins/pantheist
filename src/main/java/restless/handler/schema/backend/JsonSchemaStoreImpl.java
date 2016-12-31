@@ -38,7 +38,7 @@ final class JsonSchemaStoreImpl implements JsonSchemaStore
 	}
 
 	@Override
-	public Possible<Void> putJsonSchema(final String schemaId, final String schemaText)
+	public Possible<Void> putJsonSchema(final String schemaId, final String schemaText, final boolean failIfExists)
 	{
 		final JsonNode schema;
 		try
@@ -49,12 +49,19 @@ final class JsonSchemaStoreImpl implements JsonSchemaStore
 		{
 			return FailureReason.REQUEST_HAS_INVALID_SYNTAX.happened();
 		}
-		return factory.jsonValidator(schema).checkSchema().onSuccess(() -> {
+		return factory.jsonValidator(schema).checkSchema().posMap(x -> {
 			final FilesystemSnapshot snapshot = filesystem.snapshot();
 			final FsPath file = path(schemaId);
 			snapshot.willNeedDirectory(file.parent());
-			snapshot.isFile(file);
+			if (snapshot.isFile(file))
+			{
+				if (failIfExists)
+				{
+					return FailureReason.ALREADY_EXISTS.happened();
+				}
+			}
 			snapshot.writeSingleText(file, schemaText);
+			return View.noContent();
 		});
 	}
 
@@ -133,5 +140,28 @@ final class JsonSchemaStoreImpl implements JsonSchemaStore
 		return snapshot.listFilesAndDirectories(jsonSchemaRootPath())
 				.filter(snapshot::safeIsFile)
 				.map(FsPath::lastSegment);
+	}
+
+	@Override
+	public boolean jsonSchemaExists(final String schemaId)
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		return snapshot.isFile(path(schemaId));
+	}
+
+	@Override
+	public boolean deleteJsonSchema(final String schemaId)
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final FsPath path = path(schemaId);
+		if (snapshot.isFile(path))
+		{
+			snapshot.writeSingle(path, file -> file.delete());
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 }

@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,7 +22,7 @@ final class CreateActionImpl implements CreateAction
 	private CreateActionImpl(
 			@Assisted @JsonProperty("basicType") final BasicContentType basicType,
 			@Assisted("mimeType") @JsonProperty("mimeType") final String mimeType,
-			@Assisted @JsonProperty("additionalStructure") final List<AdditionalStructureItem> additionalStructure)
+			@Nullable @Assisted @JsonProperty("additionalStructure") final List<AdditionalStructureItem> additionalStructure)
 	{
 		this.basicType = checkNotNull(basicType);
 		this.mimeType = OtherPreconditions.checkNotNullOrEmpty(mimeType);

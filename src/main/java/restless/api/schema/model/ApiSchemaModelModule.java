@@ -13,6 +13,7 @@ public class ApiSchemaModelModule extends PrivateModule
 		install(new FactoryModuleBuilder()
 				.implement(ListSchemaItem.class, ListSchemaItemImpl.class)
 				.implement(ListSchemaResponse.class, ListSchemaResponseImpl.class)
+				.implement(ApiSchema.class, ApiSchemaImpl.class)
 				.build(ApiSchemaModelFactory.class));
 	}
 

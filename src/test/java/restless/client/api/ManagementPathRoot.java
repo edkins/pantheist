@@ -30,7 +30,7 @@ public interface ManagementPathRoot
 	/**
 	 * Return the json-schema with the given id.
 	 */
-	ManagementDataSchema jsonSchema(String schemaId);
+	ManagementPathSchema jsonSchema(String schemaId);
 
 	/**
 	 * Returns an API for managing an entity.

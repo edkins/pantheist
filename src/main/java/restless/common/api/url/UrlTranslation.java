@@ -43,4 +43,10 @@ public interface UrlTranslation
 	DataAction javaFileDataAction(JavaFileId javaFileId);
 
 	DeleteAction javaFileDeleteAction(JavaFileId javaFileId);
+
+	CreateAction jsonSchemaCreateAction();
+
+	DataAction jsonSchemaDataAction();
+
+	DeleteAction jsonSchemaDeleteAction();
 }

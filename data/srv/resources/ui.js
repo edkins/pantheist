@@ -298,14 +298,15 @@ function constructCreateUrl(t)
 			case 'var':
 				if (item.value === '')
 				{
-					return Promise.reject('Values must be nonempty');
+					flashMsg('Values must be nonempty');
+					return undefined;
 				}
 				url += '/' + item.value;
 				break;
 			}
 		} 
 	}
-	return Promise.resolve(url);
+	return url;
 }
 
 function showAvailableActionsAsTabs(t)
@@ -461,9 +462,12 @@ function clickSend(event)
 			}
 		
 			return http.putString(t.url + '/data', t.data.dataAction.mimeType, text)
-				.then( x => flashMsg('OK') )
+				.then( x => {
+					flashMsg('OK');
+					listThings(t);
+				} )
 				.catch (error => flashMsg(error) );
-			break;
+
 		case 'btn-create':
 			if (t.data === undefined || t.data.createAction == undefined)
 			{
@@ -471,13 +475,17 @@ function clickSend(event)
 				return;
 			}
 		
-			constructCreateUrl(t)
-				.then( sendUrl => {
-					return http.putString(sendUrl, t.data.createAction.mimeType, text)
-						.then( x => flashMsg('OK') );
-				} )
-				.catch (error => flashMsg(error) );
-			break;
+			var sendUrl = constructCreateUrl(t);
+			if (sendUrl === undefined)
+			{
+				return;
+			}
+
+			return http.putString(sendUrl, t.data.createAction.mimeType, text)
+				.then( x => {
+					flashMsg('OK');
+					listThings(t);
+				});
 		}
 	} );
 }
@@ -487,6 +495,7 @@ function clickDelete(event)
 	Transaction.fetch().then( t => {
 		http.del(t.url).then( () => {
 			flashMsg('Deleted');
+			listThings(t);
 		}).catch( error => {
 			flashMsg(error);
 		});

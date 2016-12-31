@@ -2,6 +2,8 @@ package restless.common.api.model;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.google.inject.assistedinject.Assisted;
 
 public interface CommonApiModelFactory
@@ -17,7 +19,7 @@ public interface CommonApiModelFactory
 	CreateAction createAction(
 			BasicContentType basicType,
 			@Assisted("mimeType") String mimeType,
-			List<AdditionalStructureItem> additionalStructure);
+			@Nullable List<AdditionalStructureItem> additionalStructure);
 
 	DataAction dataAction(
 			BasicContentType basicType,

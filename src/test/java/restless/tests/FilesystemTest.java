@@ -20,13 +20,15 @@ import restless.client.api.ResponseType;
 
 public class FilesystemTest extends BaseTest
 {
+	private static final String TEXT_PLAIN = "text/plain";
+
 	@Test
 	public void filesystemFile_canReadItBack_throughManagementApi() throws Exception
 	{
 		mmain.location("/my-binding/").bindToFilesystem();
 		manage.data("my-binding/my-file").putString("Contents of file");
 
-		final String data = manage.data("my-binding/my-file").getString("text/plain");
+		final String data = manage.data("my-binding/my-file").getString(TEXT_PLAIN);
 		assertEquals("Contents of file", data);
 	}
 
@@ -37,9 +39,9 @@ public class FilesystemTest extends BaseTest
 		manage.data("my-binding/my-file").putString("Contents of file");
 
 		assertEquals(ResponseType.OK,
-				manage.data("my-binding/my-file").getResponseType());
+				manage.data("my-binding/my-file").getResponseTypeForContentType(TEXT_PLAIN));
 		assertEquals(ResponseType.NOT_FOUND,
-				manage.data("my-binding/other-file").getResponseType());
+				manage.data("my-binding/other-file").getResponseTypeForContentType(TEXT_PLAIN));
 	}
 
 	@Test

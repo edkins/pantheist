@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -17,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import restless.api.schema.backend.SchemaBackend;
+import restless.api.schema.model.ApiSchema;
 import restless.common.annotations.ResourceTag;
 import restless.common.http.Resp;
 import restless.common.util.Possible;
@@ -58,13 +60,13 @@ public final class SchemaResource implements ResourceTag
 	 * Handles the schema management function (PUT)
 	 */
 	@PUT
-	@Path("json-schema/{schemaId}")
+	@Path("json-schema/{schemaId}/data")
 	@Consumes("application/schema+json")
 	public Response putJsonSchema(
 			@PathParam("schemaId") final String schemaId,
 			final String data)
 	{
-		LOGGER.info("PUT json-schema/{}", schemaId);
+		LOGGER.info("PUT json-schema/{}/data", schemaId);
 		try
 		{
 			final Possible<Void> result = backend.putJsonSchema(schemaId, data);
@@ -82,15 +84,56 @@ public final class SchemaResource implements ResourceTag
 	 */
 	@GET
 	@Produces("application/schema+json")
-	@Path("json-schema/{schemaId}")
+	@Path("json-schema/{schemaId}/data")
 	public Response getJsonSchema(
+			@PathParam("schemaId") final String schemaId)
+	{
+		LOGGER.info("GET json-schema/{}/data", schemaId);
+		try
+		{
+			final Possible<String> data = backend.getJsonSchema(schemaId);
+			return resp.possibleData(data);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles retrieving schema information (GET)
+	 */
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("json-schema/{schemaId}")
+	public Response describeJsonSchema(
 			@PathParam("schemaId") final String schemaId)
 	{
 		LOGGER.info("GET json-schema/{}", schemaId);
 		try
 		{
-			final Possible<String> data = backend.getJsonSchema(schemaId);
-			return resp.possibleData(data);
+			final Possible<ApiSchema> data = backend.describeJsonSchema(schemaId);
+			return resp.possibleToJson(data);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles deleting json schemas (DELETE)
+	 */
+	@DELETE
+	@Path("json-schema/{schemaId}")
+	public Response deleteJsonSchema(
+			@PathParam("schemaId") final String schemaId)
+	{
+		LOGGER.info("DELETE json-schema/{}", schemaId);
+		try
+		{
+			final Possible<Void> result = backend.deleteJsonSchema(schemaId);
+			return resp.possibleEmpty(result);
 		}
 		catch (final RuntimeException ex)
 		{

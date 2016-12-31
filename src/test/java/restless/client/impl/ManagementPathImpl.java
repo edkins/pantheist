@@ -17,15 +17,16 @@ import restless.api.kind.model.ApiKind;
 import restless.api.kind.model.ListKindResponse;
 import restless.api.management.model.ListConfigItem;
 import restless.api.management.model.ListConfigResponse;
+import restless.api.schema.model.ApiSchema;
 import restless.api.schema.model.ListSchemaResponse;
 import restless.client.api.ManagementData;
-import restless.client.api.ManagementDataSchema;
 import restless.client.api.ManagementPathEntity;
 import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ManagementPathJavaPackage;
 import restless.client.api.ManagementPathKind;
 import restless.client.api.ManagementPathLocation;
 import restless.client.api.ManagementPathRoot;
+import restless.client.api.ManagementPathSchema;
 import restless.client.api.ManagementPathServer;
 import restless.client.api.ResponseType;
 import restless.common.api.model.ListClassifierResponse;
@@ -37,7 +38,8 @@ final class ManagementPathImpl implements
 		ManagementPathJavaPackage,
 		ManagementPathEntity,
 		ManagementPathKind,
-		ManagementPathJavaFile
+		ManagementPathJavaFile,
+		ManagementPathSchema
 {
 	// Path segments
 	private static final String JAVA_PKG = "java-pkg";
@@ -49,6 +51,7 @@ final class ManagementPathImpl implements
 	private static final String ENTITY = "entity";
 	private static final String COMPONENT = "component";
 	private static final String KIND = "kind";
+	private static final String VALIDATE = "validate";
 
 	// Content types
 	private static final String APPLICATION_JSON = "application/json";
@@ -131,9 +134,9 @@ final class ManagementPathImpl implements
 	}
 
 	@Override
-	public ManagementDataSchema jsonSchema(final String schemaId)
+	public ManagementPathSchema jsonSchema(final String schemaId)
 	{
-		return new ManagementDataImpl(target.withSegment(JSON_SCHEMA).withSegment(schemaId));
+		return new ManagementPathImpl(target.withSegment(JSON_SCHEMA).withSegment(schemaId));
 	}
 
 	@Override
@@ -264,19 +267,19 @@ final class ManagementPathImpl implements
 	@Override
 	public ListKindResponse listKinds()
 	{
-		return target.withSegment("kind").getJson(ListKindResponse.class);
+		return target.withSegment(KIND).getJson(ListKindResponse.class);
 	}
 
 	@Override
 	public ListSchemaResponse listJsonSchemas()
 	{
-		return target.withSegment("json-schema").getJson(ListSchemaResponse.class);
+		return target.withSegment(JSON_SCHEMA).getJson(ListSchemaResponse.class);
 	}
 
 	@Override
 	public ListFileResponse listFiles()
 	{
-		return target.withSegment("file").getJson(ListFileResponse.class);
+		return target.withSegment(FILE).getJson(ListFileResponse.class);
 	}
 
 	@Override
@@ -295,5 +298,23 @@ final class ManagementPathImpl implements
 	public ResponseType deleteResponseType()
 	{
 		return target.deleteResponseType();
+	}
+
+	@Override
+	public ResponseType validate(final String data, final String contentType)
+	{
+		return target.withSegment(VALIDATE).postResponseType(data, contentType);
+	}
+
+	@Override
+	public ApiSchema describeSchema()
+	{
+		return target.getJson(ApiSchema.class);
+	}
+
+	@Override
+	public ResponseType describeSchemaResponseType()
+	{
+		return target.getResponseType(APPLICATION_JSON);
 	}
 }

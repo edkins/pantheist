@@ -9,7 +9,7 @@ import restless.handler.schema.model.SchemaComponent;
 
 public interface JsonSchemaStore
 {
-	Possible<Void> putJsonSchema(String schemaId, String schemaText);
+	Possible<Void> putJsonSchema(String schemaId, String schemaText, boolean failIfExists);
 
 	Possible<String> getJsonSchema(String schemaId);
 
@@ -25,4 +25,8 @@ public interface JsonSchemaStore
 	List<SchemaComponent> listComponents(String schemaId);
 
 	AntiIterator<String> listJsonSchemaIds();
+
+	boolean jsonSchemaExists(String schemaId);
+
+	boolean deleteJsonSchema(String schemaId);
 }

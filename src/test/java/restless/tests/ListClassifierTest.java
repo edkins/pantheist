@@ -22,6 +22,7 @@ import restless.client.api.ManagementPathEntity;
 import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ManagementPathJavaPackage;
 import restless.client.api.ManagementPathKind;
+import restless.client.api.ManagementPathSchema;
 import restless.client.api.ResponseType;
 import restless.common.api.model.AdditionalStructureItem;
 import restless.common.api.model.BasicContentType;
@@ -35,6 +36,8 @@ public class ListClassifierTest extends BaseTest
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
 	private static final String KIND_SCHEMA_RES = "/kind-schema/kind-test-example";
+	private static final String JSON_SCHEMA_MIME = "application/schema+json";
+	private static final String JSON_SCHEMA_COFFEE_RES = "/json-schema/coffee";
 
 	@Test
 	public void root_classifiers() throws Exception
@@ -185,6 +188,53 @@ public class ListClassifierTest extends BaseTest
 
 		final ResponseType response1 = file.getJavaFileResponseType();
 		final ResponseType response2 = bad.getJavaFileResponseType();
+		assertThat(response1, is(ResponseType.OK));
+		assertThat(response2, is(ResponseType.NOT_FOUND));
+	}
+
+	@Test
+	public void jsonSchema_createAction() throws Exception
+	{
+		final CreateAction createAction = manage.listJsonSchemas().createAction();
+
+		assertThat(createAction.basicType(), is(BasicContentType.json));
+		assertThat(createAction.mimeType(), is(JSON_SCHEMA_MIME));
+		assertThat(createAction.additionalStructure().size(), is(1));
+		assertThat(createAction.additionalStructure().get(0).literal(), is(true));
+		assertThat(createAction.additionalStructure().get(0).name(), is("data"));
+	}
+
+	@Test
+	public void jsonSchema_dataAction() throws Exception
+	{
+		final ManagementPathSchema schema = mainRule.actions().manage().jsonSchema("coffee");
+		schema.data().putResource(JSON_SCHEMA_COFFEE_RES, JSON_SCHEMA_MIME);
+
+		final DataAction dataAction = schema.describeSchema().dataAction();
+
+		assertThat(dataAction.basicType(), is(BasicContentType.json));
+		assertThat(dataAction.mimeType(), is(JSON_SCHEMA_MIME));
+		assertThat(dataAction.canPut(), is(true));
+	}
+
+	@Test
+	public void jsonSchema_deleteAction() throws Exception
+	{
+		final ManagementPathSchema schema = mainRule.actions().manage().jsonSchema("coffee");
+		schema.data().putResource(JSON_SCHEMA_COFFEE_RES, JSON_SCHEMA_MIME);
+
+		assertThat(schema.describeSchema().deleteAction(), notNullValue());
+	}
+
+	@Test
+	public void jsonSchema_ifMissing_noDataAction() throws Exception
+	{
+		final ManagementPathSchema schema = mainRule.actions().manage().jsonSchema("coffee");
+		final ManagementPathSchema bad = mainRule.actions().manage().jsonSchema("mud");
+		schema.data().putResource(JSON_SCHEMA_COFFEE_RES, JSON_SCHEMA_MIME);
+
+		final ResponseType response1 = schema.describeSchemaResponseType();
+		final ResponseType response2 = bad.describeSchemaResponseType();
 		assertThat(response1, is(ResponseType.OK));
 		assertThat(response2, is(ResponseType.NOT_FOUND));
 	}

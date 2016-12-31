@@ -27,6 +27,7 @@ import restless.system.config.RestlessConfig;
 
 final class UrlTranslationImpl implements UrlTranslation
 {
+	private static final String JSON_SCHEMA_MIME = "application/schema+json";
 	private static final String TEXT_PLAIN = "text/plain";
 	private final JavaModelFactory javaFactory;
 	private final CommonApiModelFactory modelFactory;
@@ -183,6 +184,26 @@ final class UrlTranslationImpl implements UrlTranslation
 
 	@Override
 	public DeleteAction javaFileDeleteAction(final JavaFileId javaFileId)
+	{
+		return modelFactory.deleteAction();
+	}
+
+	@Override
+	public CreateAction jsonSchemaCreateAction()
+	{
+		final ImmutableList<AdditionalStructureItem> additionalStructure = ImmutableList.of(
+				modelFactory.additionalStructureItem(true, "data"));
+		return modelFactory.createAction(BasicContentType.json, JSON_SCHEMA_MIME, additionalStructure);
+	}
+
+	@Override
+	public DataAction jsonSchemaDataAction()
+	{
+		return modelFactory.dataAction(BasicContentType.json, JSON_SCHEMA_MIME, true);
+	}
+
+	@Override
+	public DeleteAction jsonSchemaDeleteAction()
 	{
 		return modelFactory.deleteAction();
 	}
