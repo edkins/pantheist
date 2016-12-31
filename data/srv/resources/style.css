@@ -54,34 +54,62 @@ body {
 
 ul {
 	margin: 0;
+	padding-left: 12pt;
+}
+li {
+   list-style: none;
 }
 
 // tree-node is the <li> element.
 
-.tree-node {
-	display-type: list-style-item;
-}
-
-.tree-node.collapsed {
-	list-style-type: disc;
-}
-
-.tree-node.expanded {
-	list-style-type: circle;
-}
-
 .tree-node.error {
-	list-style-type: square;
 	color: red;
 }
 
 .tree-node.notice {
-	list-style-type: square;
 	color: #ccc;
 }
 
-// tree-item is the block of text inside the <li> element which represents
-// the item itself (as opposed to its children).
+/*
+tree-item is the block of text inside the <li> element which represents
+the item itself (as opposed to its children).
+*/
+
+.tree-item::before {
+	content:'';
+	width: 12pt;
+	height: 12pt;
+    background-size: 12pt;
+    background-repeat: no-repeat;
+    display: inline-block;
+    position: relative;
+    top: 2pt;
+    padding-right: 4pt;
+}
+
+.tree-item.unknown-kind::before {
+    background-image: url('/resources/images/pantheist-folder-closed.png');
+}
+
+.tree-item.unknown-kind.expanded::before {
+    background-image: url('/resources/images/pantheist-folder-open.png');
+}
+
+.tree-item.java-package::before {
+    background-image: url('/resources/images/java-package.png');
+}
+
+.tree-item.java-file::before {
+    background-image: url('/resources/images/java-class-unknown.png');
+}
+
+.tree-item.java-class::before {
+    background-image: url('/resources/images/java-class-unknown.png');
+}
+
+.tree-item.java-interface::before {
+    background-image: url('/resources/images/java-class-interface.png');
+}
 
 .tree-item {
 }

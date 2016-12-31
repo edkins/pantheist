@@ -24,7 +24,7 @@ function invertExpansion(url)
 
 function listThings(t)
 {
-	var rootItem = createTreeItem(http.home,'root'); 
+	var rootItem = createTreeItem(undefined,true,http.home,'root'); 
 	return createUl(t,http.home).then(
 		ul => {
 			var panel = document.getElementById('resource-list');
@@ -47,13 +47,25 @@ function processList(i,array,fn)
 	}
 }
 
-function createTreeItem(url,name)
+function createTreeItem(kind,expanded,url,name)
 {
 	var item = document.createElement('div');
 	item.classList.add('tree-item');
 	item.append(name);
 	item.dataset.url = url;
 	item.onclick = clickTreeItem;
+	if (kind !== undefined)
+	{
+		item.classList.add(kind);
+	}
+	else
+	{
+		item.classList.add('unknown-kind');
+	}
+	if (expanded)
+	{
+		item.classList.add('expanded');
+	}
 	return item;
 }
 
@@ -71,27 +83,24 @@ function createUl(t,parentUrl)
 	);
 }
 
-function createTreeNode(t,url)
+function createTreeNode(t,kind,url)
 {
 	var name = decodeURIComponent(http.lastSegment(url));
 	
 	var li = document.createElement('li');
 	
-	var item = createTreeItem(url,name);
+	var expanded = (url in t.expandedNodes);
+	
+	var item = createTreeItem(kind,expanded,url,name);
 	li.append(item);
 
 	li.classList.add('tree-node');
-	if (url in t.expandedNodes)
+	if (expanded)
 	{
-		li.classList.add('expanded');
 		return createUl(t,url).then( cul => {
 			li.append(cul);
 			return li;
 		} );
-	}
-	else
-	{
-		li.classList.add('collapsed');
 	}
 	
 	return Promise.resolve(li);
@@ -126,7 +135,7 @@ function createListElements(t,parentUrl)
 					}
 					else
 					{
-						return createTreeNode(t, child.url).then(
+						return createTreeNode(t, child.kind, child.url).then(
 							li => elements.push(li)
 						);
 					}

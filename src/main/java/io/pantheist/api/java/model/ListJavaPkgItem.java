@@ -8,4 +8,7 @@ public interface ListJavaPkgItem
 {
 	@JsonProperty("url")
 	String url();
+
+	@JsonProperty("kind")
+	String kind();
 }

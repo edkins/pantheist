@@ -23,4 +23,10 @@ final class ListJavaPkgItemImpl implements ListJavaPkgItem
 		return url;
 	}
 
+	@Override
+	public String kind()
+	{
+		return "java-package";
+	}
+
 }

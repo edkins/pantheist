@@ -8,4 +8,7 @@ public interface ListJavaFileItem
 {
 	@JsonProperty("url")
 	String url();
+
+	@JsonProperty("kind")
+	String kind();
 }

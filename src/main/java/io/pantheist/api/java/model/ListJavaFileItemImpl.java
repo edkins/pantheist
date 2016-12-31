@@ -23,4 +23,10 @@ final class ListJavaFileItemImpl implements ListJavaFileItem
 		return url;
 	}
 
+	@Override
+	public String kind()
+	{
+		return "java-file";
+	}
+
 }
