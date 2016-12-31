@@ -45,7 +45,7 @@ public class DataFileImportRule implements TestRule
 				final File source = session.originalDataDir();
 				LOGGER.info("Copying stuff from {} to {}", source.getAbsolutePath(), target.getAbsolutePath());
 				FileUtils.copyDirectory(new File(source, "srv/resources"), new File(target, "srv/resources"));
-				FileUtils.copyFile(new File(source, "system/bindings"), new File(target, "system/bindings"));
+				FileUtils.copyFile(new File(source, "system/java-binding"), new File(target, "system/java-binding"));
 
 				deanonymizeNginxConf(
 						new File(source, "system/nginx-anon.conf"),

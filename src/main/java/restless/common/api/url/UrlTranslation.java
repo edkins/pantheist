@@ -2,6 +2,7 @@ package restless.common.api.url;
 
 import java.util.List;
 
+import restless.common.api.model.BindingAction;
 import restless.common.api.model.CreateAction;
 import restless.common.api.model.DataAction;
 import restless.common.api.model.DeleteAction;
@@ -49,4 +50,6 @@ public interface UrlTranslation
 	DataAction jsonSchemaDataAction();
 
 	DeleteAction jsonSchemaDeleteAction();
+
+	BindingAction javaPkgBindingAction();
 }

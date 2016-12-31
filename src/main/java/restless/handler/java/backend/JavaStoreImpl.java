@@ -29,6 +29,8 @@ import restless.common.util.View;
 import restless.handler.filesystem.backend.FilesystemSnapshot;
 import restless.handler.filesystem.backend.FilesystemStore;
 import restless.handler.filesystem.backend.FsPath;
+import restless.handler.filesystem.backend.JsonSnapshot;
+import restless.handler.java.model.JavaBinding;
 import restless.handler.java.model.JavaComponent;
 import restless.handler.java.model.JavaFileId;
 import restless.handler.java.model.JavaModelFactory;
@@ -50,7 +52,7 @@ final class JavaStoreImpl implements JavaStore
 		this.modelFactory = checkNotNull(modelFactory);
 	}
 
-	private FsPath pathToType(final String pkg, final String file)
+	private FsPath pkgAndFilePath(final FilesystemSnapshot snapshot, final String pkg, final String file)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(pkg);
 		OtherPreconditions.checkNotNullOrEmpty(file);
@@ -58,10 +60,10 @@ final class JavaStoreImpl implements JavaStore
 		{
 			throw new IllegalArgumentException("Bad filename: " + file);
 		}
-		return packagePath(pkg).segment(file + DOT_JAVA);
+		return packagePath(snapshot, pkg).segment(file + DOT_JAVA);
 	}
 
-	private FsPath packagePath(final String pkg)
+	private FsPath packagePath(final FilesystemSnapshot snapshot, final String pkg)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(pkg);
 		if (pkg.startsWith(".") || pkg.contains("..") || pkg.endsWith(".") || pkg.contains("/"))
@@ -69,7 +71,7 @@ final class JavaStoreImpl implements JavaStore
 			throw new IllegalArgumentException("Bad pkg: " + pkg);
 		}
 
-		FsPath path = rootJavaPath();
+		FsPath path = rootJavaPath(snapshot);
 		for (final String seg : pkg.split("\\."))
 		{
 			path = path.segment(seg);
@@ -77,9 +79,10 @@ final class JavaStoreImpl implements JavaStore
 		return path;
 	}
 
-	private FsPath rootJavaPath()
+	private FsPath rootJavaPath(final FilesystemSnapshot snapshot)
 	{
-		return filesystem.systemBucket().segment("java");
+		final JavaBinding binding = snapshot.readJson(javaBindingPath(), JavaBinding.class);
+		return filesystem.rootPath().slashSeparatedSegments(binding.location());
 	}
 
 	@Override
@@ -134,9 +137,9 @@ final class JavaStoreImpl implements JavaStore
 					"Wrong type name. Request said " + file + ", java code said " + types.get(0).getNameAsString());
 			return FailureReason.REQUEST_FAILED_SCHEMA.happened();
 		}
-		final FsPath filePath = pathToType(pkg, file);
 
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final FsPath filePath = path(snapshot, javaFileId);
 
 		if (snapshot.isFile(filePath)) // still need to call isFile even if we don't care
 		{
@@ -162,8 +165,8 @@ final class JavaStoreImpl implements JavaStore
 	public Possible<String> getJava(final JavaFileId javaFileId)
 	{
 		checkNotNull(javaFileId);
-		final FsPath filePath = idToPath(javaFileId);
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final FsPath filePath = path(snapshot, javaFileId);
 		if (snapshot.isFile(filePath))
 		{
 			final String data = snapshot.read(filePath,
@@ -176,9 +179,9 @@ final class JavaStoreImpl implements JavaStore
 		}
 	}
 
-	private FsPath idToPath(final JavaFileId javaFileId)
+	private FsPath path(final FilesystemSnapshot snapshot, final JavaFileId javaFileId)
 	{
-		return pathToType(javaFileId.pkg(), javaFileId.file());
+		return pkgAndFilePath(snapshot, javaFileId.pkg(), javaFileId.file());
 	}
 
 	@Override
@@ -268,10 +271,10 @@ final class JavaStoreImpl implements JavaStore
 		}
 	}
 
-	private JavaFileId fileIdFromPath(final FsPath path)
+	private JavaFileId fileIdFromPath(final FilesystemSnapshot snapshot, final FsPath path)
 	{
 		final String file = withoutDotJava(path.lastSegment());
-		final String pkg = path.segmentsRelativeTo(rootJavaPath()).init().join(".").get();
+		final String pkg = path.segmentsRelativeTo(rootJavaPath(snapshot)).init().join(".").get();
 		return modelFactory.fileId(pkg, file);
 	}
 
@@ -281,11 +284,11 @@ final class JavaStoreImpl implements JavaStore
 		final String fileNameDotJava = fileName + DOT_JAVA;
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
 		return snapshot
-				.recurse(rootJavaPath())
+				.recurse(rootJavaPath(snapshot))
 				.filter(snapshot::safeIsFile)
 				.filter(path -> path.lastSegment().equals(fileNameDotJava))
 				.failIfMultiple()
-				.map(this::fileIdFromPath);
+				.map(path -> fileIdFromPath(snapshot, path));
 	}
 
 	@Override
@@ -293,10 +296,10 @@ final class JavaStoreImpl implements JavaStore
 	{
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
 		return snapshot
-				.recurse(rootJavaPath())
+				.recurse(rootJavaPath(snapshot))
 				.filter(snapshot::safeIsFile)
 				.filter(path -> path.lastSegment().endsWith(DOT_JAVA))
-				.map(this::fileIdFromPath);
+				.map(path -> fileIdFromPath(snapshot, path));
 	}
 
 	@Override
@@ -304,7 +307,7 @@ final class JavaStoreImpl implements JavaStore
 	{
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
 		return snapshot
-				.listFilesAndDirectories(packagePath(pkg))
+				.listFilesAndDirectories(packagePath(snapshot, pkg))
 				.filter(snapshot::safeIsFile)
 				.filter(path -> path.lastSegment().endsWith(DOT_JAVA))
 				.foundAny();
@@ -315,24 +318,24 @@ final class JavaStoreImpl implements JavaStore
 	{
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
 		return snapshot
-				.listFilesAndDirectories(packagePath(pkg))
+				.listFilesAndDirectories(packagePath(snapshot, pkg))
 				.filter(snapshot::safeIsFile)
 				.filter(path -> path.lastSegment().endsWith(DOT_JAVA))
-				.map(this::fileIdFromPath);
+				.map(path -> fileIdFromPath(snapshot, path));
 	}
 
 	@Override
 	public boolean fileExists(final JavaFileId fileId)
 	{
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
-		return snapshot.isFile(idToPath(fileId));
+		return snapshot.isFile(path(snapshot, fileId));
 	}
 
 	@Override
 	public boolean deleteFile(final JavaFileId fileId)
 	{
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
-		final FsPath path = idToPath(fileId);
+		final FsPath path = path(snapshot, fileId);
 		if (snapshot.isFile(path))
 		{
 			snapshot.writeSingle(path, file -> file.delete());
@@ -342,5 +345,27 @@ final class JavaStoreImpl implements JavaStore
 		{
 			return false;
 		}
+	}
+
+	@Override
+	public void setJavaBinding(final JavaBinding binding)
+	{
+		final FsPath bindingPath = javaBindingPath();
+		final JsonSnapshot<JavaBinding> snapshot = filesystem.jsonSnapshot(bindingPath, JavaBinding.class);
+		snapshot.exists(); // don't care
+		snapshot.write(binding);
+	}
+
+	private FsPath javaBindingPath()
+	{
+		return filesystem.systemBucket().segment("java-binding");
+	}
+
+	@Override
+	public JavaBinding getJavaBinding()
+	{
+		final FsPath bindingPath = javaBindingPath();
+		final JsonSnapshot<JavaBinding> snapshot = filesystem.jsonSnapshot(bindingPath, JavaBinding.class);
+		return snapshot.read();
 	}
 }

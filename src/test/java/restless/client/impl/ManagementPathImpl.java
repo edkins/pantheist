@@ -10,6 +10,7 @@ import restless.api.entity.model.ApiComponent;
 import restless.api.entity.model.ApiEntity;
 import restless.api.entity.model.ListComponentResponse;
 import restless.api.entity.model.ListEntityResponse;
+import restless.api.java.model.ApiJavaBinding;
 import restless.api.java.model.ApiJavaFile;
 import restless.api.java.model.ListFileResponse;
 import restless.api.java.model.ListJavaPkgResponse;
@@ -21,6 +22,7 @@ import restless.api.schema.model.ApiSchema;
 import restless.api.schema.model.ListSchemaResponse;
 import restless.client.api.ManagementData;
 import restless.client.api.ManagementPathEntity;
+import restless.client.api.ManagementPathJavaBinding;
 import restless.client.api.ManagementPathJavaFile;
 import restless.client.api.ManagementPathJavaPackage;
 import restless.client.api.ManagementPathKind;
@@ -39,7 +41,8 @@ final class ManagementPathImpl implements
 		ManagementPathEntity,
 		ManagementPathKind,
 		ManagementPathJavaFile,
-		ManagementPathSchema
+		ManagementPathSchema,
+		ManagementPathJavaBinding
 {
 	// Path segments
 	private static final String JAVA_PKG = "java-pkg";
@@ -52,6 +55,7 @@ final class ManagementPathImpl implements
 	private static final String COMPONENT = "component";
 	private static final String KIND = "kind";
 	private static final String VALIDATE = "validate";
+	private static final String JAVA_BINDING = "java-binding";
 
 	// Content types
 	private static final String APPLICATION_JSON = "application/json";
@@ -316,5 +320,25 @@ final class ManagementPathImpl implements
 	public ResponseType describeSchemaResponseType()
 	{
 		return target.getResponseType(APPLICATION_JSON);
+	}
+
+	@Override
+	public ManagementPathJavaBinding javaBinding()
+	{
+		return new ManagementPathImpl(target.withSegment(JAVA_BINDING));
+	}
+
+	@Override
+	public ApiJavaBinding getJavaBinding()
+	{
+		return target.getJson(ApiJavaBinding.class);
+	}
+
+	@Override
+	public void setJavaBinding(final String location)
+	{
+		final Map<String, Object> map = new HashMap<>();
+		map.put("location", location);
+		target.putObjectAsJson(map);
 	}
 }

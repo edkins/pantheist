@@ -8,6 +8,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import restless.api.java.model.ApiJavaBinding;
 import restless.api.java.model.ApiJavaFile;
 import restless.api.java.model.ApiJavaModelFactory;
 import restless.api.java.model.ListFileResponse;
@@ -23,6 +24,7 @@ import restless.common.util.View;
 import restless.handler.entity.backend.EntityStore;
 import restless.handler.entity.model.EntityModelFactory;
 import restless.handler.java.backend.JavaStore;
+import restless.handler.java.model.JavaBinding;
 import restless.handler.java.model.JavaFileId;
 import restless.handler.java.model.JavaModelFactory;
 import restless.handler.kind.backend.KindStore;
@@ -69,7 +71,10 @@ final class JavaBackendImpl implements JavaBackend
 
 	private ListJavaPkgResponse toListJavaPkgResponse(final List<ListJavaPkgItem> childResources)
 	{
-		return modelFactory.listJavaPkgResponse(childResources, urlTranslation.javaPkgCreateAction());
+		return modelFactory.listJavaPkgResponse(
+				childResources,
+				urlTranslation.javaPkgCreateAction(),
+				urlTranslation.javaPkgBindingAction());
 	}
 
 	@Override
@@ -141,6 +146,29 @@ final class JavaBackendImpl implements JavaBackend
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
 		}
+	}
+
+	@Override
+	public Possible<Void> putJavaBinding(final ApiJavaBinding request)
+	{
+		javaStore.setJavaBinding(fromApiJavaBinding(request));
+		return View.noContent();
+	}
+
+	private JavaBinding fromApiJavaBinding(final ApiJavaBinding request)
+	{
+		return javaFactory.javaBinding(request.location());
+	}
+
+	@Override
+	public ApiJavaBinding getJavaBinding()
+	{
+		return toApiJavaBinding(javaStore.getJavaBinding());
+	}
+
+	private ApiJavaBinding toApiJavaBinding(final JavaBinding javaBinding)
+	{
+		return modelFactory.javaBinding(javaBinding.location());
 	}
 
 }

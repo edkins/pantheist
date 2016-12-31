@@ -15,6 +15,7 @@ import restless.api.management.backend.UriPattern;
 import restless.api.management.backend.UriPatternImpl;
 import restless.common.api.model.AdditionalStructureItem;
 import restless.common.api.model.BasicContentType;
+import restless.common.api.model.BindingAction;
 import restless.common.api.model.CommonApiModelFactory;
 import restless.common.api.model.CreateAction;
 import restless.common.api.model.DataAction;
@@ -35,8 +36,9 @@ final class UrlTranslationImpl implements UrlTranslation
 	private final UriPattern managementRoot;
 	private final UriPattern kind;
 	private final UriPattern jsonSchema;
+	private final UriPattern javaBinding;
 	private final UriPattern javaPkg;
-	private final UriPattern java;
+	private final UriPattern javaFile;
 	private final UriPattern location;
 	private final UriPattern entity;
 	private final UriPattern component;
@@ -55,8 +57,9 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.component = entity.segment("component").var("componentId");
 		this.kind = root.segment("kind").var("kindId");
 		this.jsonSchema = root.segment("json-schema").var("schemaId");
+		this.javaBinding = root.segment("java-binding");
 		this.javaPkg = root.segment("java-pkg").var("pkg");
-		this.java = javaPkg.segment("file").var("file");
+		this.javaFile = javaPkg.segment("file").var("file");
 		this.location = root.segment("server").var("serverId").segment("location").var("locationId");
 		this.javaFactory = checkNotNull(javaFactory);
 		this.modelFactory = checkNotNull(modelFactory);
@@ -77,13 +80,13 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public String javaToUrl(final JavaFileId javaFileId)
 	{
-		return java.generate(ImmutableMap.of("pkg", javaFileId.pkg(), "file", javaFileId.file()));
+		return javaFile.generate(ImmutableMap.of("pkg", javaFileId.pkg(), "file", javaFileId.file()));
 	}
 
 	@Override
 	public JavaFileId javaFromUrl(@Nullable final String url)
 	{
-		return javaFactory.fileId(java.getVar("pkg", url), java.getVar("file", url));
+		return javaFactory.fileId(javaFile.getVar("pkg", url), javaFile.getVar("file", url));
 	}
 
 	@Override
@@ -206,6 +209,13 @@ final class UrlTranslationImpl implements UrlTranslation
 	public DeleteAction jsonSchemaDeleteAction()
 	{
 		return modelFactory.deleteAction();
+	}
+
+	@Override
+	public BindingAction javaPkgBindingAction()
+	{
+		String url = javaBinding.generate(ImmutableMap.of());
+		return modelFactory.bindingAction(url);
 	}
 
 }

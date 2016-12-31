@@ -273,6 +273,11 @@ function refreshCurrentPane(t)
 		}
 
 		break;
+	case 'btn-binding':
+		showSendButton();
+		hideCreateForm();
+		setEditorMode('json');
+		break;
 	default:
 		hideSendButton();
 		hideCreateForm();
@@ -336,6 +341,15 @@ function showAvailableActionsAsTabs(t)
 	else
 	{
 		document.getElementById('btn-delete').classList.add('hidden');
+	}
+
+	if (t.data !== undefined && t.data.bindingAction != undefined)
+	{
+		document.getElementById('btn-binding').classList.remove('hidden');
+	}
+	else
+	{
+		document.getElementById('btn-binding').classList.add('hidden');
 	}
 }
 
@@ -414,6 +428,28 @@ function clickInfo(event)
 	});
 }
 
+function clickData(event)
+{
+	ui.tab = 'btn-data';
+	highlightActiveTab('btn-data');
+
+	Transaction.fetch().then( t => {
+		refreshCurrentPane(t);
+		if (t.data !== undefined && t.data.dataAction != undefined)
+		{
+			http.getString(t.data.dataAction.mimeType, t.url + '/data').then(
+				text => {
+					setEditorText(text);
+				}
+			).catch(
+				error => {
+					flashMsg(error);
+				}
+			);
+		}
+	});
+}
+
 function clickCreate(event)
 {
 	ui.tab = 'btn-create';
@@ -425,16 +461,16 @@ function clickCreate(event)
 	});
 }
 
-function clickData(event)
+function clickBinding(event)
 {
-	ui.tab = 'btn-data';
-	highlightActiveTab('btn-data');
+	ui.tab = 'btn-binding';
+	highlightActiveTab('btn-binding');
 
 	Transaction.fetch().then( t => {
 		refreshCurrentPane(t);
-		if (t.data !== undefined && t.data.dataAction != undefined)
+		if (t.data !== undefined && t.data.bindingAction != undefined)
 		{
-			http.getString(t.data.dataAction.mimeType, t.url + '/data').then(
+			http.getString('application/json', t.data.bindingAction.url).then(
 				text => {
 					setEditorText(text);
 				}
@@ -486,6 +522,20 @@ function clickSend(event)
 					flashMsg('OK');
 					listThings(t);
 				});
+
+		case 'btn-binding':
+			if (t.data === undefined || t.data.bindingAction == undefined)
+			{
+				flashMsg('Unknown binding action');
+				return;
+			}
+		
+			var sendUrl = t.data.bindingAction.url;
+			return http.putString(sendUrl, 'application/json', text)
+				.then( x => {
+					flashMsg('OK');
+					listThings(t);
+				});
 		}
 	} );
 }
@@ -521,6 +571,7 @@ window.onload = function()
 	document.getElementById('btn-info').onclick = clickInfo;
 	document.getElementById('btn-data').onclick = clickData;
 	document.getElementById('btn-create').onclick = clickCreate;
+	document.getElementById('btn-binding').onclick = clickBinding;
 	document.getElementById('btn-send').onclick = clickSend;
 	document.getElementById('btn-delete').onclick = clickDelete;
 

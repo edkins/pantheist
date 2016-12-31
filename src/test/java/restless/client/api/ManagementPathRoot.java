@@ -62,4 +62,6 @@ public interface ManagementPathRoot
 	ListKindResponse listKinds();
 
 	ListSchemaResponse listJsonSchemas();
+
+	ManagementPathJavaBinding javaBinding();
 }

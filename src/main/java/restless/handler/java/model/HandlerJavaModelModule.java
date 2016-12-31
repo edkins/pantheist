@@ -13,6 +13,7 @@ public class HandlerJavaModelModule extends PrivateModule
 		install(new FactoryModuleBuilder()
 				.implement(JavaComponent.class, JavaComponentImpl.class)
 				.implement(JavaFileId.class, JavaFileIdImpl.class)
+				.implement(JavaBinding.class, JavaBindingImpl.class)
 				.build(JavaModelFactory.class));
 	}
 

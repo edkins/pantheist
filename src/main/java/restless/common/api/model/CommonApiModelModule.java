@@ -17,6 +17,7 @@ public class CommonApiModelModule extends PrivateModule
 				.implement(CreateAction.class, CreateActionImpl.class)
 				.implement(DataAction.class, DataActionImpl.class)
 				.implement(DeleteAction.class, DeleteActionImpl.class)
+				.implement(BindingAction.class, BindingActionImpl.class)
 				.build(CommonApiModelFactory.class));
 	}
 

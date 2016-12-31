@@ -26,6 +26,7 @@ import restless.client.api.ManagementPathSchema;
 import restless.client.api.ResponseType;
 import restless.common.api.model.AdditionalStructureItem;
 import restless.common.api.model.BasicContentType;
+import restless.common.api.model.BindingAction;
 import restless.common.api.model.CreateAction;
 import restless.common.api.model.DataAction;
 import restless.common.api.model.ListClassifierItem;
@@ -237,5 +238,13 @@ public class ListClassifierTest extends BaseTest
 		final ResponseType response2 = bad.describeSchemaResponseType();
 		assertThat(response1, is(ResponseType.OK));
 		assertThat(response2, is(ResponseType.NOT_FOUND));
+	}
+
+	@Test
+	public void javaPkg_bindingAction() throws Exception
+	{
+		final BindingAction bindingAction = manage.listJavaPackages().bindingAction();
+		assertThat(bindingAction, notNullValue());
+		assertThat(bindingAction.url(), is(manage.urlOfService("java-binding")));
 	}
 }

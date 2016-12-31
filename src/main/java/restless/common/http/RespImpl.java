@@ -41,6 +41,7 @@ public final class RespImpl implements Resp
 	@Override
 	public <T> Response toJson(final T result)
 	{
+		checkNotNull(result);
 		try
 		{
 			final String text = objectMapper.writeValueAsString(result);

@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import restless.common.util.AntiIterator;
 import restless.common.util.Possible;
+import restless.handler.java.model.JavaBinding;
 import restless.handler.java.model.JavaComponent;
 import restless.handler.java.model.JavaFileId;
 import restless.handler.kind.model.JavaClause;
@@ -52,4 +53,8 @@ public interface JavaStore
 	 * @return whether the file previously existed.
 	 */
 	boolean deleteFile(JavaFileId fileId);
+
+	void setJavaBinding(JavaBinding binding);
+
+	JavaBinding getJavaBinding();
 }

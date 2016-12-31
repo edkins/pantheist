@@ -14,6 +14,10 @@ import restless.client.api.ResponseType;
 
 public class JavaTest extends BaseTest
 {
+	private static final String JAVA_SYNTAXERROR_RES = "/java-example/java-syntax-error";
+	private static final String TEXT_PLAIN = "text/plain";
+	private static final String JAVA_JERSEY_NAME = "ExampleJerseyResource";
+	private static final String JAVA_JERSEY_RES = "/java-example/ExampleJerseyResource";
 	private static final String JAVA_PKG = "restless.examples";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
@@ -22,40 +26,40 @@ public class JavaTest extends BaseTest
 	public void java_canPutSomewhere_andReadItBack() throws Exception
 	{
 		manage.javaPackage(JAVA_PKG)
-				.file("ExampleJerseyResource")
+				.file(JAVA_JERSEY_NAME)
 				.data()
-				.putResource("/jersey-resource/resource", "text/plain");
+				.putResource(JAVA_JERSEY_RES, TEXT_PLAIN);
 
 		final String data = manage
 				.javaPackage(JAVA_PKG)
-				.file("ExampleJerseyResource")
+				.file(JAVA_JERSEY_NAME)
 				.data()
-				.getString("text/plain");
+				.getString(TEXT_PLAIN);
 
-		assertThat(data, is(resource("/jersey-resource/resource")));
+		assertThat(data, is(resource(JAVA_JERSEY_RES)));
 	}
 
 	@Test
 	public void java_canPutTwice() throws Exception
 	{
 		manage.javaPackage(JAVA_PKG)
-				.file("ExampleJerseyResource")
+				.file(JAVA_JERSEY_NAME)
 				.data()
-				.putResource("/jersey-resource/resource", "text/plain");
+				.putResource(JAVA_JERSEY_RES, TEXT_PLAIN);
 
 		manage.javaPackage(JAVA_PKG)
 				.file(JAVA_EMPTY_CLASS_NAME)
 				.data()
-				.putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+				.putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
 	}
 
 	@Test
 	public void invalidJava_cannotStore() throws Exception
 	{
 		final ResponseType responseType = manage.javaPackage(JAVA_PKG)
-				.file("ExampleJerseyResource")
+				.file(JAVA_JERSEY_NAME)
 				.data()
-				.putResourceResponseType("/jersey-resource/java-syntax-error", "text/plain");
+				.putResourceResponseType(JAVA_SYNTAXERROR_RES, TEXT_PLAIN);
 
 		assertEquals(ResponseType.BAD_REQUEST, responseType);
 	}
@@ -64,7 +68,7 @@ public class JavaTest extends BaseTest
 	public void java_canList() throws Exception
 	{
 		final ManagementPathJavaFile file = manage.javaPackage(JAVA_PKG).file(JAVA_EMPTY_CLASS_NAME);
-		file.data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+		file.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
 
 		final List<ListFileItem> list = manage.javaPackage(JAVA_PKG).listFiles().childResources();
 
@@ -77,7 +81,7 @@ public class JavaTest extends BaseTest
 	{
 		final ManagementPathJavaFile file = manage.javaPackage(JAVA_PKG)
 				.file(JAVA_EMPTY_CLASS_NAME);
-		file.data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+		file.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
 
 		assertThat(file.getJavaFileResponseType(), is(ResponseType.OK));
 
@@ -93,5 +97,23 @@ public class JavaTest extends BaseTest
 				.file(JAVA_EMPTY_CLASS_NAME);
 
 		assertThat(file.deleteResponseType(), is(ResponseType.NOT_FOUND));
+	}
+
+	@Test
+	public void java_rebind_itDisappears_rebindBackAgain_itReappears() throws Exception
+	{
+		final ManagementPathJavaFile file = manage.javaPackage(JAVA_PKG)
+				.file(JAVA_EMPTY_CLASS_NAME);
+
+		assertThat(manage.javaBinding().getJavaBinding().location(), is("system/java"));
+
+		file.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
+
+		manage.javaBinding().setJavaBinding("some/other/thing");
+		assertThat(manage.javaBinding().getJavaBinding().location(), is("some/other/thing"));
+
+		assertThat(file.data().getResponseTypeForContentType(TEXT_PLAIN), is(ResponseType.NOT_FOUND));
+		manage.javaBinding().setJavaBinding("system/java");
+		assertThat(file.data().getResponseTypeForContentType(TEXT_PLAIN), is(ResponseType.OK));
 	}
 }

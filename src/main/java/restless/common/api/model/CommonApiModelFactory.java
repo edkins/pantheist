@@ -30,4 +30,6 @@ public interface CommonApiModelFactory
 			List<ListClassifierItem> childResources);
 
 	DeleteAction deleteAction();
+
+	BindingAction bindingAction(@Assisted("url") String url);
 }

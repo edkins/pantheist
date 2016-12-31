@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import restless.api.java.backend.JavaBackend;
+import restless.api.java.model.ApiJavaBinding;
 import restless.api.java.model.ApiJavaFile;
 import restless.api.java.model.ListFileResponse;
 import restless.api.java.model.ListJavaPkgResponse;
@@ -178,6 +179,46 @@ public final class JavaResource implements ResourceTag
 		try
 		{
 			final Possible<Void> result = backend.deleteJavaFile(pkg, file);
+			return resp.possibleEmpty(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles retrieving java binding (GET)
+	 */
+	@GET
+	@Path("java-binding")
+	public Response getJavaBinding()
+	{
+		LOGGER.info("GET java-binding");
+		try
+		{
+			final ApiJavaBinding javaBinding = backend.getJavaBinding();
+			return resp.toJson(javaBinding);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles binding java root to a different filesystem directory (PUT)
+	 */
+	@PUT
+	@Path("java-binding")
+	public Response putJavaBinding(final String data)
+	{
+		LOGGER.info("PUT java-binding");
+		try
+		{
+			final Possible<Void> result = resp.request(data, ApiJavaBinding.class).posMap(request -> {
+				return backend.putJavaBinding(request);
+			});
 			return resp.possibleEmpty(result);
 		}
 		catch (final RuntimeException ex)
