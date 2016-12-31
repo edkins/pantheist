@@ -39,7 +39,7 @@ import io.pantheist.system.initializer.SystemInitializerModule;
 import io.pantheist.system.inject.SystemInjectModule;
 import io.pantheist.system.server.SystemServerModule;
 
-public class AllRestlessModule extends AbstractModule
+public class AllPantheistModule extends AbstractModule
 {
 
 	@Override

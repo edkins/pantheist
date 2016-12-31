@@ -28,12 +28,12 @@ import io.pantheist.common.util.DummyException;
 import io.pantheist.handler.filesystem.except.FsConflictException;
 import io.pantheist.handler.filesystem.except.FsIoException;
 import io.pantheist.handler.filesystem.except.FsUnexpectedStateException;
-import io.pantheist.system.config.RestlessConfig;
+import io.pantheist.system.config.PantheistConfig;
 
 final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 {
 	private final Lock lock;
-	private final RestlessConfig config;
+	private final PantheistConfig config;
 	private final ObjectMapper objectMapper;
 	private final long timestamp;
 
@@ -44,7 +44,7 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 
 	@Inject
 	private FilesystemSnapshotImpl(@FilesystemLock final Lock lock,
-			final RestlessConfig config,
+			final PantheistConfig config,
 			final ObjectMapper objectMapper)
 	{
 		this.lock = checkNotNull(lock);

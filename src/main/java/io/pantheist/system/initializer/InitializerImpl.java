@@ -12,22 +12,22 @@ import io.pantheist.handler.filesystem.backend.FilesystemSnapshot;
 import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.filesystem.backend.FsPath;
 import io.pantheist.handler.nginx.manage.NginxService;
-import io.pantheist.system.config.RestlessConfig;
-import io.pantheist.system.server.RestlessServer;
+import io.pantheist.system.config.PantheistConfig;
+import io.pantheist.system.server.PantheistServer;
 
 final class InitializerImpl implements Initializer
 {
 	private static final Logger LOGGER = LogManager.getLogger(InitializerImpl.class);
 	private final FilesystemStore filesystem;
 	private final NginxService nginxService;
-	private final RestlessServer server;
-	private final RestlessConfig config;
+	private final PantheistServer server;
+	private final PantheistConfig config;
 
 	@Inject
 	private InitializerImpl(final FilesystemStore filesystem,
 			final NginxService nginxService,
-			final RestlessServer server,
-			final RestlessConfig config)
+			final PantheistServer server,
+			final PantheistConfig config)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.nginxService = checkNotNull(nginxService);

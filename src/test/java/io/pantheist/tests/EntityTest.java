@@ -34,7 +34,7 @@ public class EntityTest extends BaseTest
 		schema = mainRule.actions().manage().jsonSchema("my_schema");
 		schema.data().putResource("/json-schema/nonempty_nonnegative_int_list", "application/schema+json");
 
-		java = manage.javaPackage("restless.examples").file("NonEmptyNonNegativeIntList");
+		java = manage.javaPackage("io.pantheist.examples").file("NonEmptyNonNegativeIntList");
 		java.data().putResource("/java-example/NonEmptyNonNegativeIntList", "text/plain");
 	}
 

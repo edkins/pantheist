@@ -17,7 +17,7 @@ import io.pantheist.testclient.api.ResponseType;
 
 public class DiscoveryTest extends BaseTest
 {
-	private static final String JAVA_PKG = "restless.examples";
+	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String KIND_SCHEMA_JAVA_DISCOVERABLE_INTERFACE_RES = "/kind-schema/java-discoverable-interface";
 	private static final String JAVA_INTLIST_NAME = "NonEmptyNonNegativeIntList";
 	private static final String JAVA_INTLIST_RES = "/java-example/NonEmptyNonNegativeIntList";

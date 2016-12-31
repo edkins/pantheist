@@ -1,6 +1,6 @@
 'use strict';
 
-var Restless = Restless || {};
+var Pantheist = Pantheist || {};
 
 ///////////////////////
 //
@@ -11,7 +11,7 @@ var Restless = Restless || {};
 //      schema                  type of data this node is expected to contain
 //      get()                   fetch data for this node
 //      put(data)               put data for this node
-// Restless
+// Pantheist
 //      initialize(rootUrl)     set up the system targeting the given URL
 //      node(uri)               return a node corresponding to this URI, or undefined
 //      home                    returns home node
@@ -41,20 +41,20 @@ var Restless = Restless || {};
 // Schema: most fields are optional and may be missing.
 //
 // {
-//    "clientUri": "restless:path"             untranslated client URI that can be used in a call to Restless.node(uri)
+//    "clientUri": "pantheist:path"             untranslated client URI that can be used in a call to Pantheist.node(uri)
 //    "serverUrl": "http://host/path"          URL to access the corresponding resource on the server
 //    "childResources": [                      A list of known child resources
 //        {
 //           "sequence": 0,                    the place in the list where this appeared
 //           "name": "{name}",                 identifier which must be unique, nonempty and not contain slashes
-//           "clientUri": "restless:path"      uri to locate it under, should equal the parent clientUri together with the "name" field
+//           "clientUri": "pantheist:path"      uri to locate it under, should equal the parent clientUri together with the "name" field
 //        }
 //    ],
 //    "translationRules: [                     a list of relevant translation rules.
 //        {
 //           "sequence": 0,                    the place in the list where this appeared. Higher numbers will be applied in preference.
-//           "owner": "restless:path",         which resource owns this rule. This is where you must issue patch requests if you want the rule changed or deleted.
-//           "matchUri": "restless:prefix",    uri prefix to match
+//           "owner": "pantheist:path",         which resource owns this rule. This is where you must issue patch requests if you want the rule changed or deleted.
+//           "matchUri": "pantheist:prefix",    uri prefix to match
 //           "matchDescendants": true,         whether descendants are matched also
 //           "mapsToUri": "scheme:prefix",     uri prefix to map it to.
 //           "applied": true                   whether this rule is directly applied to the resource in question
@@ -70,8 +70,8 @@ var Restless = Restless || {};
 //
 ///////////////////////
 
-Restless._knownNodes = {};
-Restless._mainService;
+Pantheist._knownNodes = {};
+Pantheist._mainService;
 
 ///////////////////////
 //
@@ -79,19 +79,19 @@ Restless._mainService;
 //
 ///////////////////////
 
-Restless._initializationCheck = function()
+Pantheist._initializationCheck = function()
 {
-	if (Restless._mainService === undefined)
+	if (Pantheist._mainService === undefined)
 	{
-		Restless.err('Not initialized');
+		Pantheist.err('Not initialized');
 	}
 };
 
-Restless._presentList = function(inputList,presentation,fn)
+Pantheist._presentList = function(inputList,presentation,fn)
 {
-	Restless.ArrayOf(Restless.Object).check(inputList,'inputList');
-	Restless.NonEmptyString.check(presentation,'presentation');
-	Restless.Function.check(fn,'fn');
+	Pantheist.ArrayOf(Pantheist.Object).check(inputList,'inputList');
+	Pantheist.NonEmptyString.check(presentation,'presentation');
+	Pantheist.Function.check(fn,'fn');
 
 	var map = {};
 	var list = [];
@@ -122,35 +122,35 @@ Restless._presentList = function(inputList,presentation,fn)
 		}
 		return map;
 	default:
-		Restless.err('Unknown presentation: {}', presentation);
+		Pantheist.err('Unknown presentation: {}', presentation);
 	}
 };
 
-Restless._justScheme = function(uri)
+Pantheist._justScheme = function(uri)
 {
-	Restless.NonEmptyString.check(uri,'uri');
+	Pantheist.NonEmptyString.check(uri,'uri');
 	var i = uri.indexOf(':');
 	return (i !== -1 && i === uri.length - 1);
 }
 
-Restless._uriTidy = function(uri)
+Pantheist._uriTidy = function(uri)
 {
-	Restless.NonEmptyString.check(uri,'uri');
-	if (!Restless._justScheme(uri) && !uri.endsWith('/'))
+	Pantheist.NonEmptyString.check(uri,'uri');
+	if (!Pantheist._justScheme(uri) && !uri.endsWith('/'))
 	{
 		return uri + '/';
 	}
 	return uri;
 }
 
-Restless._uriPrefix = function(uri,prefix)
+Pantheist._uriPrefix = function(uri,prefix)
 {
-	return Restless._uriTidy(uri).startsWith(Restless._uriTidy(prefix));
+	return Pantheist._uriTidy(uri).startsWith(Pantheist._uriTidy(prefix));
 };
 
-Restless._uriEqual = function(uri,uri2)
+Pantheist._uriEqual = function(uri,uri2)
 {
-	return Restless._uriTidy(uri) === Restless._uriTidy(uri2);
+	return Pantheist._uriTidy(uri) === Pantheist._uriTidy(uri2);
 };
 
 ///////////////////////
@@ -159,15 +159,15 @@ Restless._uriEqual = function(uri,uri2)
 //
 ///////////////////////
 
-Restless._splitByField = function(data,name,catchAll,fieldTargets)
+Pantheist._splitByField = function(data,name,catchAll,fieldTargets)
 {
-	Restless.NonEmptyString.check(name,'name');
-	Restless.StringOrUndefined.check(catchAll,'catchAll');
-	Restless.MapOf(Restless.NonEmptyString).check(fieldTargets, 'fieldTargets');
+	Pantheist.NonEmptyString.check(name,'name');
+	Pantheist.StringOrUndefined.check(catchAll,'catchAll');
+	Pantheist.MapOf(Pantheist.NonEmptyString).check(fieldTargets, 'fieldTargets');
 
 	if (typeof(data) !== 'object')
 	{
-		return Promise.reject(context + ' expected object, got a ' + Restless._describe(data));
+		return Promise.reject(context + ' expected object, got a ' + Pantheist._describe(data));
 	}
 
 	var result = {};
@@ -208,10 +208,10 @@ Restless._splitByField = function(data,name,catchAll,fieldTargets)
 //
 ///////////////////////
 
-Restless.Service = Restless.Object
+Pantheist.Service = Pantheist.Object
 	.withTypeName('Service')
-	.withField('homeUri', Restless.StringOrUndefined)
-	.withField('matchUri', Restless.NonEmptyString)
+	.withField('homeUri', Pantheist.StringOrUndefined)
+	.withField('matchUri', Pantheist.NonEmptyString)
 	.withMethod('appliesTo')
 	.withMethod('get')
 	.withMethod('put');
@@ -222,29 +222,29 @@ Restless.Service = Restless.Object
 //
 ///////////////////////
 
-Restless.HttpService = Restless.Service
+Pantheist.HttpService = Pantheist.Service
 	.withTypeName('HttpService')
 	.withConstructor(
 		function(matchUri)
 		{
-			Restless.String.check(matchUri,'matchUri');
+			Pantheist.String.check(matchUri,'matchUri');
 			if (!matchUri.startsWith('http://'))
 			{
-				Restless.err('matchUri must start http:// for http service');
+				Pantheist.err('matchUri must start http:// for http service');
 			}
 			this.homeUri = matchUri;
 			this.matchUri = 'http://';
 		});
 
-Restless.HttpService.prototype.appliesTo = function(uri)
+Pantheist.HttpService.prototype.appliesTo = function(uri)
 {
-	Restless.String.check(uri,'uri');
-	return Restless._uriPrefix(uri, this.matchUri);
+	Pantheist.String.check(uri,'uri');
+	return Pantheist._uriPrefix(uri, this.matchUri);
 }
 
-Restless.HttpService.prototype.get = function(url)
+Pantheist.HttpService.prototype.get = function(url)
 {
-	if (!Restless._uriPrefix(url,this.matchUri))
+	if (!Pantheist._uriPrefix(url,this.matchUri))
 	{
 		return Promise.reject('HttpService only serves things starting with ' + this.matchUri);
 	}
@@ -267,7 +267,7 @@ Restless.HttpService.prototype.get = function(url)
 	);
 };
 
-Restless.HttpService.prototype.put = function(url,data)
+Pantheist.HttpService.prototype.put = function(url,data)
 {
 	return Promise.reject('Put currently disabled for http');
 };
@@ -278,11 +278,11 @@ Restless.HttpService.prototype.put = function(url,data)
 //
 ///////////////////////
 
-Restless.registerSimpleType('Uri',
+Pantheist.registerSimpleType('Uri',
 	function(value,name)
 	{
-		Restless.NonEmptyString.check(value,name);
-		var uriComponents = Restless.splitUri(value);
+		Pantheist.NonEmptyString.check(value,name);
+		var uriComponents = Pantheist.splitUri(value);
 		return uriComponents.scheme !== undefined;
 	}
 );
@@ -293,18 +293,18 @@ Restless.registerSimpleType('Uri',
 //
 ///////////////////////
 
-Restless.Node = Restless.Object
+Pantheist.Node = Pantheist.Object
 	.withTypeName('Node')
-	.withField('service', Restless.Service)
-	.withField('uri', Restless.Uri)
+	.withField('service', Pantheist.Service)
+	.withField('uri', Pantheist.Uri)
 	.withStandardConstructor();
 
-Restless.Node.prototype.get = function()
+Pantheist.Node.prototype.get = function()
 {
 	return this.service.get(this.uri);
 };
 
-Restless.Node.prototype.put = function(data)
+Pantheist.Node.prototype.put = function(data)
 {
 	return this.service.put(this.uri,data);
 };
@@ -315,19 +315,19 @@ Restless.Node.prototype.put = function(data)
 //
 ///////////////////////
 
-Restless.ErrorNode = function(errorMsg)
+Pantheist.ErrorNode = function(errorMsg)
 {
 	this.errorMsg = errorMsg;
 	this.uri = undefined;
 	this.schema = undefined;
 };
 
-Restless.ErrorNode.prototype.get = function()
+Pantheist.ErrorNode.prototype.get = function()
 {
 	return Promise.reject(this.errorMsg);
 };
 
-Restless.ErrorNode.prototype.put = function(data)
+Pantheist.ErrorNode.prototype.put = function(data)
 {
 	return Promise.reject(this.errorMsg);
 };
@@ -338,27 +338,27 @@ Restless.ErrorNode.prototype.put = function(data)
 //
 ///////////////////////
 
-Restless.TranslationStore = Restless.Object
+Pantheist.TranslationStore = Pantheist.Object
 	.withTypeName('TranslationStore')
-	.withField('matchUri', Restless.Uri)
-	.withField('homeUri', Restless.Uri)
+	.withField('matchUri', Pantheist.Uri)
+	.withField('homeUri', Pantheist.Uri)
 	.withConstructor(
 		function()
 		{
 			this._mappings = [];
-			this.matchUri = 'restless:internal/translation-store/';
-			this.homeUri = 'restless:internal/translation-store/';
+			this.matchUri = 'pantheist:internal/translation-store/';
+			this.homeUri = 'pantheist:internal/translation-store/';
 		});
 
-Restless.TranslationStore.prototype.appliesTo = function(uri)
+Pantheist.TranslationStore.prototype.appliesTo = function(uri)
 {
-	Restless.String.check(uri,'uri');
-	return Restless._uriPrefix(uri, this.matchUri);
+	Pantheist.String.check(uri,'uri');
+	return Pantheist._uriPrefix(uri, this.matchUri);
 }
 
-Restless.TranslationStore.prototype._findAppliedRule = function(uri)
+Pantheist.TranslationStore.prototype._findAppliedRule = function(uri)
 {
-	Restless.NonEmptyString.check(uri,'uri');
+	Pantheist.NonEmptyString.check(uri,'uri');
 	
 	// The last one in the list that matches is the one that applies.
 	// So traverse the list backwards.
@@ -372,7 +372,7 @@ Restless.TranslationStore.prototype._findAppliedRule = function(uri)
 	return undefined;
 };
 
-Restless.TranslationStore.prototype.translate = function(uri)
+Pantheist.TranslationStore.prototype.translate = function(uri)
 {
 	var rule = this._findAppliedRule(uri);
 	if (rule !== undefined)
@@ -382,17 +382,17 @@ Restless.TranslationStore.prototype.translate = function(uri)
 	return undefined;
 };
 
-Restless.TranslationStore.prototype.relevantRules = function(uri,presentation)
+Pantheist.TranslationStore.prototype.relevantRules = function(uri,presentation)
 {
-	Restless.NonEmptyString.check(uri,'uri');
-	Restless.NonEmptyString.check(presentation,'presentation');
+	Pantheist.NonEmptyString.check(uri,'uri');
+	Pantheist.NonEmptyString.check(presentation,'presentation');
 	
 	var appliedRule = this._findAppliedRule(uri);
 	var filteredList = this._mappings.filter(function(m)
 		{
 			return m.relevantTo(uri);
 		});
-	return Restless._presentList(
+	return Pantheist._presentList(
 		filteredList,
 		presentation,
 		function(r,i) {
@@ -405,19 +405,19 @@ Restless.TranslationStore.prototype.relevantRules = function(uri,presentation)
 		});
 };
 
-Restless.TranslationStore.prototype.addRule = function(matchUri,mapsToUri)
+Pantheist.TranslationStore.prototype.addRule = function(matchUri,mapsToUri)
 {
-	Restless.NonEmptyString.check(matchUri,'matchUri');
-	Restless.NonEmptyString.check(mapsToUri,'mapsToUri');
+	Pantheist.NonEmptyString.check(matchUri,'matchUri');
+	Pantheist.NonEmptyString.check(mapsToUri,'mapsToUri');
 	
-	var matchPattern = Restless.UriPattern.fromString(matchUri);
-	var mapsToPattern = Restless.UriPattern.fromString(mapsToUri);
+	var matchPattern = Pantheist.UriPattern.fromString(matchUri);
+	var mapsToPattern = Pantheist.UriPattern.fromString(mapsToUri);
 	
-	this._mappings.push( new Restless.TranslationRule(matchPattern,mapsToPattern) );
+	this._mappings.push( new Pantheist.TranslationRule(matchPattern,mapsToPattern) );
 	return undefined;
 };
 
-Restless.TranslationStore.prototype.putRules = function(rules)
+Pantheist.TranslationStore.prototype.putRules = function(rules)
 {
 	if (!Array.isArray(rules))
 	{
@@ -425,7 +425,7 @@ Restless.TranslationStore.prototype.putRules = function(rules)
 	}
 	
 	// Try adding rules to a new translation store. If any of them fail then we won't clobber our own store.
-	var experimentalStore = new Restless.TranslationStore();
+	var experimentalStore = new Pantheist.TranslationStore();
 	experimentalStore._fromPrefixes = Array.from(this._fromPrefixes);
 	experimentalStore._toPrefixes = Array.from(this._toPrefixes);
 
@@ -449,29 +449,29 @@ Restless.TranslationStore.prototype.putRules = function(rules)
 //
 ///////////////////////
 
-Restless.TranslationLayer = function(translationStore,underlyingServices)
+Pantheist.TranslationLayer = function(translationStore,underlyingServices)
 {
-	Restless.Object.check(translationStore,'translationStore');
-	Restless.ArrayOf(Restless.Service).check(underlyingServices,'underlyingServices');
+	Pantheist.Object.check(translationStore,'translationStore');
+	Pantheist.ArrayOf(Pantheist.Service).check(underlyingServices,'underlyingServices');
 	this._translationStore = translationStore;
 	this._underlyingServices = underlyingServices;
-	this.matchUri = 'restless:';
-	this.homeUri = 'restless:';
+	this.matchUri = 'pantheist:';
+	this.homeUri = 'pantheist:';
 
-	Restless.Service.check(this,'TranslationLayer.constructor');
+	Pantheist.Service.check(this,'TranslationLayer.constructor');
 };
 
-Restless.TranslationLayer.prototype.appliesTo = function(uri)
+Pantheist.TranslationLayer.prototype.appliesTo = function(uri)
 {
-	Restless.String.check(uri,'uri');
-	return Restless._uriPrefix(uri,this.matchUri);
+	Pantheist.String.check(uri,'uri');
+	return Pantheist._uriPrefix(uri,this.matchUri);
 };
 
-Restless.TranslationLayer.prototype._findService = function(uri)
+Pantheist.TranslationLayer.prototype._findService = function(uri)
 {
 	for (var i = 0; i < this._underlyingServices.length; i++)
 	{
-		if (Restless._uriPrefix(uri, this._underlyingServices[i].matchUri))
+		if (Pantheist._uriPrefix(uri, this._underlyingServices[i].matchUri))
 		{
 			return this._underlyingServices[i];
 		}
@@ -479,7 +479,7 @@ Restless.TranslationLayer.prototype._findService = function(uri)
 	return undefined;
 };
 
-Restless.TranslationLayer.prototype.get = function(uri)
+Pantheist.TranslationLayer.prototype.get = function(uri)
 {
 	if (!this.appliesTo(uri))
 	{
@@ -493,9 +493,9 @@ Restless.TranslationLayer.prototype.get = function(uri)
 	});
 };
 
-Restless.TranslationLayer.prototype.put = function(uri,data)
+Pantheist.TranslationLayer.prototype.put = function(uri,data)
 {
-	Restless.NonEmptyString.check(uri,'uri');
+	Pantheist.NonEmptyString.check(uri,'uri');
 	var translationStore = this._translationStore;
 
 	if (!this.appliesTo(uri))
@@ -503,7 +503,7 @@ Restless.TranslationLayer.prototype.put = function(uri,data)
 		return Promise.reject('Not in translation space');
 	}
 	
-	return Restless._splitByField(data,'data',undefined,{
+	return Pantheist._splitByField(data,'data',undefined,{
 		clientUri: 'check',
 		translationRules: 'translation'
 	}).then( categorized => {
@@ -516,7 +516,7 @@ Restless.TranslationLayer.prototype.put = function(uri,data)
 };
 
 // Disabled for now: this would actually get the data from the underlying service
-Restless.TranslationLayer.prototype.getzzz = function(uri)
+Pantheist.TranslationLayer.prototype.getzzz = function(uri)
 {
 	var translatedUri = this._translationStore.translate(uri);
 	if (translatedUri === undefined)
@@ -539,15 +539,15 @@ Restless.TranslationLayer.prototype.getzzz = function(uri)
 //
 ///////////////////////
 
-Restless.UriPatternSegment = Restless.Object
+Pantheist.UriPatternSegment = Pantheist.Object
 	.withTypeName('UriPatternSegment')
 	.withMethod('match')
-	.withField('stringForm',Restless.String)
-	.withField('isLiteral',Restless.Boolean)
+	.withField('stringForm',Pantheist.String)
+	.withField('isLiteral',Pantheist.Boolean)
 
-Restless.LiteralSegment = Restless.UriPatternSegment
+Pantheist.LiteralSegment = Pantheist.UriPatternSegment
 	.withTypeName('LiteralSegment')
-	.withField('segment',Restless.String)
+	.withField('segment',Pantheist.String)
 	.withConstructor(
 		function(segment)
 		{
@@ -555,9 +555,9 @@ Restless.LiteralSegment = Restless.UriPatternSegment
 			this.isLiteral = true;
 		});
 
-Restless.LiteralSegment.prototype.match = function(segments)
+Pantheist.LiteralSegment.prototype.match = function(segments)
 {
-	Restless.ArrayOf(Restless.String).check(segments,'segments');
+	Pantheist.ArrayOf(Pantheist.String).check(segments,'segments');
 	if (segments.length >= 1 && this.segment === segments[0])
 	{
 		return {count:1, capture:undefined};
@@ -565,14 +565,14 @@ Restless.LiteralSegment.prototype.match = function(segments)
 	return undefined;
 };
 
-Object.defineProperty(Restless.LiteralSegment.prototype, 'stringForm', {
+Object.defineProperty(Pantheist.LiteralSegment.prototype, 'stringForm', {
 	get: function()
 	{
 		return this.segment;
 	}
 });
 
-Restless.MatchSingleSegment = Restless.UriPatternSegment
+Pantheist.MatchSingleSegment = Pantheist.UriPatternSegment
 	.withTypeName('MatchSingleSegment')
 	.withConstructor(
 		function()
@@ -580,9 +580,9 @@ Restless.MatchSingleSegment = Restless.UriPatternSegment
 			this.isLiteral = false;
 		});
 
-Restless.MatchSingleSegment.prototype.match = function(segments)
+Pantheist.MatchSingleSegment.prototype.match = function(segments)
 {
-	Restless.ArrayOf(Restless.String).check(segments,'segments');
+	Pantheist.ArrayOf(Pantheist.String).check(segments,'segments');
 	if (segments.length >= 1)
 	{
 		return {count:1, capture:segment};
@@ -590,27 +590,27 @@ Restless.MatchSingleSegment.prototype.match = function(segments)
 	return undefined;
 };
 
-Restless.MatchSingleSegment.prototype.stringForm = function()
+Pantheist.MatchSingleSegment.prototype.stringForm = function()
 {
 	return "{}";
 };
 
-Restless.UriPattern = Restless.Object
+Pantheist.UriPattern = Pantheist.Object
 	.withTypeName('UriPattern')
-	.withField('scheme', Restless.NonEmptyString)
-	.withField('authority', Restless.StringOrUndefined)
-	.withField('segments', Restless.ArrayOf(Restless.UriPatternSegment))
+	.withField('scheme', Pantheist.NonEmptyString)
+	.withField('authority', Pantheist.StringOrUndefined)
+	.withField('segments', Pantheist.ArrayOf(Pantheist.UriPatternSegment))
 	.withMethod('match')
 	.withMethod('toUri')
 	.withMethod('hasPrefix')
-	.withProperty('stringForm',Restless.NonEmptyString)
+	.withProperty('stringForm',Pantheist.NonEmptyString)
 	.withStandardConstructor();
 
-Restless.UriPattern.prototype.match = function(uri)
+Pantheist.UriPattern.prototype.match = function(uri)
 {
-	Restless.String.check(uri,'uri');
+	Pantheist.String.check(uri,'uri');
 	
-	var uriComponents = Restless.splitUri(uri);
+	var uriComponents = Pantheist.splitUri(uri);
 	if (uriComponents.scheme !== this.scheme)
 	{
 		return undefined;
@@ -640,7 +640,7 @@ Restless.UriPattern.prototype.match = function(uri)
 	return result;
 };
 
-Restless.UriPattern.prototype._schemeAndAuthority = function()
+Pantheist.UriPattern.prototype._schemeAndAuthority = function()
 {
 	if (this.authority === undefined)
 	{
@@ -652,27 +652,27 @@ Restless.UriPattern.prototype._schemeAndAuthority = function()
 	}
 };
 
-Restless.UriPattern.prototype.toUri = function(capturedItems)
+Pantheist.UriPattern.prototype.toUri = function(capturedItems)
 {
 	if (capturedItems.length !== 0)
 	{
-		Restless.err('Dealing with captured items is not handled yet');
+		Pantheist.err('Dealing with captured items is not handled yet');
 	}
 	return this._schemeAndAuthority() + this.segments.map(
 		function(seg)
 		{
 			if (!seg.isLiteral())
 			{
-				Restless.err('Dealing with non-literal not handled yet');
+				Pantheist.err('Dealing with non-literal not handled yet');
 			}
 			return seg.segment;
 		}).join('/');
 };
 
-Restless.UriPattern.prototype.hasPrefix = function(prefix)
+Pantheist.UriPattern.prototype.hasPrefix = function(prefix)
 {
-	Restless.String.check(prefix,'prefix');
-	var uriComponents = Restless.splitUri(prefix);
+	Pantheist.String.check(prefix,'prefix');
+	var uriComponents = Pantheist.splitUri(prefix);
 	if (uriComponents.scheme !== this.scheme)
 	{
 		return false;
@@ -703,31 +703,31 @@ Restless.UriPattern.prototype.hasPrefix = function(prefix)
 	return true;
 };
 
-Object.defineProperty(Restless.UriPattern.prototype, 'stringForm', {
+Object.defineProperty(Pantheist.UriPattern.prototype, 'stringForm', {
 	get: function()
 	{
 		return this._schemeAndAuthority() + this.segments.map(s => s.stringForm).join('/');
 	}
 });
 
-Restless.UriPatternSegment.fromString = function(segment)
+Pantheist.UriPatternSegment.fromString = function(segment)
 {
-	Restless.String.check(segment,'segment');
+	Pantheist.String.check(segment,'segment');
 	
 	var literalRegex = /^[a-zA-Z0-9-._~]*$/;
 	if (literalRegex.test(segment))
 	{
-		return new Restless.LiteralSegment(segment);
+		return new Pantheist.LiteralSegment(segment);
 	}
 	else
 	{
-		Restless.err('Invalid uri segment: {}', segment);
+		Pantheist.err('Invalid uri segment: {}', segment);
 	}
 };
 
-Restless.splitUri = function(uri)
+Pantheist.splitUri = function(uri)
 {
-	Restless.String.check(uri,'uri');
+	Pantheist.String.check(uri,'uri');
 	
 	// taken from rfc3986, with the slashes escaped.
 	var uriRegex = /^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
@@ -755,33 +755,33 @@ Restless.splitUri = function(uri)
 	};
 };
 
-Restless.UriPattern.fromString = function(patternString)
+Pantheist.UriPattern.fromString = function(patternString)
 {
-	Restless.NonEmptyString.check(patternString,'patternString');
+	Pantheist.NonEmptyString.check(patternString,'patternString');
 	
-	var uriComponents = Restless.splitUri(patternString);
+	var uriComponents = Pantheist.splitUri(patternString);
 	if (uriComponents.scheme === undefined || uriComponents.query !== undefined || uriComponents.fragment !== undefined)
 	{
-		Restless.err('Invalid uri pattern string: {}', patternString);
+		Pantheist.err('Invalid uri pattern string: {}', patternString);
 	}
 	
-	var segments = uriComponents.path.split('/').map(Restless.UriPatternSegment.fromString);
-	return new Restless.UriPattern(uriComponents.scheme, uriComponents.authority, segments);
+	var segments = uriComponents.path.split('/').map(Pantheist.UriPatternSegment.fromString);
+	return new Pantheist.UriPattern(uriComponents.scheme, uriComponents.authority, segments);
 };
 
-Restless.uriAddSegment = function(uri,segment)
+Pantheist.uriAddSegment = function(uri,segment)
 {
-	Restless.NonEmptyString.check(segment,'segment');
+	Pantheist.NonEmptyString.check(segment,'segment');
 	var segmentRegex = /^[a-zA-Z0-9.-_~]+$/;
 	if (!segmentRegex.test(segment))
 	{
-		Restless.err('Invalid segment for uriAddSegment: {}', segment);
+		Pantheist.err('Invalid segment for uriAddSegment: {}', segment);
 	}
 	
-	var uriComponents = Restless.splitUri(uri);
+	var uriComponents = Pantheist.splitUri(uri);
 	if (uriComponents.scheme === undefined || uriComponents.query !== undefined || uriComponents.fragment !== undefined)
 	{
-		Restless.err('Invalid uri for uriAddSegment: {}', uri);
+		Pantheist.err('Invalid uri for uriAddSegment: {}', uri);
 	}
 	
 	var path;
@@ -810,27 +810,27 @@ Restless.uriAddSegment = function(uri,segment)
 //
 ///////////////////////
 
-Restless.TranslationRule = Restless.Object
+Pantheist.TranslationRule = Pantheist.Object
 	.withTypeName('TranslationRule')
-	.withField('matchPattern', Restless.UriPattern)
-	.withField('mapsToPattern', Restless.UriPattern)
+	.withField('matchPattern', Pantheist.UriPattern)
+	.withField('mapsToPattern', Pantheist.UriPattern)
 	.withStandardConstructor();
 
-Restless.TranslationRule.prototype.appliesTo = function(uri)
+Pantheist.TranslationRule.prototype.appliesTo = function(uri)
 {
-	Restless.NonEmptyString.check(uri,'uri');
+	Pantheist.NonEmptyString.check(uri,'uri');
 	return this.matchPattern.match(uri) !== undefined;
 };
 
-Restless.TranslationRule.prototype.relevantTo = function(uri)
+Pantheist.TranslationRule.prototype.relevantTo = function(uri)
 {
-	Restless.NonEmptyString.check(uri,'uri');
+	Pantheist.NonEmptyString.check(uri,'uri');
 	return this.appliesTo(uri) || this.matchPattern.hasPrefix(uri);
 };
 
-Restless.TranslationRule.prototype.translate = function(uri)
+Pantheist.TranslationRule.prototype.translate = function(uri)
 {
-	Restless.NonEmptyString.check(uri,'uri');
+	Pantheist.NonEmptyString.check(uri,'uri');
 	var match = this.matchPattern.match(uri);
 	if (match !== undefined)
 	{
@@ -845,44 +845,44 @@ Restless.TranslationRule.prototype.translate = function(uri)
 //
 /////////////
 
-Object.defineProperty(Restless, 'home', {
+Object.defineProperty(Pantheist, 'home', {
 	get: function()
 	{
-		Restless._initializationCheck();
-		return Restless.node( Restless._mainService.homeUri );
+		Pantheist._initializationCheck();
+		return Pantheist.node( Pantheist._mainService.homeUri );
 	}
 });
 
-Restless.node = function(uri)
+Pantheist.node = function(uri)
 {
-	Restless._initializationCheck();
-	if (uri in Restless._knownNodes)
+	Pantheist._initializationCheck();
+	if (uri in Pantheist._knownNodes)
 	{
-		return Restless._knownNodes[uri];
+		return Pantheist._knownNodes[uri];
 	}
-	else if (Restless._mainService.appliesTo(uri))
+	else if (Pantheist._mainService.appliesTo(uri))
 	{
-		var node = new Restless.Node(Restless._mainService,uri);
-		Restless._knownNodes[uri] = node;
+		var node = new Pantheist.Node(Pantheist._mainService,uri);
+		Pantheist._knownNodes[uri] = node;
 		return node;
 	}
 	else
 	{
-		return new Restless.ErrorNode('Main service does not apply to this uri');
+		return new Pantheist.ErrorNode('Main service does not apply to this uri');
 	}
 };
 
-Restless.initialize = function(rootUrl)
+Pantheist.initialize = function(rootUrl)
 {
-	Restless.NonEmptyString.check(rootUrl,'rootUrl');
-	Restless._knownNodes = {};
-	var httpService = new Restless.HttpService(rootUrl);
-	var translationStore = new Restless.TranslationStore();
-	var translationLayer = new Restless.TranslationLayer(translationStore, [httpService]);
+	Pantheist.NonEmptyString.check(rootUrl,'rootUrl');
+	Pantheist._knownNodes = {};
+	var httpService = new Pantheist.HttpService(rootUrl);
+	var translationStore = new Pantheist.TranslationStore();
+	var translationLayer = new Pantheist.TranslationLayer(translationStore, [httpService]);
 
-	var serverUri = Restless.uriAddSegment(translationLayer.homeUri, 'server');
+	var serverUri = Pantheist.uriAddSegment(translationLayer.homeUri, 'server');
 
 	translationStore.addRule(serverUri, httpService.homeUri);
 
-	Restless._mainService = translationLayer;
+	Pantheist._mainService = translationLayer;
 };

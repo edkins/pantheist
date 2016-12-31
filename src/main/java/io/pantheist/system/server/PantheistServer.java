@@ -1,6 +1,6 @@
 package io.pantheist.system.server;
 
-public interface RestlessServer
+public interface PantheistServer
 {
 	/**
 	 * Start the server running on the configured port.

@@ -20,7 +20,7 @@ import io.pantheist.api.flatdir.model.ListFlatDirItem;
 public class FlatDirTest extends BaseTest
 {
 	private static final String TEXT_PLAIN = "text/plain";
-	private static final String JAVA_PKG = "restless.examples";
+	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
 
@@ -56,7 +56,7 @@ public class FlatDirTest extends BaseTest
 				.data()
 				.putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
 
-		final List<ListFileItem> list = manage.flatDir("system/java/restless/examples")
+		final List<ListFileItem> list = manage.flatDir("system/java/io/pantheist/examples")
 				.listFlatDirFiles()
 				.childResources();
 

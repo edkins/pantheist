@@ -24,7 +24,7 @@ import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.java.model.JavaModelFactory;
-import io.pantheist.system.config.RestlessConfig;
+import io.pantheist.system.config.PantheistConfig;
 
 final class UrlTranslationImpl implements UrlTranslation
 {
@@ -47,7 +47,7 @@ final class UrlTranslationImpl implements UrlTranslation
 
 	@Inject
 	private UrlTranslationImpl(
-			final RestlessConfig config,
+			final PantheistConfig config,
 			final JavaModelFactory javaFactory,
 			final CommonApiModelFactory modelFactory)
 	{

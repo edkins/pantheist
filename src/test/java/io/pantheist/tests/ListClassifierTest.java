@@ -34,7 +34,7 @@ import io.pantheist.testclient.api.ResponseType;
 
 public class ListClassifierTest extends BaseTest
 {
-	private static final String JAVA_PKG = "restless.examples";
+	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
 	private static final String KIND_SCHEMA_RES = "/kind-schema/kind-test-example";

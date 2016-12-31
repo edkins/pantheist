@@ -22,12 +22,12 @@ import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
 import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.filesystem.backend.FsPath;
-import io.pantheist.system.config.RestlessConfig;
+import io.pantheist.system.config.PantheistConfig;
 
 final class NginxServiceImpl implements NginxService
 {
 	private static final Logger LOGGER = LogManager.getLogger(NginxServiceImpl.class);
-	private final RestlessConfig config;
+	private final PantheistConfig config;
 	private final FilesystemStore filesystemStore;
 	private final ConfigHelperFactory helperFactory;
 
@@ -35,7 +35,7 @@ final class NginxServiceImpl implements NginxService
 	MutableOpt<Process> runningProcess;
 
 	@Inject
-	NginxServiceImpl(final RestlessConfig config,
+	NginxServiceImpl(final PantheistConfig config,
 			final FilesystemStore filesystemStore,
 			final ConfigHelperFactory helperFactory)
 	{

@@ -14,8 +14,8 @@ public class SystemServerModule extends PrivateModule
 	@Override
 	protected void configure()
 	{
-		expose(RestlessServer.class);
-		bind(RestlessServer.class).to(RestlessServerImpl.class).in(Scopes.SINGLETON);
+		expose(PantheistServer.class);
+		bind(PantheistServer.class).to(PantheistServerImpl.class).in(Scopes.SINGLETON);
 	}
 
 	@Provides

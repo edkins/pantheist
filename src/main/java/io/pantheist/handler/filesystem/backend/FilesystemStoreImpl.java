@@ -9,19 +9,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
-import io.pantheist.system.config.RestlessConfig;
+import io.pantheist.system.config.PantheistConfig;
 
 final class FilesystemStoreImpl implements FilesystemStore
 {
 	final ObjectMapper objectMapper;
 	private final FilesystemFactory factory;
-	private final RestlessConfig config;
+	private final PantheistConfig config;
 
 	@Inject
 	FilesystemStoreImpl(
 			final ObjectMapper objectMapper,
 			final FilesystemFactory factory,
-			final RestlessConfig config)
+			final PantheistConfig config)
 	{
 		this.objectMapper = checkNotNull(objectMapper);
 		this.factory = checkNotNull(factory);

@@ -1,6 +1,6 @@
 'use strict';
 
-var Restless = Restless || {};
+var Pantheist = Pantheist || {};
 
 // May return:
 //   undefined
@@ -12,7 +12,7 @@ var Restless = Restless || {};
 //   null
 //   array
 //   object
-Restless._describe = function(thing)
+Pantheist._describe = function(thing)
 {
 	if (thing === null)
 	{
@@ -32,7 +32,7 @@ Restless._describe = function(thing)
 	}
 };
 
-Restless.err = function()
+Pantheist.err = function()
 {
 	var pieces = arguments[0].split('{');
 	var result = pieces[0];
@@ -55,7 +55,7 @@ Restless.err = function()
 		}
 		else if (piece.startsWith('d}'))
 		{
-			result += Restless._describe(data) + piece.substring(2);
+			result += Pantheist._describe(data) + piece.substring(2);
 		}
 		else
 		{
@@ -65,22 +65,22 @@ Restless.err = function()
 	throw new Error(result);
 }
 
-Restless.makeType = function(typeName,fieldNames,constructor,checker) {
+Pantheist.makeType = function(typeName,fieldNames,constructor,checker) {
 	if (typeof typeName !== 'string' || typeName === '')
 	{
-		Restless.err('makeType.typeName: expecting NonEmptyString, was {d}', typeName);
+		Pantheist.err('makeType.typeName: expecting NonEmptyString, was {d}', typeName);
 	}
 	if (!Array.isArray(fieldNames))
 	{
-		Restless.err('makeType.fieldNames.{}: expecting Array, was {d}', typeName, fieldNames);
+		Pantheist.err('makeType.fieldNames.{}: expecting Array, was {d}', typeName, fieldNames);
 	}
 	if (constructor !== undefined && typeof constructor !== 'function')
 	{
-		Restless.err('makeType.constructor.{}: expecting FunctionOrUndefined, was {d}', typeName, constructor);
+		Pantheist.err('makeType.constructor.{}: expecting FunctionOrUndefined, was {d}', typeName, constructor);
 	}
 	if (typeof checker !== 'function')
 	{
-		Restless.err('makeType.checker.{}: expecting Function, was {d}', typeName, checker);
+		Pantheist.err('makeType.checker.{}: expecting Function, was {d}', typeName, checker);
 	}
 	
 	var result;
@@ -88,7 +88,7 @@ Restless.makeType = function(typeName,fieldNames,constructor,checker) {
 	{
 		result = function()
 			{
-				Restless.err('{} has no constructor', typeName);
+				Pantheist.err('{} has no constructor', typeName);
 			};
 	}
 	else
@@ -108,11 +108,11 @@ Restless.makeType = function(typeName,fieldNames,constructor,checker) {
 		{
 			if (typeof name !== 'string' || name === '')
 			{
-				Restless.err('{}.check.name: expecting NonEmptyString, was {d}', typeName, name);
+				Pantheist.err('{}.check.name: expecting NonEmptyString, was {d}', typeName, name);
 			}
 			if (this._checker(value,name) === false)
 			{
-				Restless.err('{}: expecting {}, was {d}', name, this.typeName, value);
+				Pantheist.err('{}: expecting {}, was {d}', name, this.typeName, value);
 			}
 		};
 
@@ -120,22 +120,22 @@ Restless.makeType = function(typeName,fieldNames,constructor,checker) {
 		{
 			if (typeof typeName !== 'string' || typeName === '')
 			{
-				Restless.err('{}.withTypeName.typeName: expecting NonEmptyString, was {d}', this.typeName, typeName);
+				Pantheist.err('{}.withTypeName.typeName: expecting NonEmptyString, was {d}', this.typeName, typeName);
 			}
-			return Restless.makeType(typeName,this._fieldNames,this._constructor,this._checker);
+			return Pantheist.makeType(typeName,this._fieldNames,this._constructor,this._checker);
 		};
 
 	result.withConstructor = function(constructor)
 		{
 			if (typeof constructor !== 'function')
 			{
-				Restless.err('{}.withConstructor.constructor: expecting Function, was {d}', this.typeName, constructor);
+				Pantheist.err('{}.withConstructor.constructor: expecting Function, was {d}', this.typeName, constructor);
 			}
 			if (this._constructor !== undefined)
 			{
-				Restless.err('{}.withConstructor: already has a constructor', this.typeName);
+				Pantheist.err('{}.withConstructor: already has a constructor', this.typeName);
 			}
-			return Restless.makeType(typeName,this._fieldNames,constructor,this._checker);
+			return Pantheist.makeType(typeName,this._fieldNames,constructor,this._checker);
 		};
 
 	result.withStandardConstructor = function()
@@ -146,7 +146,7 @@ Restless.makeType = function(typeName,fieldNames,constructor,checker) {
 				{
 					if (arguments.length !== fieldNames.length)
 					{
-						Restless.err('{}.standardConstructor: expecting {} arguments, got {}', this.typeName, fieldNames.length, arguments.length);
+						Pantheist.err('{}.standardConstructor: expecting {} arguments, got {}', this.typeName, fieldNames.length, arguments.length);
 					}
 					for (var i = 0; i < arguments.length; i++)
 					{
@@ -161,9 +161,9 @@ Restless.makeType = function(typeName,fieldNames,constructor,checker) {
 			var original = this;
 			if (typeof checker !== 'function')
 			{
-				Restless.err('{}.thatSatisfies.checker: expecting Function, was {d}', this.typeName, checker);
+				Pantheist.err('{}.thatSatisfies.checker: expecting Function, was {d}', this.typeName, checker);
 			}
-			return Restless.makeType(typeName,this._fieldNames,this._constructor,
+			return Pantheist.makeType(typeName,this._fieldNames,this._constructor,
 				function(value,name)
 				{
 					original.check(value,name);
@@ -176,12 +176,12 @@ Restless.makeType = function(typeName,fieldNames,constructor,checker) {
 		{
 			if (typeof fieldName !== 'string' || fieldName === '')
 			{
-				Restless.err('{}._withField.fieldName: expecting NonEmptyString, was {d}', this.typeName, fieldName);
+				Pantheist.err('{}._withField.fieldName: expecting NonEmptyString, was {d}', this.typeName, fieldName);
 			}
 			
 			if (typeof(fieldType) !== 'function' || typeof fieldType.check !== 'function')
 			{
-				Restless.err('{}._withField.{}.fieldType: expecting Type, was {d}', this.typeName, fieldName, fieldType);
+				Pantheist.err('{}._withField.{}.fieldType: expecting Type, was {d}', this.typeName, fieldName, fieldType);
 			}
 			
 			var newFieldNames = Array.from(this._fieldNames);
@@ -192,13 +192,13 @@ Restless.makeType = function(typeName,fieldNames,constructor,checker) {
 		
 			var original = this;
 
-			return Restless.makeType(typeName,newFieldNames,this._constructor,
+			return Pantheist.makeType(typeName,newFieldNames,this._constructor,
 				function(value,name)
 				{
 					original.check(value,name);
 					if (!fieldName in value)
 					{
-						Restless.err('{}: expecting {}, missing field {}', name, this.typeName, fieldName);
+						Pantheist.err('{}: expecting {}, missing field {}', name, this.typeName, fieldName);
 					}
 					fieldType.check(value[fieldName], name + '.' + fieldName + '[' + this.typeName + ']');
 				}
@@ -217,18 +217,18 @@ Restless.makeType = function(typeName,fieldNames,constructor,checker) {
 
 	result.withMethod = function(fieldName)
 		{
-			return this._withField(fieldName,Restless.Function,false);
+			return this._withField(fieldName,Pantheist.Function,false);
 		};
 	
 	return result;
 };
 
-Restless.registerSimpleType = function(typeName,checker)
+Pantheist.registerSimpleType = function(typeName,checker)
 {
-	if (typeName in Restless) {
-		Restless.err('{} already registered', typeName);
+	if (typeName in Pantheist) {
+		Pantheist.err('{} already registered', typeName);
 	}
-	Restless[typeName] = Restless.makeType(typeName,[],undefined,checker);
+	Pantheist[typeName] = Pantheist.makeType(typeName,[],undefined,checker);
 }
 
 
@@ -239,39 +239,39 @@ Restless.registerSimpleType = function(typeName,checker)
 //////////////////////////////////
 
 
-Restless.registerSimpleType('String',
+Pantheist.registerSimpleType('String',
 	function(value) {
 		return typeof value === 'string';
 	}
 );
 
-Restless.registerSimpleType('NonEmptyString',
+Pantheist.registerSimpleType('NonEmptyString',
 	function(value) {
 		return typeof value === 'string' && value !== '';
 	}
 );
 
-Restless.registerSimpleType('StringOrUndefined',
+Pantheist.registerSimpleType('StringOrUndefined',
 	function(value) {
 		return value === undefined || typeof value === 'string';
 	}
 );
 
-Restless.registerSimpleType('Function',
+Pantheist.registerSimpleType('Function',
 	function(value) {
 		return typeof value === 'function';
 	}
 );
 
-Restless.registerSimpleType('Object',
+Pantheist.registerSimpleType('Object',
 	function(value) {
 		return typeof value === 'object';
 	}
 );
 
-Restless.Type = Restless.Function
+Pantheist.Type = Pantheist.Function
 	.withTypeName('Type')
-	.withField('typeName',Restless.NonEmptyString)
+	.withField('typeName',Pantheist.NonEmptyString)
 	.withMethod('check')
 	.withMethod('withTypeName')
 	.withMethod('withField')
@@ -280,19 +280,19 @@ Restless.Type = Restless.Function
 	.withMethod('withConstructor')
 	.withMethod('withStandardConstructor');
 
-Restless.registerSimpleType('Array',
+Pantheist.registerSimpleType('Array',
 	function(value) {
 		return Array.isArray(value);
 	}
 );
 
-Restless.ArrayOf = function(elementType) {
-	Restless.Type.check(elementType,'ArrayOf.elementType');
+Pantheist.ArrayOf = function(elementType) {
+	Pantheist.Type.check(elementType,'ArrayOf.elementType');
 
-	return Restless.makeType('ArrayOf('+elementType.typeName+')', [], undefined,
+	return Pantheist.makeType('ArrayOf('+elementType.typeName+')', [], undefined,
 		function(value,name)
 		{
-			Restless.Array.check(value,name);
+			Pantheist.Array.check(value,name);
 			for (var i = 0; i < value.length; i++)
 			{
 				elementType.check(value[i], name + '[' + i + ']');
@@ -301,7 +301,7 @@ Restless.ArrayOf = function(elementType) {
 	);
 };
 
-Restless.registerSimpleType('Map',
+Pantheist.registerSimpleType('Map',
 	function(value,name) {
 		if (typeof map !== 'object' || Array.isArray(map))
 		{
@@ -309,18 +309,18 @@ Restless.registerSimpleType('Map',
 		}
 		for (var key in value)
 		{
-			Restless.NonEmptyString.check(key, name+'.keys[Map]');
+			Pantheist.NonEmptyString.check(key, name+'.keys[Map]');
 		}
 	}
 );
 
-Restless.MapOf = function(elementType) {
-	Restless.Type.check(elementType,'MapOf.elementType');
+Pantheist.MapOf = function(elementType) {
+	Pantheist.Type.check(elementType,'MapOf.elementType');
 
-	return Restless.makeType('MapOf('+elementType.typeName+')', [], undefined,
+	return Pantheist.makeType('MapOf('+elementType.typeName+')', [], undefined,
 		function(value,name)
 		{
-			Restless.MapOf.check(value);
+			Pantheist.MapOf.check(value);
 			for (var key in value)
 			{
 				elementType.check(value[key], name+'.'+key);
@@ -329,7 +329,7 @@ Restless.MapOf = function(elementType) {
 	);
 };
 
-Restless.registerSimpleType('Boolean',
+Pantheist.registerSimpleType('Boolean',
 	function(value) {
 		return typeof(value) === 'boolean';
 	}

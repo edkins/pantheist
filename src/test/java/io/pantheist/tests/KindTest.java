@@ -21,7 +21,7 @@ import io.pantheist.testclient.api.ResponseType;
 
 public class KindTest extends BaseTest
 {
-	private static final String JAVA_PKG = "restless.examples";
+	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String JAVA_INTLIST_NAME = "NonEmptyNonNegativeIntList";
 	private static final String JAVA_INTLIST_RES = "/java-example/NonEmptyNonNegativeIntList";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";

@@ -19,20 +19,20 @@ import com.google.common.base.Throwables;
 import io.pantheist.common.annotations.ResourceTag;
 import io.pantheist.common.util.MutableOpt;
 import io.pantheist.common.util.View;
-import io.pantheist.system.config.RestlessConfig;
+import io.pantheist.system.config.PantheistConfig;
 
-final class RestlessServerImpl implements RestlessServer
+final class PantheistServerImpl implements PantheistServer
 {
-	private static final Logger LOGGER = LogManager.getLogger(RestlessServerImpl.class);
-	private final RestlessConfig config;
+	private static final Logger LOGGER = LogManager.getLogger(PantheistServerImpl.class);
+	private final PantheistConfig config;
 	private final Set<ResourceTag> resourceSet;
 
 	// State
 	MutableOpt<Server> serverOpt;
 
 	@Inject
-	RestlessServerImpl(
-			final RestlessConfig config,
+	PantheistServerImpl(
+			final PantheistConfig config,
 			final Set<ResourceTag> resourceSet)
 	{
 		this.serverOpt = View.mutableOpt();

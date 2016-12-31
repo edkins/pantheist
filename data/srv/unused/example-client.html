@@ -1,7 +1,7 @@
 <html>
 <head>
-<script src="/resources/restless-types.js"></script>
-<script src="/resources/restless-frontend.js"></script>
+<script src="/resources/pantheist-types.js"></script>
+<script src="/resources/pantheist-frontend.js"></script>
 <script src="/third-party/ace-builds/src-noconflict/ace.js"></script>
 <script>
 	var editor = undefined;
@@ -55,7 +55,7 @@
 		{
 			msg('Fetching');
 			var uri = inputUri();
-			Restless.node(uri).get().then(
+			Pantheist.node(uri).get().then(
 				data => {
 					msg('OK');
 					doc(JSON.stringify(data, null, '    '));
@@ -74,7 +74,7 @@
 			msg('Putting');
 			var uri = inputUri();
 			var data = JSON.parse(inputDoc());
-			Restless.node(uri).put(data).then(
+			Pantheist.node(uri).put(data).then(
 				ok => {
 					msg('OK');
 				},
@@ -87,7 +87,7 @@
 	
 	function clickHome(event)
 	{
-		setUri(Restless.home.uri);
+		setUri(Pantheist.home.uri);
 		clearMsg();
 	}
 	
@@ -106,7 +106,7 @@
 		{
 			setupAce();
 
-			Restless.initialize('http://127.0.0.1:3301');
+			Pantheist.initialize('http://127.0.0.1:3301');
 			document.getElementById('btnGet').onclick = clickGet;
 			document.getElementById('btnPut').onclick = clickPut;
 			document.getElementById('btnHome').onclick = clickHome;

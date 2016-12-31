@@ -17,11 +17,11 @@ import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.filesystem.backend.FsPath;
 import io.pantheist.handler.nginx.parser.NginxRoot;
 import io.pantheist.handler.nginx.parser.NginxSyntax;
-import io.pantheist.system.config.RestlessConfig;
+import io.pantheist.system.config.PantheistConfig;
 
 final class ConfigHelperImpl implements ConfigHelper
 {
-	private final RestlessConfig config;
+	private final PantheistConfig config;
 	private final FilesystemStore filesystem;
 
 	// State
@@ -30,7 +30,7 @@ final class ConfigHelperImpl implements ConfigHelper
 
 	@Inject
 	private ConfigHelperImpl(
-			final RestlessConfig config,
+			final PantheistConfig config,
 			final FilesystemStore filesystem,
 			final NginxSyntax syntax)
 	{

@@ -18,7 +18,7 @@ public class JavaTest extends BaseTest
 	private static final String TEXT_PLAIN = "text/plain";
 	private static final String JAVA_JERSEY_NAME = "ExampleJerseyResource";
 	private static final String JAVA_JERSEY_RES = "/java-example/ExampleJerseyResource";
-	private static final String JAVA_PKG = "restless.examples";
+	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
 

@@ -1,9 +1,8 @@
 package io.pantheist.system.config;
 
 import java.io.File;
-import java.util.List;
 
-public interface RestlessConfig
+public interface PantheistConfig
 {
 	int managementPort();
 
@@ -29,9 +28,4 @@ public interface RestlessConfig
 	String relativeSrvPath();
 
 	String nginxExecutable();
-
-	/**
-	 * List of resource files to copy into system/resource-files
-	 */
-	List<String> resourceFiles();
 }

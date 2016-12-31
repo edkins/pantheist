@@ -10,8 +10,8 @@ public class SystemConfigModule extends PrivateModule
 	@Override
 	protected void configure()
 	{
-		expose(RestlessConfig.class);
-		bind(RestlessConfig.class).to(RestlessConfigImpl.class).in(Scopes.SINGLETON);
+		expose(PantheistConfig.class);
+		bind(PantheistConfig.class).to(PantheistConfigImpl.class).in(Scopes.SINGLETON);
 	}
 
 	@Provides

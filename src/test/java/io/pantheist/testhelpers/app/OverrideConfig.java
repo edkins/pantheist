@@ -1,16 +1,14 @@
 package io.pantheist.testhelpers.app;
 
 import java.io.File;
-import java.util.List;
 
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import com.netflix.config.DynamicPropertyFactory;
 
-import io.pantheist.system.config.RestlessConfigImpl;
+import io.pantheist.system.config.PantheistConfigImpl;
 
-final class OverrideConfig extends RestlessConfigImpl
+final class OverrideConfig extends PantheistConfigImpl
 {
 	private final int testManagementPort;
 	private final int testMainPort;
@@ -44,14 +42,5 @@ final class OverrideConfig extends RestlessConfigImpl
 	public File dataDir()
 	{
 		return testDataDir;
-	}
-
-	@Override
-	public List<String> resourceFiles()
-	{
-		final ImmutableList.Builder<String> builder = ImmutableList.builder();
-		builder.addAll(super.resourceFiles());
-		builder.add("example-resource.txt");
-		return builder.build();
 	}
 }

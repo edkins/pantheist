@@ -16,7 +16,7 @@ import com.google.inject.Guice;
 
 import io.pantheist.common.util.MutableOpt;
 import io.pantheist.common.util.View;
-import io.pantheist.system.config.RestlessConfig;
+import io.pantheist.system.config.PantheistConfig;
 import io.pantheist.system.config.SystemConfigModule;
 import io.pantheist.testhelpers.selenium.SeleniumInfo;
 
@@ -135,7 +135,7 @@ public final class TestSessionImpl implements TestSession
 	@Override
 	public File originalDataDir()
 	{
-		return Guice.createInjector(new SystemConfigModule()).getInstance(RestlessConfig.class).dataDir();
+		return Guice.createInjector(new SystemConfigModule()).getInstance(PantheistConfig.class).dataDir();
 	}
 
 }

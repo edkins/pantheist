@@ -9,7 +9,7 @@ import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.netflix.config.DynamicPropertyFactory;
 
-import io.pantheist.system.config.RestlessConfig;
+import io.pantheist.system.config.PantheistConfig;
 import io.pantheist.testhelpers.session.TestSession;
 
 class OverrideModule extends PrivateModule
@@ -24,8 +24,8 @@ class OverrideModule extends PrivateModule
 	@Override
 	protected void configure()
 	{
-		expose(RestlessConfig.class);
-		bind(RestlessConfig.class).to(OverrideConfig.class).in(Scopes.SINGLETON);
+		expose(PantheistConfig.class);
+		bind(PantheistConfig.class).to(OverrideConfig.class).in(Scopes.SINGLETON);
 		bind(Integer.class).annotatedWith(TestManagementPort.class).toInstance(session.managementPort());
 		bind(Integer.class).annotatedWith(TestMainPort.class).toInstance(session.mainPort());
 		bind(File.class).annotatedWith(TestDataDir.class).toInstance(session.dataDir());

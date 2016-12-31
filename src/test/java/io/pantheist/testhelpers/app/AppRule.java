@@ -11,7 +11,7 @@ import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
 import io.pantheist.system.initializer.Initializer;
-import io.pantheist.system.main.AllRestlessModule;
+import io.pantheist.system.main.AllPantheistModule;
 import io.pantheist.testhelpers.session.TestSession;
 
 public class AppRule implements TestRule
@@ -30,7 +30,7 @@ public class AppRule implements TestRule
 
 	private Injector createInjector()
 	{
-		return Guice.createInjector(Modules.override(new AllRestlessModule()).with(new OverrideModule(session)));
+		return Guice.createInjector(Modules.override(new AllPantheistModule()).with(new OverrideModule(session)));
 	}
 
 	@Override
