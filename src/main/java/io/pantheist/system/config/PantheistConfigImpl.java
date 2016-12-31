@@ -3,68 +3,132 @@ package io.pantheist.system.config;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.netflix.config.DynamicPropertyFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import io.pantheist.common.annotations.NotFinalForTesting;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Throwables;
 
 @VisibleForTesting
-@NotFinalForTesting
 public class PantheistConfigImpl implements PantheistConfig
 {
-	private final DynamicPropertyFactory propertyFactory;
+	private static final Logger LOGGER = LogManager.getLogger(PantheistConfigImpl.class);
+	private final ObjectMapper objectMapper;
+	private final ArgumentProcessor argumentProcessor;
+
+	// State
+	boolean loaded;
+	private PantheistConfigFile configFile;
 
 	@Inject
-	protected PantheistConfigImpl(final DynamicPropertyFactory propertyFactory)
+	protected PantheistConfigImpl(final ObjectMapper objectMapper, final ArgumentProcessor argumentProcessor)
 	{
-		this.propertyFactory = checkNotNull(propertyFactory);
+		this.objectMapper = checkNotNull(objectMapper);
+		this.argumentProcessor = checkNotNull(argumentProcessor);
+		this.loaded = false;
+		this.configFile = null;
+	}
+
+	private <T> Optional<T> property(final Function<PantheistConfigFile, T> getter)
+	{
+		if (!loaded)
+		{
+			try
+			{
+				final Optional<File> file = argumentProcessor.getConfigFile();
+				if (file.isPresent())
+				{
+					configFile = objectMapper.readValue(file.get(), PantheistConfigFile.class);
+				}
+				else
+				{
+					LOGGER.info("No config file specified. Using default config.");
+				}
+			}
+			catch (final IOException e)
+			{
+				Throwables.propagate(e);
+			}
+			loaded = true;
+		}
+
+		if (configFile == null)
+		{
+			return Optional.empty();
+		}
+		else
+		{
+			return Optional.ofNullable(getter.apply(configFile));
+		}
 	}
 
 	@Override
-	public int managementPort()
+	public int internalPort()
 	{
-		return propertyFactory.getIntProperty("PANTHEIST_MANAGEMENT_PORT", 3301).get();
+		return property(PantheistConfigFile::internalPort).orElse(3301);
 	}
 
 	@Override
 	public File dataDir()
 	{
-		final String path = propertyFactory.getStringProperty("PANTHEIST_DATA_PATH", null).get();
-		if (path == null)
-		{
-			return new File(System.getProperty("user.dir"), "data");
-		}
-		else
-		{
-			return new File(path);
-		}
+		return property(PantheistConfigFile::dataDir)
+				.map(path -> new File(path))
+				.orElseGet(() -> new File(System.getProperty("user.dir"), "data"));
 	}
 
 	@Override
-	public int mainPort()
+	public int nginxPort()
 	{
-		return propertyFactory.getIntProperty("PANTHEIST_MAIN_PORT", 3300).get();
+		return property(PantheistConfigFile::nginxPort).orElse(3142);
 	}
 
 	@Override
 	public String nginxExecutable()
 	{
-		return propertyFactory.getStringProperty("PANTHEIST_NGINX", "/usr/sbin/nginx").get();
+		return property(PantheistConfigFile::nginxExecutable).orElse("/usr/sbin/nginx");
+	}
+
+	private String relativeToDataDir(final String path)
+	{
+		final String absolutePath = new File(path).getAbsolutePath();
+		final String dataPath = dataDir().getAbsolutePath();
+		final String dataPathSlash = dataDir().getAbsolutePath() + "/";
+
+		if (absolutePath.equals(dataPath))
+		{
+			return "";
+		}
+		else if (absolutePath.startsWith(dataPathSlash))
+		{
+			return absolutePath.substring(dataPathSlash.length(), absolutePath.length());
+		}
+		else
+		{
+			throw new IllegalArgumentException("Path does not lie inside data dir: " + absolutePath);
+		}
 	}
 
 	@Override
 	public String relativeSystemPath()
 	{
-		return propertyFactory.getStringProperty("PANTHEIST_RELATIVE_SYSTEM_PATH", "system").get();
+		return property(PantheistConfigFile::systemDir)
+				.map(this::relativeToDataDir)
+				.orElse("system");
 	}
 
 	@Override
 	public String relativeSrvPath()
 	{
-		return propertyFactory.getStringProperty("PANTHEIST_RELATIVE_SRV_PATH", "srv").get();
+		return property(PantheistConfigFile::srvDir)
+				.map(this::relativeToDataDir)
+				.orElse("srv");
 	}
 
 }

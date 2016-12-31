@@ -57,7 +57,7 @@ public interface AntiIterator<T>
 		return consumer -> {
 			forEach(x -> {
 				consumer.accept(Pair.of(prev.toOptional(), Optional.of(x)));
-				prev.setSingle(x);
+				prev.replace(x);
 			});
 			consumer.accept(Pair.of(prev.toOptional(), Optional.empty()));
 		};
@@ -130,11 +130,11 @@ public interface AntiIterator<T>
 		forEach(x -> {
 			if (result.isPresent())
 			{
-				result.setSingle(operator.apply(result.get(), x));
+				result.replace(operator.apply(result.get(), x));
 			}
 			else
 			{
-				result.setSingle(x);
+				result.replace(x);
 			}
 		});
 		return result.toOptional();

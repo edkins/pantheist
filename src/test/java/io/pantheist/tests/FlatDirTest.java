@@ -3,7 +3,6 @@ package io.pantheist.tests;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
@@ -11,7 +10,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import io.pantheist.api.flatdir.model.ListFileItem;
@@ -77,8 +75,10 @@ public class FlatDirTest extends BaseTest
 				.listFlatDirFiles()
 				.childResources();
 
-		// There won't normally be any files in there though.
-		assertThat(list, is(ImmutableList.of()));
+		final List<String> fileNames = Lists.transform(list, ListFileItem::fileName);
+
+		// This is where the tests happen to put their pantheist.conf file.
+		assertThat(fileNames, contains("pantheist.conf"));
 	}
 
 	@Test

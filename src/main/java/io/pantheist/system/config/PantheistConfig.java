@@ -4,9 +4,9 @@ import java.io.File;
 
 public interface PantheistConfig
 {
-	int managementPort();
+	int internalPort();
 
-	int mainPort();
+	int nginxPort();
 
 	/**
 	 * @return the directory where all the files get put.

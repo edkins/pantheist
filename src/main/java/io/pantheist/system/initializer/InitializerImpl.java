@@ -82,9 +82,9 @@ final class InitializerImpl implements Initializer
 		final String replacementText1 = "${SRV_DIR}";
 		final String hiddenText2 = config.dataDir().getAbsolutePath();
 		final String replacementText2 = "${DATA_DIR}";
-		final String hiddenText3 = "127.0.0.1:" + config.mainPort();
+		final String hiddenText3 = "127.0.0.1:" + config.nginxPort();
 		final String replacementText3 = "127.0.0.1:${MAIN_PORT}";
-		final String hiddenText4 = "127.0.0.1:" + config.managementPort();
+		final String hiddenText4 = "127.0.0.1:" + config.internalPort();
 		final String replacementText4 = "127.0.0.1:${MANAGEMENT_PORT}";
 		final FsPath nginxConf = filesystem.systemBucket().segment("nginx.conf");
 		final String text = snapshot

@@ -8,7 +8,6 @@ import org.junit.runners.model.Statement;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.util.Modules;
 
 import io.pantheist.system.initializer.Initializer;
 import io.pantheist.system.main.AllPantheistModule;
@@ -30,7 +29,8 @@ public class AppRule implements TestRule
 
 	private Injector createInjector()
 	{
-		return Guice.createInjector(Modules.override(new AllPantheistModule()).with(new OverrideModule(session)));
+		final String[] args = new String[] { "-c", session.configFile().getAbsolutePath() };
+		return Guice.createInjector(new AllPantheistModule(args));
 	}
 
 	@Override

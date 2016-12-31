@@ -15,12 +15,14 @@ public interface TestSession extends SeleniumInfo
 
 	void supplyDataDir(File dataDir);
 
+	void supplyConfigFile(File configFile);
+
 	@Override
 	WebDriver webDriver();
 
-	int managementPort();
+	int internalPort();
 
-	int mainPort();
+	int nginxPort();
 
 	URL managementUrl();
 
@@ -29,6 +31,8 @@ public interface TestSession extends SeleniumInfo
 	File originalDataDir();
 
 	File dataDir();
+
+	File configFile();
 
 	File dumpFile(String prefix, String ext);
 

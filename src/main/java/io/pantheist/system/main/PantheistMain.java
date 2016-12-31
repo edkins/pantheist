@@ -8,6 +8,6 @@ public class PantheistMain
 {
 	public static void main(final String[] args)
 	{
-		Guice.createInjector(new AllPantheistModule()).getInstance(Initializer.class).start();
+		Guice.createInjector(new AllPantheistModule(args)).getInstance(Initializer.class).start();
 	}
 }

@@ -12,12 +12,9 @@ import org.openqa.selenium.WebDriver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
-import com.google.inject.Guice;
 
 import io.pantheist.common.util.MutableOpt;
 import io.pantheist.common.util.View;
-import io.pantheist.system.config.PantheistConfig;
-import io.pantheist.system.config.SystemConfigModule;
 import io.pantheist.testhelpers.selenium.SeleniumInfo;
 
 public final class TestSessionImpl implements TestSession
@@ -30,6 +27,8 @@ public final class TestSessionImpl implements TestSession
 
 	private final MutableOpt<File> dataDir;
 
+	private final MutableOpt<File> configFile;
+
 	private final ObjectMapper objectMapper;
 
 	private TestSessionImpl(final SeleniumInfo seleniumInfo)
@@ -38,6 +37,7 @@ public final class TestSessionImpl implements TestSession
 		this.mainPort = PortFinder.empty();
 		this.seleniumInfo = checkNotNull(seleniumInfo);
 		this.dataDir = View.mutableOpt();
+		this.configFile = View.mutableOpt();
 		this.objectMapper = new ObjectMapper();
 	}
 
@@ -60,7 +60,7 @@ public final class TestSessionImpl implements TestSession
 	}
 
 	@Override
-	public int managementPort()
+	public int internalPort()
 	{
 		return managementPort.get();
 	}
@@ -127,7 +127,7 @@ public final class TestSessionImpl implements TestSession
 	}
 
 	@Override
-	public int mainPort()
+	public int nginxPort()
 	{
 		return mainPort.get();
 	}
@@ -135,7 +135,19 @@ public final class TestSessionImpl implements TestSession
 	@Override
 	public File originalDataDir()
 	{
-		return Guice.createInjector(new SystemConfigModule()).getInstance(PantheistConfig.class).dataDir();
+		return new File(System.getProperty("user.dir"), "data");
+	}
+
+	@Override
+	public void supplyConfigFile(final File newFile)
+	{
+		configFile.supply(newFile);
+	}
+
+	@Override
+	public File configFile()
+	{
+		return configFile.get();
 	}
 
 }

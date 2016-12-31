@@ -81,7 +81,7 @@ final class NginxServiceImpl implements NginxService
 						"-c",
 						helper.absolutePath()).start();
 				runningProcess.supply(process);
-				LOGGER.info("nginx started on port {} with pid {}", config.mainPort(), getPidOfProcess(process));
+				LOGGER.info("nginx started on port {} with pid {}", config.nginxPort(), getPidOfProcess(process));
 			}
 		}
 		catch (final IOException | InterruptedException e)

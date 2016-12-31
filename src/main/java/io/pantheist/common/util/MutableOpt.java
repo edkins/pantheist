@@ -8,7 +8,7 @@ public interface MutableOpt<T>
 
 	void clear();
 
-	void setSingle(T item);
+	void replace(T item);
 
 	boolean isPresent();
 

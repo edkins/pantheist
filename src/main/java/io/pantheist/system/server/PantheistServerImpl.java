@@ -45,7 +45,7 @@ final class PantheistServerImpl implements PantheistServer
 	{
 		try
 		{
-			final int port = config.managementPort();
+			final int port = config.internalPort();
 
 			final ServletContextHandler context = new ServletContextHandler();
 			context.setContextPath("/");

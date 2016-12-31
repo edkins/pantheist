@@ -53,7 +53,7 @@ final class MutableOptImpl<T> implements MutableOpt<T>
 	}
 
 	@Override
-	public void setSingle(final T item)
+	public void replace(final T item)
 	{
 		this.value = Optional.of(item);
 	}

@@ -54,8 +54,8 @@ public class DataFileImportRule implements TestRule
 						system.getAbsolutePath(),
 						srv.getAbsolutePath(),
 						target.getAbsolutePath(),
-						"127.0.0.1:" + session.mainPort(),
-						"127.0.0.1:" + session.managementPort());
+						"127.0.0.1:" + session.nginxPort(),
+						"127.0.0.1:" + session.internalPort());
 				base.evaluate();
 			}
 		};

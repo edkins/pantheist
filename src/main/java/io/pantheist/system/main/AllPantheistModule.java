@@ -41,6 +41,12 @@ import io.pantheist.system.server.SystemServerModule;
 
 public class AllPantheistModule extends AbstractModule
 {
+	private final String[] args;
+
+	public AllPantheistModule(final String[] args)
+	{
+		this.args = args;
+	}
 
 	@Override
 	protected void configure()
@@ -77,7 +83,7 @@ public class AllPantheistModule extends AbstractModule
 		install(new HandlerNginxParserModule());
 		install(new HandlerSchemaBackendModule());
 		install(new HandlerSchemaModelModule());
-		install(new SystemConfigModule());
+		install(new SystemConfigModule(args));
 		install(new SystemInitializerModule());
 		install(new SystemInjectModule());
 		install(new SystemServerModule());
