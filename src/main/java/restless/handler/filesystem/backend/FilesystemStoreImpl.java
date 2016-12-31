@@ -2,8 +2,6 @@ package restless.handler.filesystem.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.File;
-
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,18 +9,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import restless.common.util.FailureReason;
 import restless.common.util.Possible;
 import restless.common.util.View;
+import restless.system.config.RestlessConfig;
 
 final class FilesystemStoreImpl implements FilesystemStore
 {
 	final ObjectMapper objectMapper;
 	private final FilesystemFactory factory;
+	private final RestlessConfig config;
 
 	@Inject
-	FilesystemStoreImpl(final ObjectMapper objectMapper,
-			final FilesystemFactory factory)
+	FilesystemStoreImpl(
+			final ObjectMapper objectMapper,
+			final FilesystemFactory factory,
+			final RestlessConfig config)
 	{
 		this.objectMapper = checkNotNull(objectMapper);
 		this.factory = checkNotNull(factory);
+		this.config = checkNotNull(config);
 	}
 
 	@Override
@@ -30,27 +33,23 @@ final class FilesystemStoreImpl implements FilesystemStore
 	{
 		final FilesystemSnapshot snapshot = snapshot();
 		final FsPath path = systemBucket();
-		if (!snapshot.isDir(path))
-		{
-			snapshot.writeSingle(path, File::mkdir);
-		}
-	}
+		snapshot.willNeedDirectory(path);
 
-	private FsPath fromBucketName(final String bucketName)
-	{
-		return FsPathImpl.empty().segment(bucketName);
+		// Dummy write to make sure the willNeedDirectory took effect.
+		snapshot.write(x -> {
+		});
 	}
 
 	@Override
 	public FsPath systemBucket()
 	{
-		return fromBucketName("system");
+		return rootPath().slashSeparatedSegments(config.relativeSystemPath());
 	}
 
 	@Override
 	public FsPath srvBucket()
 	{
-		return fromBucketName("srv");
+		return rootPath().slashSeparatedSegments(config.relativeSrvPath());
 	}
 
 	@Override

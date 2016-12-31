@@ -61,21 +61,40 @@ final class InitializerImpl implements Initializer
 		Cleanup.run(nginxService::stop, server::stop);
 	}
 
+	private String slashed(final String relativePath)
+	{
+		if (relativePath.isEmpty())
+		{
+			return "";
+		}
+		else
+		{
+			return "/" + relativePath;
+		}
+	}
+
 	private void anonymizeNginxConf()
 	{
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
-		final String hiddenText = config.dataDir().getAbsolutePath();
-		final String replacementText = "${DATADIR}";
-		final String hiddenText2 = "127.0.0.1:" + config.mainPort();
-		final String replacementText2 = "127.0.0.1:${MAIN_PORT}";
-		final String hiddenText3 = "127.0.0.1:" + config.managementPort();
-		final String replacementText3 = "127.0.0.1:${MANAGEMENT_PORT}";
+		final String hiddenText0 = config.dataDir().getAbsolutePath() + slashed(config.relativeSystemPath());
+		final String replacementText0 = "${SYSTEM_DIR}";
+		final String hiddenText1 = config.dataDir().getAbsolutePath() + slashed(config.relativeSrvPath());
+		final String replacementText1 = "${SRV_DIR}";
+		final String hiddenText2 = config.dataDir().getAbsolutePath();
+		final String replacementText2 = "${DATA_DIR}";
+		final String hiddenText3 = "127.0.0.1:" + config.mainPort();
+		final String replacementText3 = "127.0.0.1:${MAIN_PORT}";
+		final String hiddenText4 = "127.0.0.1:" + config.managementPort();
+		final String replacementText4 = "127.0.0.1:${MANAGEMENT_PORT}";
 		final FsPath nginxConf = filesystem.systemBucket().segment("nginx.conf");
 		final String text = snapshot
 				.readText(nginxConf)
-				.replace(hiddenText, replacementText)
+				.replace(hiddenText0, replacementText0)
+				.replace(hiddenText1, replacementText1)
 				.replace(hiddenText2, replacementText2)
-				.replace(hiddenText3, replacementText3);
+				.replace(hiddenText2, replacementText2)
+				.replace(hiddenText3, replacementText3)
+				.replace(hiddenText4, replacementText4);
 
 		final FsPath nginxAnonConf = filesystem.systemBucket().segment("nginx-anon.conf");
 		snapshot.isFile(nginxAnonConf);

@@ -11,14 +11,17 @@ final class AdditionalStructureItemImpl implements AdditionalStructureItem
 {
 	private final boolean literal;
 	private final String name;
+	private final boolean suggestHiding;
 
 	@Inject
 	private AdditionalStructureItemImpl(
 			@Assisted("literal") @JsonProperty("literal") final boolean literal,
-			@Assisted("name") @JsonProperty("name") final String name)
+			@Assisted("name") @JsonProperty("name") final String name,
+			@Assisted("suggestHiding") @JsonProperty("suggestHiding") final boolean suggestHiding)
 	{
 		this.literal = literal;
 		this.name = OtherPreconditions.checkNotNullOrEmpty(name);
+		this.suggestHiding = suggestHiding;
 	}
 
 	@Override
@@ -31,6 +34,12 @@ final class AdditionalStructureItemImpl implements AdditionalStructureItem
 	public String name()
 	{
 		return name;
+	}
+
+	@Override
+	public boolean suggestHiding()
+	{
+		return suggestHiding;
 	}
 
 }

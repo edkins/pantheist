@@ -60,6 +60,45 @@ function createTreeItem(url,name)
 function createUl(t,parentUrl)
 {
 	var ul = document.createElement('ul');
+	return createListElements(t,parentUrl).then(
+		elements => {
+			for (var element of elements)
+			{
+				ul.append(element);
+			}
+			return ul;
+		}
+	);
+}
+
+function createTreeNode(t,url)
+{
+	var name = http.lastSegment(url);
+	
+	var li = document.createElement('li');
+	
+	var item = createTreeItem(url,name);
+	li.append(item);
+
+	li.classList.add('tree-node');
+	if (url in t.expandedNodes)
+	{
+		li.classList.add('expanded');
+		return createUl(t,url).then( cul => {
+			li.append(cul);
+			return li;
+		} );
+	}
+	else
+	{
+		li.classList.add('collapsed');
+	}
+	
+	return Promise.resolve(li);
+}
+
+function createListElements(t,parentUrl)
+{
 	return t.getJson(parentUrl).then(
 		data => {
 			if (data.childResources.length === 0)
@@ -68,30 +107,31 @@ function createUl(t,parentUrl)
 				li.append('empty');
 				li.classList.add('tree-node');
 				li.classList.add('notice');
-				ul.append(li);
-				return ul;
+				return [li];
 			}
 		
-			return processList(0, data.childResources, child => {
-				var name = http.lastSegment(child.url);
-				
-				var li = document.createElement('li');
-				ul.append(li);
-				
-				var item = createTreeItem(child.url,name);
-				li.append(item);
-
-				li.classList.add('tree-node');
-				if (child.url in t.expandedNodes)
+			var elements = [];
+			return processList(0, data.childResources, child =>
 				{
-					li.classList.add('expanded');
-					return createUl(t,child.url).then( cul => li.append(cul) );
+					if (child.suggestHiding)
+					{
+						return createListElements(t, child.url).then(
+							els => {
+								for (var el of els)
+								{
+									elements.push(el);
+								}
+							}
+						);
+					}
+					else
+					{
+						return createTreeNode(t, child.url).then(
+							li => elements.push(li)
+						);
+					}
 				}
-				else
-				{
-					li.classList.add('collapsed');
-				}
-			}).then( x => ul );
+			).then( x => elements );
 		}
 	).catch(
 		error => {
@@ -99,8 +139,7 @@ function createUl(t,parentUrl)
 			li.append(''+error);
 			li.classList.add('tree-node');
 			li.classList.add('error');
-			ul.append(li);
-			return ul;
+			return [li];
 		}
 	);
 }
@@ -109,21 +148,6 @@ function setEditorText(text)
 {
 	editor.setValue(text);
 	editor.selection.clearSelection();
-}
-
-function showDataForInfoPane(t)
-{
-	if (t.tab === 'btn-info')
-	{
-		if (t.data === undefined)
-		{
-			setEditorText('')
-		}
-		else
-		{
-			setEditorText(JSON.stringify(t.data, null, '    '))
-		}
-	}
 }
 
 function setupAce()
@@ -182,7 +206,10 @@ function showCreateForm(t)
 			if (additional.literal)
 			{
 				var span = document.createElement('span');
-				span.append(' ' + additional.name + ' ');
+				if (!additional.suggestHiding)
+				{
+					span.append(' ' + additional.name + ' ')
+				}
 				span.dataset.segtype = 'literal';
 				span.dataset.name = additional.name;
 				panel.append(span);
@@ -372,28 +399,38 @@ function clickTreeItem(event)
 
 	if (document.getElementById('address-bar').value === url)
 	{
-		invertExpansion(url);
+		Transaction.fetch().then( t => {
+			if (t.data !== undefined && t.data.childResources != undefined)
+			{
+				invertExpansion(url);
+			}
+			respondToClickingTreeItem(t);
+		} );
 	}
 	else
 	{
 		document.getElementById('address-bar').value = url;
-	}
-
-	Transaction.fetch().then( t => {
-		showAvailableActionsAsTabs(t);
-	
-		if (t.tab === undefined)
-		{
-			ui.tab = 'btn-info';
-			t.tab = 'btn-info';
-			highlightActiveTab('btn-info');
-		}
-		
-		refreshCurrentPane(t);
-		showDataForInfoPane(t);
-		listThings(t).then( () => {
-			highlightLocationInResourceList(t.url);
+		Transaction.fetch().then( t => {
+			respondToClickingTreeItem(t);
 		});
+	}
+}
+	
+function respondToClickingTreeItem(t)
+{
+	showAvailableActionsAsTabs(t);
+
+	if (t.tab === undefined)
+	{
+		ui.tab = 'btn-info';
+		t.tab = 'btn-info';
+		highlightActiveTab('btn-info');
+	}
+	
+	refreshCurrentPane(t);
+	trackContent(t);
+	listThings(t).then( () => {
+		highlightLocationInResourceList(t.url);
 	});
 }
 
@@ -423,9 +460,72 @@ function clickInfo(event)
 	Transaction.fetch().then( t => {
 		showAvailableActionsAsTabs(t);
 		highlightLocationInResourceList(t.url);
-		showDataForInfoPane(t);
+		trackContent(t);
 		listThings(t);
 	});
+}
+
+function trackContent(t)
+{
+	switch(t.tab)
+	{
+	case 'btn-info':
+		if (t.data === undefined)
+		{
+			flashMsg('No info to display');
+			setEditorText('')
+		}
+		else
+		{
+			setEditorText(JSON.stringify(t.data, null, '    '))
+		}
+		break;
+
+	case 'btn-data':
+		if (t.data !== undefined && t.data.dataAction != undefined)
+		{
+			http.getString(t.data.dataAction.mimeType, t.url + '/data').then(
+				text => {
+					setEditorText(text);
+				}
+			).catch(
+				error => {
+					flashMsg(error);
+					setEditorText('');
+				}
+			);
+		}
+		else
+		{
+			flashMsg('No data to display');
+			setEditorText('');
+		}
+		break;
+	
+	case 'btn-binding':
+		if (t.data !== undefined && t.data.bindingAction != undefined)
+		{
+			return http.getString('application/json', t.data.bindingAction.url).then(
+				text => {
+					setEditorText(text);
+				}
+			).catch(
+				error => {
+					flashMsg(error);
+					setEditorText('');
+				}
+			);
+		}
+		else
+		{
+			flashMsg('No binding to display');
+			setEditorText('');
+		}
+		break;
+
+	default:
+		// otherwise leave editor text as it is.
+	}
 }
 
 function clickData(event)
@@ -437,15 +537,7 @@ function clickData(event)
 		refreshCurrentPane(t);
 		if (t.data !== undefined && t.data.dataAction != undefined)
 		{
-			http.getString(t.data.dataAction.mimeType, t.url + '/data').then(
-				text => {
-					setEditorText(text);
-				}
-			).catch(
-				error => {
-					flashMsg(error);
-				}
-			);
+			trackContent(t);
 		}
 	});
 }
@@ -468,18 +560,7 @@ function clickBinding(event)
 
 	Transaction.fetch().then( t => {
 		refreshCurrentPane(t);
-		if (t.data !== undefined && t.data.bindingAction != undefined)
-		{
-			http.getString('application/json', t.data.bindingAction.url).then(
-				text => {
-					setEditorText(text);
-				}
-			).catch(
-				error => {
-					flashMsg(error);
-				}
-			);
-		}
+		trackContent(t);
 	});
 }
 
@@ -521,7 +602,8 @@ function clickSend(event)
 				.then( x => {
 					flashMsg('OK');
 					listThings(t);
-				});
+				})
+				.catch (error => flashMsg(error) );
 
 		case 'btn-binding':
 			if (t.data === undefined || t.data.bindingAction == undefined)
@@ -535,7 +617,8 @@ function clickSend(event)
 				.then( x => {
 					flashMsg('OK');
 					listThings(t);
-				});
+				})
+				.catch (error => flashMsg(error) );
 		}
 	} );
 }

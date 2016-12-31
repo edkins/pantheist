@@ -39,8 +39,10 @@ public class DataFileImportRule implements TestRule
 			public void evaluate() throws Throwable
 			{
 				final File target = session.dataDir();
-				new File(target, "srv").mkdir();
-				new File(target, "system").mkdir();
+				final File srv = new File(target, "srv");
+				final File system = new File(target, "system");
+				srv.mkdir();
+				system.mkdir();
 
 				final File source = session.originalDataDir();
 				LOGGER.info("Copying stuff from {} to {}", source.getAbsolutePath(), target.getAbsolutePath());
@@ -49,6 +51,8 @@ public class DataFileImportRule implements TestRule
 				deanonymizeNginxConf(
 						new File(source, "system/nginx-anon.conf"),
 						new File(target, "system/nginx.conf"),
+						system.getAbsolutePath(),
+						srv.getAbsolutePath(),
 						target.getAbsolutePath(),
 						"127.0.0.1:" + session.mainPort(),
 						"127.0.0.1:" + session.managementPort());
@@ -60,19 +64,25 @@ public class DataFileImportRule implements TestRule
 	private void deanonymizeNginxConf(
 			final File nginxAnonConf,
 			final File nginxConf,
-			final String hiddenText,
+			final String hiddenText0,
+			final String hiddenText1,
 			final String hiddenText2,
-			final String hiddenText3) throws IOException
+			final String hiddenText3,
+			final String hiddenText4) throws IOException
 	{
-		final String replacementText = "${DATADIR}";
-		final String replacementText2 = "127.0.0.1:${MAIN_PORT}";
-		final String replacementText3 = "127.0.0.1:${MANAGEMENT_PORT}";
+		final String replacementText0 = "${SYSTEM_DIR}";
+		final String replacementText1 = "${SRV_DIR}";
+		final String replacementText2 = "${DATA_DIR}";
+		final String replacementText3 = "127.0.0.1:${MAIN_PORT}";
+		final String replacementText4 = "127.0.0.1:${MANAGEMENT_PORT}";
 
 		final String text = FileUtils
 				.readFileToString(nginxAnonConf, StandardCharsets.UTF_8)
-				.replace(replacementText, hiddenText)
+				.replace(replacementText0, hiddenText0)
+				.replace(replacementText1, hiddenText1)
 				.replace(replacementText2, hiddenText2)
-				.replace(replacementText3, hiddenText3);
+				.replace(replacementText3, hiddenText3)
+				.replace(replacementText4, hiddenText4);
 
 		FileUtils.write(nginxConf, text, StandardCharsets.UTF_8);
 	}

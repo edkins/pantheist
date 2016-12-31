@@ -1,6 +1,6 @@
 #editor {
 	width: 100%;
-	height: 500pt;
+	height: 520pt;
 }
 
 body {
@@ -10,6 +10,7 @@ body {
 .panel-holder {
 	display: table;
 	width: 100%;
+	table-layout: fixed;
 }
 .panel-row {
 	display: table-row;
@@ -21,17 +22,30 @@ body {
 	padding-right: 6pt;
 	cursor: default;
 }
+.panel-left-div {
+	height: 600pt;
+	overflow-y: scroll;
+}
 .panel-right {
 	display: table-cell;
 	width: 70%;
 	vertical-align: top;
 }
-.panel-buttons-left {
+.buttons-holder {
+	display: table;
+	width: 100%;
+	table-layout: fixed;
+}
+.buttons-row {
+	height: 30pt;
+	display: table-row;
+}
+.buttons-left {
 	display: table-cell;
 	width: 70%;
 	vertical-align: top;
 }
-.panel-buttons-right {
+.buttons-right {
 	display: table-cell;
 	width: 30%;
 	vertical-align: top;
@@ -88,8 +102,12 @@ ul {
 	width: 100%;
 }
 
+.create-form {
+	height: 25pt;
+}
+
 .tab-bar {
-	margin: 8pt 0pt;
+	height: 25pt;
 }
 .tab-bar .tab {
     border: solid #ccc 1px;
@@ -122,9 +140,6 @@ ul {
 
 .hidden {
 	visibility: hidden;
-}
-.disappearing.hidden {
-	display: none;
 }
 
 .msg-flash {

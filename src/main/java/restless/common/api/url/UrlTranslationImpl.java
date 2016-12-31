@@ -110,12 +110,13 @@ final class UrlTranslationImpl implements UrlTranslation
 	private List<ListClassifierItem> classifiers(
 			final UriPattern pattern,
 			final Map<String, String> values,
+			final boolean suggestHidingAll,
 			final String... classifierSegments)
 	{
 		return AntiIt.array(classifierSegments)
 				.<ListClassifierItem>map(seg -> {
 					final String url = pattern.segment(seg).generate(values);
-					return modelFactory.listClassifierItem(url, seg);
+					return modelFactory.listClassifierItem(url, seg, suggestHidingAll);
 				})
 				.toList();
 	}
@@ -123,14 +124,14 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public List<ListClassifierItem> listRootClassifiers()
 	{
-		return classifiers(managementRoot, ImmutableMap.of(),
+		return classifiers(managementRoot, ImmutableMap.of(), false,
 				"entity", "kind", "java-pkg", "json-schema", "server", "data");
 	}
 
 	@Override
 	public List<ListClassifierItem> listEntityClassifiers(final String entityId)
 	{
-		return classifiers(entity, ImmutableMap.of("entityId", entityId),
+		return classifiers(entity, ImmutableMap.of("entityId", entityId), true,
 				"component");
 	}
 
@@ -143,13 +144,13 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public List<ListClassifierItem> listJavaPkgClassifiers(final String pkg)
 	{
-		return classifiers(javaPkg, ImmutableMap.of("pkg", pkg), "file");
+		return classifiers(javaPkg, ImmutableMap.of("pkg", pkg), true, "file");
 	}
 
 	@Override
 	public List<ListClassifierItem> listKindClassifiers(final String kindId)
 	{
-		return classifiers(kind, ImmutableMap.of("kindId", kindId), "entity");
+		return classifiers(kind, ImmutableMap.of("kindId", kindId), true, "entity");
 	}
 
 	@Override
@@ -173,9 +174,9 @@ final class UrlTranslationImpl implements UrlTranslation
 		// - and the additional structure is "file/{}"
 
 		final ImmutableList<AdditionalStructureItem> additionalStructure = ImmutableList.of(
-				modelFactory.additionalStructureItem(true, "file"),
-				modelFactory.additionalStructureItem(false, "file"),
-				modelFactory.additionalStructureItem(true, "data"));
+				modelFactory.additionalStructureItem(true, "file", false),
+				modelFactory.additionalStructureItem(false, "file", false),
+				modelFactory.additionalStructureItem(true, "data", true));
 		return modelFactory.createAction(BasicContentType.java, TEXT_PLAIN, additionalStructure);
 	}
 
@@ -195,7 +196,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	public CreateAction jsonSchemaCreateAction()
 	{
 		final ImmutableList<AdditionalStructureItem> additionalStructure = ImmutableList.of(
-				modelFactory.additionalStructureItem(true, "data"));
+				modelFactory.additionalStructureItem(true, "data", true));
 		return modelFactory.createAction(BasicContentType.json, JSON_SCHEMA_MIME, additionalStructure);
 	}
 
@@ -214,7 +215,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public BindingAction javaPkgBindingAction()
 	{
-		String url = javaBinding.generate(ImmutableMap.of());
+		final String url = javaBinding.generate(ImmutableMap.of());
 		return modelFactory.bindingAction(url);
 	}
 

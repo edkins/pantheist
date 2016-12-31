@@ -63,4 +63,16 @@ public class RestlessConfigImpl implements RestlessConfig
 		return ImmutableList.of("restless-frontend.js", "example-client.html");
 	}
 
+	@Override
+	public String relativeSystemPath()
+	{
+		return propertyFactory.getStringProperty("RESTLESS_RELATIVE_SYSTEM_PATH", "system").get();
+	}
+
+	@Override
+	public String relativeSrvPath()
+	{
+		return propertyFactory.getStringProperty("RESTLESS_RELATIVE_SRV_PATH", "srv").get();
+	}
+
 }

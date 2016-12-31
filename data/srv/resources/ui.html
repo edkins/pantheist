@@ -11,17 +11,19 @@
 
 <div class="panel-holder">
 <div class="panel-row">
-<div class="panel-left" id="resource-list">
+<div class="panel-left">
+	<div class="panel-left-div" id="resource-list">
+	</div>
 </div>
 <div class="panel-right">
 
-	<div class="panel-holder">
-	<div class="panel-row">
-	<div class="panel-buttons-left">
+	<div class="buttons-holder">
+	<div class="buttons-row">
+	<div class="buttons-left">
 		<input id="address-bar" type="text" autocomplete="off" class="address-bar">
 	</div>
 
-	<div class="panel-buttons-right">
+	<div class="buttons-right">
 		<input id="btn-reload" type="button" value="Reload">
 		<input id="btn-shutdown" type="button" value="Shutdown">
 	</div>
@@ -53,7 +55,7 @@
 		</span>
 		<span class="msg-flash" id="send-response"></span>
 	</div>
-	<div class="disappearing hidden" id="create-form">
+	<div class="create-form hidden" id="create-form">
 		<span id="create-label-1"></span>
 		<input type="text" id="create-id-1" data-segtype="var" autocomplete="off">
 		<span id="create-additional"></span>

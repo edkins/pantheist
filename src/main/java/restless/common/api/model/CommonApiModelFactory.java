@@ -10,11 +10,13 @@ public interface CommonApiModelFactory
 {
 	ListClassifierItem listClassifierItem(
 			@Assisted("url") String url,
-			@Assisted("classifierSegment") String classifierSegment);
+			@Assisted("classifierSegment") String classifierSegment,
+			@Assisted("suggestHiding") boolean suggestHiding);
 
 	AdditionalStructureItem additionalStructureItem(
 			@Assisted("literal") boolean literal,
-			@Assisted("name") String name);
+			@Assisted("name") String name,
+			@Assisted("suggestHiding") boolean suggestHiding);
 
 	CreateAction createAction(
 			BasicContentType basicType,

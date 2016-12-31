@@ -19,4 +19,10 @@ public interface AdditionalStructureItem
 	 */
 	@JsonProperty("name")
 	String name();
+
+	/**
+	 * A hint to the UI to hide this segment
+	 */
+	@JsonProperty("suggestHiding")
+	boolean suggestHiding();
 }
