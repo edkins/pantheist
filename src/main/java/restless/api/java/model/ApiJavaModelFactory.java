@@ -2,6 +2,8 @@ package restless.api.java.model;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.google.inject.assistedinject.Assisted;
 
 import restless.common.api.model.BindingAction;
@@ -22,7 +24,10 @@ public interface ApiJavaModelFactory
 
 	ListFileResponse listFileResponse(List<ListFileItem> childResources);
 
-	ApiJavaFile javaFile(DataAction dataAction, DeleteAction deleteAction);
+	ApiJavaFile javaFile(
+			DataAction dataAction,
+			DeleteAction deleteAction,
+			@Nullable @Assisted("kindUrl") String kindUrl);
 
 	ApiJavaBinding javaBinding(@Assisted("location") String location);
 }

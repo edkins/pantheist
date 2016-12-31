@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -19,15 +20,15 @@ import restless.common.api.model.ListClassifierResponse;
 import restless.common.api.url.UrlTranslation;
 import restless.common.util.AntiIt;
 import restless.common.util.FailureReason;
+import restless.common.util.OtherPreconditions;
 import restless.common.util.Possible;
 import restless.common.util.View;
-import restless.handler.entity.backend.EntityStore;
-import restless.handler.entity.model.EntityModelFactory;
+import restless.handler.entity.model.Entity;
 import restless.handler.java.backend.JavaStore;
 import restless.handler.java.model.JavaBinding;
 import restless.handler.java.model.JavaFileId;
 import restless.handler.java.model.JavaModelFactory;
-import restless.handler.kind.backend.KindStore;
+import restless.handler.kind.backend.KindValidation;
 
 final class JavaBackendImpl implements JavaBackend
 {
@@ -36,23 +37,23 @@ final class JavaBackendImpl implements JavaBackend
 	private final UrlTranslation urlTranslation;
 	private final JavaModelFactory javaFactory;
 	private final CommonApiModelFactory commonFactory;
+	private final KindValidation kindValidation;
 
 	@Inject
 	JavaBackendImpl(
 			final JavaStore javaStore,
 			final ApiJavaModelFactory modelFactory,
-			final EntityStore entityStore,
 			final UrlTranslation urlTranslation,
-			final EntityModelFactory entityFactory,
-			final KindStore kindStore,
 			final JavaModelFactory javaFactory,
-			final CommonApiModelFactory commonFactory)
+			final CommonApiModelFactory commonFactory,
+			final KindValidation kindValidation)
 	{
 		this.javaStore = checkNotNull(javaStore);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.urlTranslation = checkNotNull(urlTranslation);
 		this.javaFactory = checkNotNull(javaFactory);
 		this.commonFactory = checkNotNull(commonFactory);
+		this.kindValidation = checkNotNull(kindValidation);
 	}
 
 	@Override
@@ -118,15 +119,23 @@ final class JavaBackendImpl implements JavaBackend
 		}
 	}
 
+	private String kindUrlFromEntity(final Entity entity)
+	{
+		OtherPreconditions.checkNotNullOrEmpty(entity.kindId());
+		return urlTranslation.kindToUrl(entity.kindId());
+	}
+
 	@Override
 	public Possible<ApiJavaFile> describeJavaFile(final String pkg, final String file)
 	{
 		final JavaFileId id = javaFactory.fileId(pkg, file);
 		if (javaStore.fileExists(id))
 		{
+			final Optional<Entity> entity = kindValidation.discoverJavaKind(id);
 			return View.ok(modelFactory.javaFile(
 					urlTranslation.javaFileDataAction(id),
-					urlTranslation.javaFileDeleteAction(id)));
+					urlTranslation.javaFileDeleteAction(id),
+					entity.map(this::kindUrlFromEntity).orElse(null)));
 		}
 		else
 		{

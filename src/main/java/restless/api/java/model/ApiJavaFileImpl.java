@@ -2,6 +2,7 @@ package restless.api.java.model;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,14 +15,17 @@ final class ApiJavaFileImpl implements ApiJavaFile
 {
 	private final DataAction dataAction;
 	private final DeleteAction deleteAction;
+	private final String kindUrl;
 
 	@Inject
 	private ApiJavaFileImpl(
 			@Assisted @JsonProperty("dataAction") final DataAction dataAction,
-			@Assisted @JsonProperty("deleteAction") final DeleteAction deleteAction)
+			@Assisted @JsonProperty("deleteAction") final DeleteAction deleteAction,
+			@Nullable @Assisted("kindUrl") @JsonProperty("kindUrl") final String kindUrl)
 	{
 		this.dataAction = checkNotNull(dataAction);
 		this.deleteAction = checkNotNull(deleteAction);
+		this.kindUrl = kindUrl;
 	}
 
 	@Override
@@ -34,6 +38,12 @@ final class ApiJavaFileImpl implements ApiJavaFile
 	public DeleteAction deleteAction()
 	{
 		return deleteAction;
+	}
+
+	@Override
+	public String kindUrl()
+	{
+		return kindUrl;
 	}
 
 }

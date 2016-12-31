@@ -1,5 +1,7 @@
 package restless.api.java.model;
 
+import javax.annotation.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
@@ -20,4 +22,8 @@ public interface ApiJavaFile
 
 	@JsonProperty("deleteAction")
 	DeleteAction deleteAction();
+
+	@Nullable
+	@JsonProperty("kindUrl")
+	String kindUrl();
 }

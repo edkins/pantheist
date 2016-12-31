@@ -1,6 +1,7 @@
 package restless.tests;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -11,6 +12,7 @@ import org.junit.Test;
 import restless.api.entity.model.ApiEntity;
 import restless.api.entity.model.ListEntityItem;
 import restless.client.api.ManagementPathJavaFile;
+import restless.client.api.ManagementPathKind;
 import restless.client.api.ResponseType;
 
 public class DiscoveryTest extends BaseTest
@@ -91,5 +93,19 @@ public class DiscoveryTest extends BaseTest
 		assertThat(list.size(), is(1));
 
 		assertThat(list.get(0).entityId(), is(JAVA_INTLIST_NAME));
+	}
+
+	@Test
+	public void javaFile_thatIsDiscovered_reportsKindUrl() throws Exception
+	{
+		final ManagementPathKind kind = manage.kind("java-interface-file");
+		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
+		java.data().putResource(JAVA_INTLIST_RES, "text/plain");
+
+		assertThat(java.describeJavaFile().kindUrl(), nullValue());
+
+		kind.putJsonResource(KIND_SCHEMA_JAVA_DISCOVERABLE_INTERFACE_RES);
+
+		assertThat(java.describeJavaFile().kindUrl(), is(kind.url()));
 	}
 }

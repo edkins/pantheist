@@ -10,6 +10,7 @@ import restless.common.util.AntiIterator;
 import restless.handler.entity.model.Entity;
 import restless.handler.entity.model.EntityModelFactory;
 import restless.handler.java.backend.JavaStore;
+import restless.handler.java.model.JavaFileId;
 import restless.handler.kind.model.Kind;
 
 final class KindValidationImpl implements KindValidation
@@ -51,8 +52,10 @@ final class KindValidationImpl implements KindValidation
 	}
 
 	@Override
-	public Optional<Entity> discoverKind(final Entity entity)
+	public Optional<Entity> discoverJavaKind(final JavaFileId javaFileId)
 	{
+		final Entity entity = entityFactory.entity(javaFileId.file(), true, null, null,
+				javaFileId);
 		return kindStore.discoverKinds()
 				.filter(k -> validateEntityAgainstKind(entity, k))
 				.failIfMultiple()
