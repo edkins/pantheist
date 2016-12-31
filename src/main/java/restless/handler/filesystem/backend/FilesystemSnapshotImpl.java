@@ -40,7 +40,7 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 	//State
 	private final Map<FsPath, FileState> knownFileStates;
 	private boolean written;
-	private final List<FsPath> directoriesToCreate;
+	private final List<IncidentalWriteTask> incidentalWriteTasks;
 
 	@Inject
 	private FilesystemSnapshotImpl(@FilesystemLock final Lock lock,
@@ -52,7 +52,7 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 		this.timestamp = System.currentTimeMillis();
 		this.knownFileStates = new HashMap<>();
 		this.written = false;
-		this.directoriesToCreate = new ArrayList<>();
+		this.incidentalWriteTasks = new ArrayList<>();
 		this.objectMapper = checkNotNull(objectMapper);
 	}
 
@@ -168,7 +168,7 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 			}
 
 			final FsPathMapping map = this;
-			createMissingDirectories(directoriesToCreate, map);
+			performIncidentalWriteTasks(incidentalWriteTasks, map);
 			fn.process(map);
 		}
 		catch (final IOException ex)
@@ -184,12 +184,12 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 	// This is really just a convenience function, so I've made it static to avoid exposing
 	// internals of FilesystemSnapshotImpl. It has access to the same FsPathMapping that the
 	// user-supplied function would have.
-	private static void createMissingDirectories(final List<FsPath> directoriesToCreate,
-			final FsPathMapping map)
+	private static void performIncidentalWriteTasks(final List<IncidentalWriteTask> incidentalWriteTasks,
+			final FsPathMapping map) throws IOException
 	{
-		for (final FsPath path : directoriesToCreate)
+		for (final IncidentalWriteTask task : incidentalWriteTasks)
 		{
-			map.get(path).mkdir();
+			task.processor().process(map.get(task.path()));
 		}
 	}
 
@@ -251,12 +251,18 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 	}
 
 	@Override
+	public boolean haveIncidentalWriteTask(final FsPath path)
+	{
+		return incidentalWriteTasks.stream().anyMatch(t -> t.path().equals(path));
+	}
+
+	@Override
 	public void willNeedDirectory(final FsPath path)
 	{
 		path.leadingPortions().forEach(dir -> {
-			if (!directoriesToCreate.contains(dir) && !isDir(dir))
+			if (!haveIncidentalWriteTask(dir) && !isDir(dir))
 			{
-				directoriesToCreate.add(dir);
+				incidentalWriteTasks.add(new IncidentalWriteTask(path, file -> file.mkdir()));
 			}
 		});
 	}
@@ -330,6 +336,24 @@ final class FilesystemSnapshotImpl implements FilesystemSnapshot, FsPathMapping
 	public boolean safeIsFile(final FsPath path)
 	{
 		return checkFileState(path) == FileState.REGULAR_FILE;
+	}
+
+	@Override
+	public void incidentalWriteTask(final FsPath path, final SingleFileProcessor task)
+	{
+		checkNotNull(path);
+		checkNotNull(task);
+		if (haveIncidentalWriteTask(path))
+		{
+			throw new IllegalStateException("Already have incidental write task for path " + path);
+		}
+		incidentalWriteTasks.add(new IncidentalWriteTask(path, task));
+	}
+
+	@Override
+	public <T> SingleFileProcessor jsonWriter(final T obj)
+	{
+		return file -> objectMapper.writeValue(file, obj);
 	}
 
 }

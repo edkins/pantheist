@@ -3,6 +3,9 @@ package restless.testhelpers.app;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+
+import javax.ws.rs.core.UriBuilder;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,13 +45,13 @@ public class WaitForServerRule implements TestRule
 		};
 	}
 
-	private void pollServer() throws InterruptedException, ServerNeverAppearedException
+	private void pollServer() throws InterruptedException, ServerNeverAppearedException, URISyntaxException
 	{
 		for (int i = 0; i < 20; i++)
 		{
 			try
 			{
-				session.managementUrl().getContent();
+				UriBuilder.fromUri(session.managementUrl().toURI()).path("system/ping").build().toURL().getContent();
 				return;
 			}
 			catch (final IOException e)

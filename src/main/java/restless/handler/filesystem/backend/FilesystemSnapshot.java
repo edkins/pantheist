@@ -120,4 +120,21 @@ public interface FilesystemSnapshot
 	 * Returns an empty list if dir is missing. Fails if dir is a regular file.
 	 */
 	AntiIterator<FsPath> listFilesAndDirectories(FsPath dir);
+
+	/**
+	 * Add something that needs doing, that you don't want to keep track of yourself.
+	 * They will be processed in the order that you add them.
+	 *
+	 * {{@link #willNeedDirectory(FsPath)} is a special case of this.
+	 *
+	 * @throws IllegalStateException if you've already queued up a write task for this path.
+	 */
+	void incidentalWriteTask(FsPath path, SingleFileProcessor task);
+
+	/**
+	 * Convenience helper, returns a SingleFileProcessor that writes the given object as json.
+	 */
+	<T> SingleFileProcessor jsonWriter(T obj);
+
+	boolean haveIncidentalWriteTask(FsPath path);
 }

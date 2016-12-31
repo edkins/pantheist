@@ -245,4 +245,16 @@ public final class ManagementResource implements ResourceTag
 		}
 	}
 
+	/**
+	 * Returns whether the jetty server is running. (GET)
+	 */
+	@GET
+	@Path("system/ping")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response ping()
+	{
+		// Don't log this one because it would be annoying.
+		return Response.ok("{}").build();
+	}
+
 }

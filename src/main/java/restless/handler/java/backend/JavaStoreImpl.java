@@ -79,12 +79,6 @@ final class JavaStoreImpl implements JavaStore
 		return path;
 	}
 
-	private FsPath rootJavaPath(final FilesystemSnapshot snapshot)
-	{
-		final JavaBinding binding = snapshot.readJson(javaBindingPath(), JavaBinding.class);
-		return filesystem.rootPath().slashSeparatedSegments(binding.location());
-	}
-
 	@Override
 	public Possible<Void> putJava(final JavaFileId javaFileId, final String code, final boolean failIfExists)
 	{
@@ -361,11 +355,41 @@ final class JavaStoreImpl implements JavaStore
 		return filesystem.systemBucket().segment("java-binding");
 	}
 
+	private JavaBinding getJavaBindingFromSnapshot(final FilesystemSnapshot snapshot)
+	{
+		final FsPath bindingPath = javaBindingPath();
+		final JavaBinding binding;
+		if (!snapshot.isFile(bindingPath))
+		{
+			binding = defaultBinding();
+			if (!snapshot.haveIncidentalWriteTask(bindingPath))
+			{
+				LOGGER.info(bindingPath + " did not exist so creating one.");
+				snapshot.incidentalWriteTask(bindingPath, snapshot.jsonWriter(binding));
+			}
+		}
+		else
+		{
+			binding = snapshot.readJson(bindingPath, JavaBinding.class);
+		}
+		return binding;
+	}
+
 	@Override
 	public JavaBinding getJavaBinding()
 	{
-		final FsPath bindingPath = javaBindingPath();
-		final JsonSnapshot<JavaBinding> snapshot = filesystem.jsonSnapshot(bindingPath, JavaBinding.class);
-		return snapshot.read();
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		return getJavaBindingFromSnapshot(snapshot);
+	}
+
+	private FsPath rootJavaPath(final FilesystemSnapshot snapshot)
+	{
+		final JavaBinding binding = getJavaBindingFromSnapshot(snapshot);
+		return filesystem.rootPath().slashSeparatedSegments(binding.location());
+	}
+
+	private JavaBinding defaultBinding()
+	{
+		return modelFactory.javaBinding("system/java");
 	}
 }
