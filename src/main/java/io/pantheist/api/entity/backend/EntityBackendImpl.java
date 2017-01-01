@@ -197,7 +197,7 @@ final class EntityBackendImpl implements EntityBackend
 	private AntiIterator<Entity> discoverJavaEntities()
 	{
 		return javaStore.allJavaFiles()
-				.optMap(kindValidation::discoverJavaKind);
+				.map(kindValidation::discoverJavaKind);
 	}
 
 	private Possible<Entity> findEntity(final String entityId)
@@ -212,15 +212,8 @@ final class EntityBackendImpl implements EntityBackend
 			final Optional<JavaFileId> javaFile = javaStore.findFileByName(entityId);
 			if (javaFile.isPresent())
 			{
-				final Optional<Entity> entityWithKind = kindValidation.discoverJavaKind(javaFile.get());
-				if (entityWithKind.isPresent())
-				{
-					return View.ok(entityWithKind.get());
-				}
-				else
-				{
-					return FailureReason.DOES_NOT_EXIST.happened();
-				}
+				final Entity entityWithKind = kindValidation.discoverJavaKind(javaFile.get());
+				return View.ok(entityWithKind);
 			}
 			else
 			{

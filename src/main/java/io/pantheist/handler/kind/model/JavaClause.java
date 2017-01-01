@@ -14,4 +14,8 @@ public interface JavaClause
 	@Nullable
 	@JsonProperty("javaKind")
 	JavaKind javaKind();
+
+	@Nullable
+	@JsonProperty("anyAnnotation")
+	AnnotationClause anyAnnotation();
 }

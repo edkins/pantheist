@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -108,16 +107,8 @@ final class JavaBackendImpl implements JavaBackend
 	private ListJavaFileItem toListJavaItem(final JavaFileId id)
 	{
 		final String url = urlTranslation.javaToUrl(id);
-		final Optional<Entity> entity = kindValidation.discoverJavaKind(id);
-		final String kindId;
-		if (entity.isPresent())
-		{
-			kindId = entity.get().kindId();
-		}
-		else
-		{
-			kindId = "java-file";
-		}
+		final Entity entity = kindValidation.discoverJavaKind(id);
+		final String kindId = entity.kindId();
 		return modelFactory.listFileItem(url, urlTranslation.kindToUrl(kindId));
 	}
 
@@ -148,11 +139,11 @@ final class JavaBackendImpl implements JavaBackend
 		final JavaFileId id = javaFactory.fileId(pkg, file);
 		if (javaStore.fileExists(id))
 		{
-			final Optional<Entity> entity = kindValidation.discoverJavaKind(id);
+			final Entity entity = kindValidation.discoverJavaKind(id);
 			return View.ok(modelFactory.javaFile(
 					urlTranslation.javaFileDataAction(id),
 					urlTranslation.javaFileDeleteAction(id),
-					entity.map(this::kindUrlFromEntity).orElse(null)));
+					kindUrlFromEntity(entity)));
 		}
 		else
 		{
