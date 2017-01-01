@@ -17,6 +17,7 @@ final class KindImpl implements Kind
 	private final JavaClause java;
 	private final boolean discoverable;
 	private final boolean partOfSystem;
+	private final int precedence;
 
 	@Inject
 	private KindImpl(
@@ -24,13 +25,15 @@ final class KindImpl implements Kind
 			@Assisted @JsonProperty("level") final KindLevel level,
 			@Assisted("discoverable") @JsonProperty("discoverable") final Boolean discoverable,
 			@Nullable @Assisted @JsonProperty("java") final JavaClause java,
-			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem)
+			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
+			@Assisted("precedence") @JsonProperty("precedence") final int precedence)
 	{
 		this.kindId = OtherPreconditions.checkNotNullOrEmpty(kindId);
 		this.discoverable = checkNotNull(discoverable);
 		this.level = checkNotNull(level);
 		this.java = java;
 		this.partOfSystem = partOfSystem;
+		this.precedence = precedence;
 	}
 
 	@Override
@@ -61,6 +64,12 @@ final class KindImpl implements Kind
 	public boolean partOfSystem()
 	{
 		return partOfSystem;
+	}
+
+	@Override
+	public int precedence()
+	{
+		return precedence;
 	}
 
 }

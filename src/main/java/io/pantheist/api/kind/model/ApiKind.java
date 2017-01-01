@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import io.pantheist.common.api.model.ListClassifierResponse;
+import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.handler.kind.model.JavaClause;
 import io.pantheist.handler.kind.model.KindLevel;
 
@@ -33,4 +34,13 @@ public interface ApiKind extends ListClassifierResponse
 	 */
 	@JsonProperty("partOfSystem")
 	boolean partOfSystem();
+
+	/**
+	 * If two kinds match, the higher number will be chosen.
+	 */
+	@JsonProperty("precedence")
+	int precedence();
+
+	@JsonProperty("replaceAction")
+	ReplaceAction replaceAction();
 }

@@ -107,6 +107,10 @@ the item itself (as opposed to its children).
     background-image: url('/resources/images/java-interface-unknown.png');
 }
 
+.tree-item.pojo-interface::before {
+    background-image: url('/resources/images/pojo-interface.png');
+}
+
 .tree-item.kind::before {
     background-image: url('/resources/images/kind.png');
 }

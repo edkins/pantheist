@@ -25,6 +25,7 @@ import io.pantheist.common.api.model.BindingAction;
 import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.DataAction;
 import io.pantheist.common.api.model.ListClassifierItem;
+import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.testclient.api.ManagementFlatDirPath;
 import io.pantheist.testclient.api.ManagementPathEntity;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
@@ -284,5 +285,18 @@ public class ListClassifierTest extends BaseTest
 		assertThat(createAction.basicType(), is(BasicContentType.json));
 		assertThat(createAction.mimeType(), is(APPLICATION_JSON));
 		assertThat(createAction.additionalStructure(), nullValue());
+	}
+
+	@Test
+	public void kind_replaceAction() throws Exception
+	{
+		final ManagementPathKind kind = manage.kind("my-kind");
+		kind.putJsonResource(KIND_SCHEMA_RES);
+
+		final ReplaceAction replaceAction = kind.getKind().replaceAction();
+
+		assertThat(replaceAction, notNullValue());
+		assertThat(replaceAction.basicType(), is(BasicContentType.json));
+		assertThat(replaceAction.mimeType(), is(APPLICATION_JSON));
 	}
 }

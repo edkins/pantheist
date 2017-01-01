@@ -15,6 +15,7 @@ public interface ApiJavaModelFactory
 {
 	ListJavaPkgItem listJavaPkgItem(
 			@Assisted("url") String url,
+			@Assisted("name") String name,
 			@Assisted("kindUrl") String kindUrl);
 
 	ListJavaPkgResponse listJavaPkgResponse(
@@ -24,6 +25,7 @@ public interface ApiJavaModelFactory
 
 	ListJavaFileItem listFileItem(
 			@Assisted("url") String url,
+			@Assisted("name") String name,
 			@Assisted("kindUrl") String kindUrl);
 
 	ListJavaFileResponse listFileResponse(List<ListJavaFileItem> childResources);

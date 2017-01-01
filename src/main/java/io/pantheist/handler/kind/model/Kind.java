@@ -23,4 +23,10 @@ public interface Kind
 
 	@JsonProperty("partOfSystem")
 	boolean partOfSystem();
+
+	/**
+	 * If two kinds match, the higher number will be chosen.
+	 */
+	@JsonProperty("precedence")
+	int precedence();
 }

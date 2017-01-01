@@ -276,7 +276,14 @@ function refreshCurrentPane(t)
 	switch(t.tab)
 	{
 	case 'btn-info':
-		hideSendButton();
+		if (t.data !== undefined && t.data.replaceAction != undefined)
+		{
+			showSendButton();
+		}
+		else
+		{
+			hideSendButton();
+		}
 		hideCreateForm();
 		setEditorMode('json');
 		break;
@@ -586,6 +593,20 @@ function clickSend(event)
 		
 		switch(t.tab)
 		{
+		case 'btn-info':
+			if (t.data === undefined || t.data.replaceAction == undefined)
+			{
+				flashMsg('Unknown data type to send');
+				return;
+			}
+		
+			return http.putString(t.url, t.data.replaceAction.mimeType, text)
+				.then( x => {
+					flashMsg('OK');
+					listThings(t);
+				} )
+				.catch (error => flashMsg(error) );
+
 		case 'btn-data':
 			if (t.data === undefined || t.data.dataAction == undefined)
 			{

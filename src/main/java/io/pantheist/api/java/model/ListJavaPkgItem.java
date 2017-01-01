@@ -9,6 +9,9 @@ public interface ListJavaPkgItem
 	@JsonProperty("url")
 	String url();
 
+	@JsonProperty("name")
+	String name();
+
 	@JsonProperty("kindUrl")
 	String kindUrl();
 }

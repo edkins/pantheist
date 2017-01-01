@@ -85,10 +85,16 @@ final class JavaBackendImpl implements JavaBackend
 		javaStore.allJavaFiles()
 				.forEach(javaFileId -> packages.add(javaFileId.pkg()));
 
-		return AntiIt.from(packages)
-				.map(pkg -> modelFactory.listJavaPkgItem(urlTranslation.javaPkgToUrl(pkg),
-						urlTranslation.kindToUrl("java-package")))
-				.wrap(this::toListJavaPkgResponse);
+		return toListJavaPkgResponse(
+				AntiIt.from(packages)
+						.map(pkg -> toListJavaPkgItem(pkg))
+						.toSortedList((p1, p2) -> p1.name().compareTo(p2.name())));
+	}
+
+	private ListJavaPkgItem toListJavaPkgItem(final String pkg)
+	{
+		return modelFactory.listJavaPkgItem(urlTranslation.javaPkgToUrl(pkg), pkg,
+				urlTranslation.kindToUrl("java-package"));
 	}
 
 	@Override
@@ -109,7 +115,7 @@ final class JavaBackendImpl implements JavaBackend
 		final String url = urlTranslation.javaToUrl(id);
 		final Entity entity = kindValidation.discoverJavaKind(id);
 		final String kindId = entity.kindId();
-		return modelFactory.listFileItem(url, urlTranslation.kindToUrl(kindId));
+		return modelFactory.listFileItem(url, id.file(), urlTranslation.kindToUrl(kindId));
 	}
 
 	@Override
@@ -117,9 +123,10 @@ final class JavaBackendImpl implements JavaBackend
 	{
 		if (javaStore.packageExists(pkg))
 		{
-			return javaStore.filesInPackage(pkg)
+			final List<ListJavaFileItem> list = javaStore.filesInPackage(pkg)
 					.map(this::toListJavaItem)
-					.wrap(xs -> View.ok(modelFactory.listFileResponse(xs)));
+					.toSortedList((jf1, jf2) -> jf1.name().compareTo(jf2.name()));
+			return View.ok(modelFactory.listFileResponse(list));
 		}
 		else
 		{

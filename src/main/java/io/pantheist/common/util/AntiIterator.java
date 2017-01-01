@@ -1,5 +1,7 @@
 package io.pantheist.common.util;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -253,5 +255,37 @@ public interface AntiIterator<T>
 		{
 			return Optional.of(sb.toString());
 		}
+	}
+
+	/**
+	 * Return the element with the highest value according to the given evaluator.
+	 *
+	 * Returns empty if there are no elements.
+	 * If there are multiple matches, it will return the first.
+	 */
+	default Optional<T> max(final Function<T, Long> evaluator)
+	{
+		final MutableOpt<T> result = View.mutableOpt();
+		final MutableOpt<Long> value = View.mutableOpt();
+		forEach(x -> {
+			final Long newValue = evaluator.apply(x);
+			if (!value.isPresent() || newValue > value.get())
+			{
+				result.replace(x);
+				value.replace(newValue);
+			}
+		});
+		return result.toOptional();
+	}
+
+	/**
+	 * Collect into a list and then sort according to the given comparator.
+	 */
+	default List<T> toSortedList(final Comparator<T> comparator)
+	{
+		final ArrayList<T> list = new ArrayList<>();
+		forEach(list::add);
+		list.sort(comparator);
+		return list;
 	}
 }

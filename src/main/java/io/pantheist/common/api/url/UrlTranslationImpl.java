@@ -21,6 +21,7 @@ import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.DataAction;
 import io.pantheist.common.api.model.DeleteAction;
 import io.pantheist.common.api.model.ListClassifierItem;
+import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.java.model.JavaModelFactory;
@@ -246,6 +247,12 @@ final class UrlTranslationImpl implements UrlTranslation
 	public CreateAction kindCreateAction()
 	{
 		return modelFactory.createAction(BasicContentType.json, APPLICATION_JSON, null);
+	}
+
+	@Override
+	public ReplaceAction listKindReplaceAction(final String kindId)
+	{
+		return modelFactory.replaceAction(BasicContentType.json, APPLICATION_JSON);
 	}
 
 }

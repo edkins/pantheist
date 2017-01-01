@@ -20,6 +20,7 @@ import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.FailureReason;
@@ -34,6 +35,7 @@ import io.pantheist.handler.java.model.JavaBinding;
 import io.pantheist.handler.java.model.JavaComponent;
 import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.java.model.JavaModelFactory;
+import io.pantheist.handler.kind.model.AnnotationClause;
 import io.pantheist.handler.kind.model.JavaClause;
 import io.pantheist.handler.kind.model.JavaKind;
 
@@ -227,13 +229,14 @@ final class JavaStoreImpl implements JavaStore
 		final String code = getJava(javaFileId).get();
 		final CompilationUnit compilationUnit = JavaParser.parse(code);
 
+		if (compilationUnit.getTypes() == null || compilationUnit.getTypes().size() != 1)
+		{
+			// currently reject all files with no types defined or multiple types defined.
+			return false;
+		}
+
 		if (javaClause.javaKind() != null)
 		{
-			if (compilationUnit.getTypes() == null || compilationUnit.getTypes().size() != 1)
-			{
-				// can only compare java kind when there's exactly one type defined.
-				return false;
-			}
 
 			// Work out the actual java kind and see if it agrees.
 			final TypeDeclaration<?> type = compilationUnit.getType(0);
@@ -244,7 +247,40 @@ final class JavaStoreImpl implements JavaStore
 			}
 		}
 
+		if (javaClause.anyAnnotation() != null)
+		{
+			if (!validateAnyAnnotation(compilationUnit, javaClause.anyAnnotation()))
+			{
+				return false;
+			}
+		}
+
 		// Nothing left to complain about.
+		return true;
+	}
+
+	private boolean validateAnyAnnotation(final CompilationUnit compilationUnit, final AnnotationClause clause)
+	{
+		final NodeList<AnnotationExpr> annotations = compilationUnit.getType(0).getAnnotations();
+		for (int i = 0; i < annotations.size(); i++)
+		{
+			if (validateAnnotation(annotations.get(i), clause))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean validateAnnotation(final AnnotationExpr annotationExpr, final AnnotationClause clause)
+	{
+		if (clause.name() != null)
+		{
+			if (!annotationExpr.getNameAsString().equals(clause.name()))
+			{
+				return false;
+			}
+		}
 		return true;
 	}
 

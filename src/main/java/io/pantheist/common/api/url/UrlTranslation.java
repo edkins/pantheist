@@ -7,6 +7,7 @@ import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.DataAction;
 import io.pantheist.common.api.model.DeleteAction;
 import io.pantheist.common.api.model.ListClassifierItem;
+import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.handler.java.model.JavaFileId;
 
 public interface UrlTranslation
@@ -60,5 +61,7 @@ public interface UrlTranslation
 	String flatDirToUrl(String dir);
 
 	CreateAction kindCreateAction();
+
+	ReplaceAction listKindReplaceAction(String kindId);
 
 }

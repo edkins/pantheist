@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.api.model.ListClassifierItem;
+import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.handler.kind.model.JavaClause;
 import io.pantheist.handler.kind.model.KindLevel;
 
@@ -22,22 +23,28 @@ final class ApiKindImpl implements ApiKind
 	private final boolean discoverable;
 	private final JavaClause java;
 	private final boolean partOfSystem;
+	private final int precedence;
+	private final ReplaceAction replaceAction;
 
 	@Inject
 	private ApiKindImpl(
 			@Nullable @Assisted @JsonProperty("childResources") final List<ListClassifierItem> childResources,
+			@Nullable @Assisted @JsonProperty("replaceAction") final ReplaceAction replaceAction,
 			@Nullable @Assisted("kindId") @JsonProperty("kindId") final String kindId,
 			@Assisted @JsonProperty("level") final KindLevel level,
 			@Assisted("discoverable") @JsonProperty("discoverable") final boolean discoverable,
 			@Nullable @Assisted @JsonProperty("java") final JavaClause java,
-			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem)
+			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
+			@Assisted("precedence") @JsonProperty("precedence") final int precedence)
 	{
 		this.childResources = childResources;
+		this.replaceAction = replaceAction;
 		this.kindId = kindId;
 		this.level = checkNotNull(level);
 		this.discoverable = discoverable;
 		this.java = java;
 		this.partOfSystem = partOfSystem;
+		this.precedence = precedence;
 	}
 
 	@Override
@@ -74,5 +81,17 @@ final class ApiKindImpl implements ApiKind
 	public boolean partOfSystem()
 	{
 		return partOfSystem;
+	}
+
+	@Override
+	public int precedence()
+	{
+		return precedence;
+	}
+
+	@Override
+	public ReplaceAction replaceAction()
+	{
+		return replaceAction;
 	}
 }

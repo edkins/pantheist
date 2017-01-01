@@ -28,6 +28,10 @@ public interface CommonApiModelFactory
 			@Assisted("mimeType") String mimeType,
 			@Assisted("canPut") boolean canPut);
 
+	ReplaceAction replaceAction(
+			BasicContentType basicType,
+			@Assisted("mimeType") String mimeType);
+
 	ListClassifierResponse listClassifierResponse(
 			List<ListClassifierItem> childResources);
 

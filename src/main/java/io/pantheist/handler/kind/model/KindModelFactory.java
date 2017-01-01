@@ -11,5 +11,6 @@ public interface KindModelFactory
 			KindLevel level,
 			@Assisted("discoverable") Boolean discoverable,
 			@Nullable JavaClause java,
-			@Assisted("partOfSystem") boolean partOfSystem);
+			@Assisted("partOfSystem") boolean partOfSystem,
+			@Assisted("precedence") int precedence);
 }

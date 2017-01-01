@@ -12,14 +12,17 @@ import io.pantheist.common.util.OtherPreconditions;
 final class ListJavaFileItemImpl implements ListJavaFileItem
 {
 	private final String url;
+	private final String name;
 	private final String kindUrl;
 
 	@Inject
 	private ListJavaFileItemImpl(
 			@Assisted("url") @JsonProperty("url") final String url,
+			@Assisted("name") @JsonProperty("name") final String name,
 			@Assisted("kindUrl") @JsonProperty("kindUrl") final String kindUrl)
 	{
 		this.url = OtherPreconditions.checkNotNullOrEmpty(url);
+		this.name = OtherPreconditions.checkNotNullOrEmpty(name);
 		this.kindUrl = checkNotNull(kindUrl);
 	}
 
@@ -33,6 +36,12 @@ final class ListJavaFileItemImpl implements ListJavaFileItem
 	public String kindUrl()
 	{
 		return kindUrl;
+	}
+
+	@Override
+	public String name()
+	{
+		return name;
 	}
 
 }

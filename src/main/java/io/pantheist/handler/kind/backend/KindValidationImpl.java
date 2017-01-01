@@ -57,7 +57,9 @@ final class KindValidationImpl implements KindValidation
 
 	private Kind baseJavaKind()
 	{
-		return kindModelFactory.kind("java-file", KindLevel.entity, true, null, true);
+		// Priority is -1, which is lower than 0.
+		// This is so that user-defined kinds which didn't specify a precedence will beat it.
+		return kindModelFactory.kind("java-file", KindLevel.entity, true, null, true, -1);
 	}
 
 	@Override
@@ -67,7 +69,7 @@ final class KindValidationImpl implements KindValidation
 				javaFileId);
 		return supplyKind(entity, kindStore.discoverKinds()
 				.filter(k -> validateEntityAgainstKind(entity, k))
-				.failIfMultiple()
+				.max(k -> (long) k.precedence())
 				.orElseGet(this::baseJavaKind));
 	}
 
