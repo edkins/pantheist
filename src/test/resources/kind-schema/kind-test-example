@@ -2,7 +2,7 @@
 	"level": "entity",
 	"discoverable": false,
 	"java": {
-		"required": true,
 		"javaKind": "interface"
-	}
+	},
+	"subKindOf":["java-file"]
 }

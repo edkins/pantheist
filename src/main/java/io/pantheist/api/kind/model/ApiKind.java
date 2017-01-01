@@ -1,5 +1,7 @@
 package io.pantheist.api.kind.model;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -35,12 +37,12 @@ public interface ApiKind extends ListClassifierResponse
 	@JsonProperty("partOfSystem")
 	boolean partOfSystem();
 
-	/**
-	 * If two kinds match, the higher number will be chosen.
-	 */
-	@JsonProperty("precedence")
-	int precedence();
-
 	@JsonProperty("replaceAction")
 	ReplaceAction replaceAction();
+
+	/**
+	 * These are listed as kindId's rather than url's
+	 */
+	@JsonProperty("subKindOf")
+	List<String> subKindOf();
 }

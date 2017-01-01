@@ -38,7 +38,6 @@ public class KindTest extends BaseTest
 		final ApiKind kind = manage.kind("my-kind").getKind();
 
 		assertThat(kind.level(), is(KindLevel.entity));
-		assertThat(kind.java().required(), is(true));
 		assertThat(kind.java().javaKind(), is(JavaKind.INTERFACE));
 		assertThat(kind.kindId(), is("my-kind"));
 		assertFalse("This kind not part of system", kind.partOfSystem());
@@ -62,8 +61,8 @@ public class KindTest extends BaseTest
 
 		final List<ListKindItem> list = manage.listKinds().childResources();
 
-		assertThat(list.size(), is(1));
-		assertThat(list.get(0).url(), is(kind.url()));
+		final ListKindItem item = list.stream().filter(k -> k.url().equals(kind.url())).findFirst().get();
+		assertThat(item.url(), is(kind.url()));
 	}
 
 	@Test

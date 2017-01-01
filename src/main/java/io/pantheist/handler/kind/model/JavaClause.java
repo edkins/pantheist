@@ -8,9 +8,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @JsonDeserialize(as = JavaClauseImpl.class)
 public interface JavaClause
 {
-	@JsonProperty("required")
-	boolean required();
-
 	@Nullable
 	@JsonProperty("javaKind")
 	JavaKind javaKind();

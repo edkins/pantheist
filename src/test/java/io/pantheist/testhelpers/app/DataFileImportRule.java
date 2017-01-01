@@ -13,6 +13,7 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.testhelpers.session.TestSession;
 
 public class DataFileImportRule implements TestRule
@@ -41,8 +42,10 @@ public class DataFileImportRule implements TestRule
 				final File target = session.dataDir();
 				final File srv = new File(target, "srv");
 				final File system = new File(target, "system");
+				final File kind = new File(target, "system/kind");
 				srv.mkdir();
 				system.mkdir();
+				kind.mkdir();
 
 				final File source = session.originalDataDir();
 				LOGGER.info("Copying stuff from {} to {}", source.getAbsolutePath(), target.getAbsolutePath());
@@ -56,9 +59,29 @@ public class DataFileImportRule implements TestRule
 						target.getAbsolutePath(),
 						"127.0.0.1:" + session.nginxPort(),
 						"127.0.0.1:" + session.internalPort());
+
+				copyBuiltInKinds(new File(source, "system/kind"), kind);
+
 				base.evaluate();
 			}
 		};
+	}
+
+	private void copyBuiltInKinds(final File sourceDir, final File targetDir) throws IOException
+	{
+		for (final String name : sourceDir.list())
+		{
+			final File source = new File(sourceDir, name);
+			final File target = new File(targetDir, name);
+			if (source.isFile())
+			{
+				final Kind kind = session.objectMapper().readValue(source, Kind.class);
+				if (kind.partOfSystem())
+				{
+					FileUtils.copyFile(source, target);
+				}
+			}
+		}
 	}
 
 	private void deanonymizeNginxConf(

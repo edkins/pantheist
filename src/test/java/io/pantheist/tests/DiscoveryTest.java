@@ -1,6 +1,7 @@
 package io.pantheist.tests;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -22,7 +23,6 @@ public class DiscoveryTest extends BaseTest
 	private static final String TEXT_PLAIN = "text/plain";
 	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String KIND_INTERFACE_RES = "/kind-schema/java-discoverable-interface";
-	private static final String KIND_HIGH_PRECEDENCE_RES = "/kind-schema/java-discoverable-interface-higher-precedence";
 	private static final String JAVA_INTLIST_NAME = "NonEmptyNonNegativeIntList";
 	private static final String JAVA_INTLIST_RES = "/java-example/NonEmptyNonNegativeIntList";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
@@ -182,35 +182,17 @@ public class DiscoveryTest extends BaseTest
 	}
 
 	@Test
-	public void precedence_higherNumberIsChosen() throws Exception
+	public void conflictingKinds_oneIsChosen() throws Exception
 	{
-		final ManagementPathKind lower = manage.kind("interface1");
-		lower.putJsonResource(KIND_INTERFACE_RES);
-		final ManagementPathKind higher = manage.kind("interface2");
-		higher.putJsonResource(KIND_HIGH_PRECEDENCE_RES);
+		final ManagementPathKind kind1 = manage.kind("interface1");
+		kind1.putJsonResource(KIND_INTERFACE_RES);
+		final ManagementPathKind kind2 = manage.kind("interface2");
+		kind2.putJsonResource(KIND_INTERFACE_RES);
 
 		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
 		java.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
 
 		final ApiEntity entity = manage.entity(JAVA_INTLIST_NAME).getEntity();
-		assertThat(entity.kindUrl(), is(higher.url()));
-	}
-
-	/**
-	 * Just to check that the other test didn't pass by coincidence
-	 */
-	@Test
-	public void precedence_higherNumberIsChosen_swapped() throws Exception
-	{
-		final ManagementPathKind higher = manage.kind("interface1");
-		higher.putJsonResource(KIND_HIGH_PRECEDENCE_RES);
-		final ManagementPathKind lower = manage.kind("interface2");
-		lower.putJsonResource(KIND_INTERFACE_RES);
-
-		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
-		java.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
-
-		final ApiEntity entity = manage.entity(JAVA_INTLIST_NAME).getEntity();
-		assertThat(entity.kindUrl(), is(higher.url()));
+		assertThat(entity.kindUrl(), isOneOf(kind1.url(), kind2.url()));
 	}
 }

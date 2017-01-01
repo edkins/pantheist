@@ -22,7 +22,7 @@ public interface ApiKindModelFactory
 			@Assisted("discoverable") Boolean discoverable,
 			@Nullable JavaClause java,
 			@Assisted("partOfSystem") boolean partOfSystem,
-			@Assisted("precedence") int precedence);
+			@Assisted("subKindOf") List<String> subKindOf);
 
 	ListKindResponse listKindResponse(
 			List<ListKindItem> childResources,

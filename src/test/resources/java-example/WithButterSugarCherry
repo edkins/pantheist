@@ -1,0 +1,13 @@
+package io.pantheist.examples;
+
+import io.pantheist.examples.Butter;
+import io.pantheist.examples.Sugar;
+import io.pantheist.examples.CherryOnTop;
+
+@Butter
+@Sugar
+@CherryOnTop
+public interface WithButterSugarCherry
+{
+	int stuff();
+}

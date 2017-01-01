@@ -2,6 +2,12 @@ package io.pantheist.handler.kind.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+
 import javax.inject.Inject;
 
 import io.pantheist.common.util.AntiIterator;
@@ -11,39 +17,83 @@ import io.pantheist.handler.entity.model.EntityModelFactory;
 import io.pantheist.handler.java.backend.JavaStore;
 import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.kind.model.Kind;
-import io.pantheist.handler.kind.model.KindLevel;
-import io.pantheist.handler.kind.model.KindModelFactory;
 
 final class KindValidationImpl implements KindValidation
 {
 	private final JavaStore javaStore;
 	private final KindStore kindStore;
 	private final EntityModelFactory entityFactory;
-	private final KindModelFactory kindModelFactory;
 
 	@Inject
 	private KindValidationImpl(
 			final JavaStore javaStore,
 			final KindStore kindStore,
-			final EntityModelFactory entityFactory,
-			final KindModelFactory kindModelFactory)
+			final EntityModelFactory entityFactory)
 	{
 		this.javaStore = checkNotNull(javaStore);
 		this.kindStore = checkNotNull(kindStore);
 		this.entityFactory = checkNotNull(entityFactory);
-		this.kindModelFactory = checkNotNull(kindModelFactory);
+	}
+
+	/**
+	 * Return a list of all superkinds (including the kind itself). Each will be listed at most once.
+	 *
+	 * If there are no cycles then they will be listed with the most super first.
+	 * i.e.
+	 *
+	 * java-file
+	 * java-interface-file
+	 * java-interface-with-some-crazy-annotation
+	 *
+	 * If there are cycles then all of the relevant kinds will be returned but the
+	 * order might not be what you're expecting.
+	 *
+	 * kindId's that point to a missing kind won't be added.
+	 */
+	private AntiIterator<Kind> allSuperKinds(final Kind kind)
+	{
+		checkNotNull(kind);
+		return consumer -> {
+			recurseSuperKinds(kind, new HashSet<>(), consumer);
+		};
+	}
+
+	private void recurseSuperKinds(final Kind kind, final Set<String> encountered, final Consumer<Kind> consumer)
+	{
+		encountered.add(kind.kindId());
+		for (final String parentId : kind.subKindOf())
+		{
+			if (!encountered.contains(parentId))
+			{
+				final Possible<Kind> parentKind = kindStore.getKind(parentId);
+				if (parentKind.isPresent())
+				{
+					recurseSuperKinds(parentKind.get(), encountered, consumer);
+				}
+			}
+		}
+		consumer.accept(kind);
 	}
 
 	@Override
 	public boolean validateEntityAgainstKind(final Entity entity, final Kind kind)
 	{
+		return allSuperKinds(kind)
+				.allMatch(k -> validateIndividual(entity, k));
+	}
+
+	/**
+	 * Validate without regards for superkinds.
+	 */
+	private boolean validateIndividual(final Entity entity, final Kind kind)
+	{
+		if (!validateBuiltin(entity, kind))
+		{
+			return false;
+		}
+
 		if (kind.java() != null)
 		{
-			if (kind.java().required() && (entity.javaFileId() == null))
-			{
-				// Java is required but not present in entity.
-				return false;
-			}
 			if (!javaStore.validateKind(entity.javaFileId(), kind.java()))
 			{
 				// Java store says the details are invalid.
@@ -55,22 +105,100 @@ final class KindValidationImpl implements KindValidation
 		return true;
 	}
 
-	private Kind baseJavaKind()
+	/**
+	 * Deal with any built-in kinds with special meanings.
+	 */
+	private boolean validateBuiltin(final Entity entity, final Kind kind)
 	{
-		// Priority is -1, which is lower than 0.
-		// This is so that user-defined kinds which didn't specify a precedence will beat it.
-		return kindModelFactory.kind("java-file", KindLevel.entity, true, null, true, -1);
+		if (kind.partOfSystem())
+		{
+			if (kind.kindId().equals("java-file") && entity.javaFileId() == null)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static enum KindStatus
+	{
+		FAILED,
+		SUPERSEDED,
+		OK;
 	}
 
 	@Override
 	public Entity discoverJavaKind(final JavaFileId javaFileId)
 	{
+		checkNotNull(javaFileId);
 		final Entity entity = entityFactory.entity(javaFileId.file(), true, null, null,
 				javaFileId);
-		return supplyKind(entity, kindStore.discoverKinds()
-				.filter(k -> validateEntityAgainstKind(entity, k))
-				.max(k -> (long) k.precedence())
-				.orElseGet(this::baseJavaKind));
+
+		return discoverKind(entity);
+	}
+
+	private Entity discoverKind(final Entity entity)
+	{
+		final Map<String, KindStatus> map = new HashMap<>();
+		final Map<String, Kind> kinds = kindStore.discoverKinds().toMap(Kind::kindId);
+
+		boolean anythingHappened;
+		do
+		{
+			anythingHappened = false;
+			for (final Kind kind : kinds.values())
+			{
+				if (!map.containsKey(kind.kindId()))
+				{
+					boolean canVisit = true;
+					boolean failed = false;
+
+					// Fail if any parent failed.
+					// Otherwise, not ready yet if any parent hasn't been visited.
+
+					for (final String superId : kind.subKindOf())
+					{
+						if (!map.containsKey(superId))
+						{
+							canVisit = false;
+						}
+						else if (map.get(superId) == KindStatus.FAILED)
+						{
+							failed = true;
+						}
+					}
+
+					// If we're ready, validate this kind
+					if (canVisit && !failed)
+					{
+						failed = !validateIndividual(entity, kind);
+					}
+
+					if (failed)
+					{
+						map.put(kind.kindId(), KindStatus.FAILED);
+						anythingHappened = true;
+					}
+					else if (canVisit)
+					{
+						for (final String superId : kind.subKindOf())
+						{
+							map.put(superId, KindStatus.SUPERSEDED);
+						}
+						map.put(kind.kindId(), KindStatus.OK);
+						anythingHappened = true;
+					}
+				}
+			}
+		} while (anythingHappened);
+
+		return supplyKind(entity, map.entrySet()
+				.stream()
+				.filter(e -> e.getValue().equals(KindStatus.OK))
+				.map(e -> kinds.get(e.getKey()))
+				.findAny()
+				.orElseThrow(() -> new IllegalStateException(
+						"Java file did not match any kind. java-file must be missing")));
 	}
 
 	private Entity supplyKind(final Entity entity, final Kind kind)
@@ -114,6 +242,6 @@ final class KindValidationImpl implements KindValidation
 		return javaStore.allJavaFiles()
 				.map(jf -> entityFactory.entity(jf.file(), true, null, null, jf))
 				.filter(entity -> validateEntityAgainstKind(entity, kind))
-				.map(entity -> supplyKind(entity, kind));
+				.map(this::discoverKind); // actual kind may be a subkind of the one requested
 	}
 }

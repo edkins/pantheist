@@ -1,0 +1,9 @@
+{
+  "kindId": "java-file",
+  "level": "entity",
+  "discoverable": true,
+  "java": {
+  },
+  "partOfSystem": true,
+  "subKindOf":[]
+}

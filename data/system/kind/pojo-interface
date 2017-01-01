@@ -1,1 +1,13 @@
-{"kindId":"pojo-interface","level":"entity","discoverable":true,"java":{"required":true,"javaKind":"interface","anyAnnotation":{}},"partOfSystem":false,"precedence":1}
+{
+  "kindId": "pojo-interface",
+  "level": "entity",
+  "discoverable": true,
+  "java": {
+    "javaKind": "interface",
+    "anyAnnotation": {
+      "name": "JsonDeserialize"
+    }
+  },
+  "partOfSystem": false,
+  "subKindOf": ["java-interface-file"]
+}

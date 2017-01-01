@@ -58,7 +58,7 @@ final class KindBackendImpl implements KindBackend
 		return modelFactory.kind(
 				urlTranslation.listKindClassifiers(k.kindId()),
 				urlTranslation.listKindReplaceAction(k.kindId()),
-				k.kindId(), k.level(), k.discoverable(), k.java(), k.partOfSystem(), k.precedence());
+				k.kindId(), k.level(), k.discoverable(), k.java(), k.partOfSystem(), k.subKindOf());
 	}
 
 	@Override
@@ -72,7 +72,7 @@ final class KindBackendImpl implements KindBackend
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
 		return kindFactory.kind(kindId, kind.level(), kind.discoverable(), kind.java(), kind.partOfSystem(),
-				kind.precedence());
+				kind.subKindOf());
 	}
 
 	@Override

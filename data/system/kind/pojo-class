@@ -1,1 +1,18 @@
-{"kindId":"pojo-class","level":"entity","discoverable":true,"java":{"required":true,"javaKind":"class","anyAnnotation":null,"anyConstructor":{"anyArg":{"anyAnnotation":{"name":"JsonProperty"}}}},"partOfSystem":false,"precedence":0}
+{
+  "kindId": "pojo-class",
+  "level": "entity",
+  "discoverable": true,
+  "java": {
+    "javaKind": "class",
+    "anyAnnotation": null,
+    "anyConstructor": {
+      "anyArg": {
+        "anyAnnotation": {
+          "name": "JsonProperty"
+        }
+      }
+    }
+  },
+  "partOfSystem": false,
+  "subKindOf": ["java-file"]
+}

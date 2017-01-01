@@ -1,1 +1,10 @@
-{"kindId":"java-interface-file","level":"entity","discoverable":true,"java":{"required":true,"javaKind":"interface"},"partOfSystem":false}
+{
+  "kindId": "java-interface-file",
+  "level": "entity",
+  "discoverable": true,
+  "java": {
+    "javaKind": "interface"
+  },
+  "partOfSystem": false,
+  "subKindOf": ["java-file"]
+}

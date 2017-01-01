@@ -83,5 +83,4 @@ final class KindStoreImpl implements KindStore
 				.filter(snapshot::safeIsFile)
 				.map(this::pathToKindId);
 	}
-
 }

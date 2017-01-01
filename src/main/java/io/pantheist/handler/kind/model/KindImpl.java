@@ -2,6 +2,8 @@ package io.pantheist.handler.kind.model;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
@@ -17,7 +19,7 @@ final class KindImpl implements Kind
 	private final JavaClause java;
 	private final boolean discoverable;
 	private final boolean partOfSystem;
-	private final int precedence;
+	private final List<String> subKindOf;
 
 	@Inject
 	private KindImpl(
@@ -26,14 +28,14 @@ final class KindImpl implements Kind
 			@Assisted("discoverable") @JsonProperty("discoverable") final Boolean discoverable,
 			@Nullable @Assisted @JsonProperty("java") final JavaClause java,
 			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
-			@Assisted("precedence") @JsonProperty("precedence") final int precedence)
+			@Assisted("subKindOf") @JsonProperty("subKindOf") final List<String> subKindOf)
 	{
 		this.kindId = OtherPreconditions.checkNotNullOrEmpty(kindId);
 		this.discoverable = checkNotNull(discoverable);
 		this.level = checkNotNull(level);
 		this.java = java;
 		this.partOfSystem = partOfSystem;
-		this.precedence = precedence;
+		this.subKindOf = checkNotNull(subKindOf);
 	}
 
 	@Override
@@ -67,9 +69,9 @@ final class KindImpl implements Kind
 	}
 
 	@Override
-	public int precedence()
+	public List<String> subKindOf()
 	{
-		return precedence;
+		return subKindOf;
 	}
 
 }

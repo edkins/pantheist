@@ -209,6 +209,10 @@ public final class TargetWrapper
 	{
 		try (InputStream input = TargetWrapper.class.getResourceAsStream(resourcePath))
 		{
+			if (input == null)
+			{
+				throw new IllegalArgumentException("Resource not found: " + resourcePath);
+			}
 			putStream(input, contentType);
 		}
 		catch (final IOException e)

@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.api.model.ListClassifierItem;
@@ -23,8 +24,8 @@ final class ApiKindImpl implements ApiKind
 	private final boolean discoverable;
 	private final JavaClause java;
 	private final boolean partOfSystem;
-	private final int precedence;
 	private final ReplaceAction replaceAction;
+	private final List<String> subKindOf;
 
 	@Inject
 	private ApiKindImpl(
@@ -35,7 +36,7 @@ final class ApiKindImpl implements ApiKind
 			@Assisted("discoverable") @JsonProperty("discoverable") final boolean discoverable,
 			@Nullable @Assisted @JsonProperty("java") final JavaClause java,
 			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
-			@Assisted("precedence") @JsonProperty("precedence") final int precedence)
+			@Assisted("subKindOf") @JsonProperty("subKindOf") final List<String> subKindOf)
 	{
 		this.childResources = childResources;
 		this.replaceAction = replaceAction;
@@ -44,7 +45,7 @@ final class ApiKindImpl implements ApiKind
 		this.discoverable = discoverable;
 		this.java = java;
 		this.partOfSystem = partOfSystem;
-		this.precedence = precedence;
+		this.subKindOf = ImmutableList.copyOf(subKindOf);
 	}
 
 	@Override
@@ -84,14 +85,14 @@ final class ApiKindImpl implements ApiKind
 	}
 
 	@Override
-	public int precedence()
-	{
-		return precedence;
-	}
-
-	@Override
 	public ReplaceAction replaceAction()
 	{
 		return replaceAction;
+	}
+
+	@Override
+	public List<String> subKindOf()
+	{
+		return subKindOf;
 	}
 }

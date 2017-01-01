@@ -10,6 +10,8 @@ import org.junit.Rule;
 
 import com.google.common.base.Throwables;
 
+import io.pantheist.testclient.api.ManagementPathJavaFile;
+import io.pantheist.testclient.api.ManagementPathKind;
 import io.pantheist.testclient.api.ManagementPathRoot;
 import io.pantheist.testclient.api.ManagementPathServer;
 import io.pantheist.testclient.impl.TargetWrapper;
@@ -18,6 +20,10 @@ import io.pantheist.testhelpers.session.MainRule;
 
 public abstract class BaseTest
 {
+	protected static final String JAVA_PKG = "io.pantheist.examples";
+	protected static final String TEXT_PLAIN = "text/plain";
+	protected static final String JAVA_FILE = "java-file";
+
 	@Rule
 	public final MainRule mainRule = MainRule.forNewTest(Interaction.api());
 
@@ -51,4 +57,17 @@ public abstract class BaseTest
 		}
 	}
 
+	protected ManagementPathJavaFile putJavaResource(final String name)
+	{
+		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(name);
+		java.data().putResource("/java-example/" + name, TEXT_PLAIN);
+		return java;
+	}
+
+	protected ManagementPathKind putKindResource(final String name)
+	{
+		final ManagementPathKind kind = manage.kind(name);
+		kind.putJsonResource("/kind-schema/" + name);
+		return kind;
+	}
 }

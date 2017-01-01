@@ -3,6 +3,7 @@ package io.pantheist.common.util;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -15,6 +16,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * An iterator which calls you
@@ -287,5 +289,32 @@ public interface AntiIterator<T>
 		forEach(list::add);
 		list.sort(comparator);
 		return list;
+	}
+
+	/**
+	 * Return whether all the elements match the given predicate.
+	 * Returns true for an empty sequence.
+	 *
+	 * If the predicate ever returns false, we won't call it any more after that
+	 * but we still need to let the upstream AntiIterator generate all its items,
+	 * because that's how AntiIterators work.
+	 */
+	default boolean allMatch(final Predicate<T> predicate)
+	{
+		final AtomicBoolean result = new AtomicBoolean(true);
+		forEach(x -> {
+			if (result.get() && !predicate.test(x))
+			{
+				result.set(false);
+			}
+		});
+		return result.get();
+	}
+
+	default <K> Map<K, T> toMap(final Function<T, K> keyGetter)
+	{
+		final ImmutableMap.Builder<K, T> builder = ImmutableMap.builder();
+		forEach(x -> builder.put(keyGetter.apply(x), x));
+		return builder.build();
 	}
 }

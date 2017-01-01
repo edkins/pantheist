@@ -2,10 +2,9 @@
 	"level": "entity",
 	"discoverable": true,
 	"java": {
-		"javaKind": "interface",
 		"anyAnnotation": {
-			"name": "Butter"
+			"name": "Sugar"
 		}
 	},
-	"subKindOf":["java-file"]
+	"subKindOf":["java-interface-with-butter-annotation"]
 }

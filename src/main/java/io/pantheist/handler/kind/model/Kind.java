@@ -1,5 +1,7 @@
 package io.pantheist.handler.kind.model;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,9 +26,6 @@ public interface Kind
 	@JsonProperty("partOfSystem")
 	boolean partOfSystem();
 
-	/**
-	 * If two kinds match, the higher number will be chosen.
-	 */
-	@JsonProperty("precedence")
-	int precedence();
+	@JsonProperty("subKindOf")
+	List<String> subKindOf();
 }

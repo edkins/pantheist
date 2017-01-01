@@ -2,7 +2,6 @@
 	"level": "entity",
 	"discoverable": true,
 	"java": {
-		"required": true,
 		"javaKind": "class",
 		"anyConstructor": {
 			"anyArg": {
@@ -11,5 +10,6 @@
 				}
 			}
 		}
-	}
+	},
+	"subKindOf":["java-file"]
 }
