@@ -44,7 +44,10 @@ final class FlatDirBackendImpl implements FlatDirBackend
 	{
 		final String dir = fsPathToDir(fsPath.parent());
 		final String file = fsPath.lastSegment();
-		return modelFactory.listFileItem(urlTranslation.flatDirFileToUrl(dir, file), file);
+		return modelFactory.listFileItem(
+				urlTranslation.flatDirFileToUrl(dir, file),
+				file,
+				urlTranslation.kindToUrl("file"));
 	}
 
 	private String fsPathToDir(final FsPath fsPath)
@@ -114,7 +117,10 @@ final class FlatDirBackendImpl implements FlatDirBackend
 	private ListFlatDirItem toListFlatDirItem(final FsPath fsPath)
 	{
 		final String dir = fsPathToDir(fsPath);
-		return modelFactory.listFlatDirItem(urlTranslation.flatDirToUrl(dir), dir);
+		return modelFactory.listFlatDirItem(
+				urlTranslation.flatDirToUrl(dir),
+				dir,
+				urlTranslation.kindToUrl("directory"));
 	}
 
 	@Override

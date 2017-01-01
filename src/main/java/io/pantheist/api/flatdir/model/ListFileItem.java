@@ -11,4 +11,7 @@ public interface ListFileItem
 
 	@JsonProperty("fileName")
 	String fileName();
+
+	@JsonProperty("kindUrl")
+	String kindUrl();
 }

@@ -103,12 +103,24 @@ the item itself (as opposed to its children).
     background-image: url('/resources/images/java-class-unknown.png');
 }
 
-.tree-item.java-class::before {
-    background-image: url('/resources/images/java-class-unknown.png');
+.tree-item.java-interface-file::before {
+    background-image: url('/resources/images/java-interface-unknown.png');
 }
 
-.tree-item.java-interface::before {
-    background-image: url('/resources/images/java-class-interface.png');
+.tree-item.kind::before {
+    background-image: url('/resources/images/kind.png');
+}
+
+.tree-item.file::before {
+    background-image: url('/resources/images/file.png');
+}
+
+.tree-item.directory::before {
+    background-image: url('/resources/images/directory-closed.png');
+}
+
+.tree-item.directory.expanded::before {
+    background-image: url('/resources/images/directory-open.png');
 }
 
 .tree-item {

@@ -47,16 +47,16 @@ function processList(i,array,fn)
 	}
 }
 
-function createTreeItem(kind,expanded,url,name)
+function createTreeItem(kindUrl,expanded,url,name)
 {
 	var item = document.createElement('div');
 	item.classList.add('tree-item');
 	item.append(name);
 	item.dataset.url = url;
 	item.onclick = clickTreeItem;
-	if (kind !== undefined)
+	if (kindUrl !== undefined)
 	{
-		item.classList.add(kind);
+		item.classList.add(http.lastSegment(kindUrl));
 	}
 	else
 	{
@@ -83,7 +83,7 @@ function createUl(t,parentUrl)
 	);
 }
 
-function createTreeNode(t,kind,url)
+function createTreeNode(t,kindUrl,url)
 {
 	var name = decodeURIComponent(http.lastSegment(url));
 	
@@ -91,7 +91,7 @@ function createTreeNode(t,kind,url)
 	
 	var expanded = (url in t.expandedNodes);
 	
-	var item = createTreeItem(kind,expanded,url,name);
+	var item = createTreeItem(kindUrl,expanded,url,name);
 	li.append(item);
 
 	li.classList.add('tree-node');
@@ -135,7 +135,7 @@ function createListElements(t,parentUrl)
 					}
 					else
 					{
-						return createTreeNode(t, child.kind, child.url).then(
+						return createTreeNode(t, child.kindUrl, child.url).then(
 							li => elements.push(li)
 						);
 					}

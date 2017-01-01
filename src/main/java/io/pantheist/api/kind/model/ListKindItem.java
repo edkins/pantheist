@@ -8,4 +8,7 @@ public interface ListKindItem
 {
 	@JsonProperty("url")
 	String url();
+
+	@JsonProperty("kindUrl")
+	String kindUrl();
 }

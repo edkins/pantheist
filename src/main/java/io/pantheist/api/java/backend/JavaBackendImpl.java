@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import io.pantheist.api.java.model.ApiJavaBinding;
 import io.pantheist.api.java.model.ApiJavaFile;
 import io.pantheist.api.java.model.ApiJavaModelFactory;
+import io.pantheist.api.java.model.ListJavaFileItem;
 import io.pantheist.api.java.model.ListJavaFileResponse;
 import io.pantheist.api.java.model.ListJavaPkgItem;
 import io.pantheist.api.java.model.ListJavaPkgResponse;
@@ -86,7 +87,8 @@ final class JavaBackendImpl implements JavaBackend
 				.forEach(javaFileId -> packages.add(javaFileId.pkg()));
 
 		return AntiIt.from(packages)
-				.map(pkg -> modelFactory.listJavaPkgItem(urlTranslation.javaPkgToUrl(pkg)))
+				.map(pkg -> modelFactory.listJavaPkgItem(urlTranslation.javaPkgToUrl(pkg),
+						urlTranslation.kindToUrl("java-package")))
 				.wrap(this::toListJavaPkgResponse);
 	}
 
@@ -103,14 +105,29 @@ final class JavaBackendImpl implements JavaBackend
 		}
 	}
 
+	private ListJavaFileItem toListJavaItem(final JavaFileId id)
+	{
+		final String url = urlTranslation.javaToUrl(id);
+		final Optional<Entity> entity = kindValidation.discoverJavaKind(id);
+		final String kindId;
+		if (entity.isPresent())
+		{
+			kindId = entity.get().kindId();
+		}
+		else
+		{
+			kindId = "java-file";
+		}
+		return modelFactory.listFileItem(url, urlTranslation.kindToUrl(kindId));
+	}
+
 	@Override
 	public Possible<ListJavaFileResponse> listFilesInPackage(final String pkg)
 	{
 		if (javaStore.packageExists(pkg))
 		{
 			return javaStore.filesInPackage(pkg)
-					.map(urlTranslation::javaToUrl)
-					.map(modelFactory::listFileItem)
+					.map(this::toListJavaItem)
 					.wrap(xs -> View.ok(modelFactory.listFileResponse(xs)));
 		}
 		else

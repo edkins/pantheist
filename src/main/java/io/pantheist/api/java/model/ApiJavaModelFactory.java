@@ -13,14 +13,18 @@ import io.pantheist.common.api.model.DeleteAction;
 
 public interface ApiJavaModelFactory
 {
-	ListJavaPkgItem listJavaPkgItem(@Assisted("url") String url);
+	ListJavaPkgItem listJavaPkgItem(
+			@Assisted("url") String url,
+			@Assisted("kindUrl") String kindUrl);
 
 	ListJavaPkgResponse listJavaPkgResponse(
 			List<ListJavaPkgItem> childResources,
 			CreateAction createAction,
 			BindingAction bindingAction);
 
-	ListJavaFileItem listFileItem(@Assisted("url") String url);
+	ListJavaFileItem listFileItem(
+			@Assisted("url") String url,
+			@Assisted("kindUrl") String kindUrl);
 
 	ListJavaFileResponse listFileResponse(List<ListJavaFileItem> childResources);
 

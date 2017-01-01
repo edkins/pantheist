@@ -11,14 +11,17 @@ final class ListFileItemImpl implements ListFileItem
 {
 	private final String url;
 	private final String fileName;
+	private final String kindUrl;
 
 	@Inject
 	private ListFileItemImpl(
 			@Assisted("url") @JsonProperty("url") final String url,
-			@Assisted("fileName") @JsonProperty("fileName") final String fileName)
+			@Assisted("fileName") @JsonProperty("fileName") final String fileName,
+			@Assisted("kindUrl") @JsonProperty("kindUrl") final String kindUrl)
 	{
 		this.url = OtherPreconditions.checkNotNullOrEmpty(url);
 		this.fileName = OtherPreconditions.checkNotNullOrEmpty(fileName);
+		this.kindUrl = OtherPreconditions.checkNotNullOrEmpty(kindUrl);
 	}
 
 	@Override
@@ -31,6 +34,12 @@ final class ListFileItemImpl implements ListFileItem
 	public String fileName()
 	{
 		return fileName;
+	}
+
+	@Override
+	public String kindUrl()
+	{
+		return kindUrl;
 	}
 
 }

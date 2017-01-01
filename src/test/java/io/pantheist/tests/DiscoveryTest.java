@@ -11,7 +11,9 @@ import org.junit.Test;
 
 import io.pantheist.api.entity.model.ApiEntity;
 import io.pantheist.api.entity.model.ListEntityItem;
+import io.pantheist.api.java.model.ListJavaFileItem;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
+import io.pantheist.testclient.api.ManagementPathJavaPackage;
 import io.pantheist.testclient.api.ManagementPathKind;
 import io.pantheist.testclient.api.ResponseType;
 
@@ -107,5 +109,32 @@ public class DiscoveryTest extends BaseTest
 		kind.putJsonResource(KIND_SCHEMA_JAVA_DISCOVERABLE_INTERFACE_RES);
 
 		assertThat(java.describeJavaFile().kindUrl(), is(kind.url()));
+	}
+
+	@Test
+	public void javaFile_thatIsDiscovered_listedWithKind() throws Exception
+	{
+		final ManagementPathKind kind = manage.kind("java-interface-file");
+		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
+		final ManagementPathJavaFile java = pkg.file(JAVA_INTLIST_NAME);
+		java.data().putResource(JAVA_INTLIST_RES, "text/plain");
+		kind.putJsonResource(KIND_SCHEMA_JAVA_DISCOVERABLE_INTERFACE_RES);
+
+		final List<ListJavaFileItem> list = pkg.listJavaFiles().childResources();
+		assertThat(list.size(), is(1));
+		assertThat(list.get(0).kindUrl(), is(kind.url()));
+	}
+
+	@Test
+	public void javaFile_thatIsNotDiscovered_listedWithJavaFileKind() throws Exception
+	{
+		final ManagementPathKind javaFileKind = manage.kind("java-file");
+		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
+		final ManagementPathJavaFile java = pkg.file(JAVA_INTLIST_NAME);
+		java.data().putResource(JAVA_INTLIST_RES, "text/plain");
+
+		final List<ListJavaFileItem> list = pkg.listJavaFiles().childResources();
+		assertThat(list.size(), is(1));
+		assertThat(list.get(0).kindUrl(), is(javaFileKind.url()));
 	}
 }

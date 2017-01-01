@@ -6,11 +6,17 @@ import com.google.inject.assistedinject.Assisted;
 
 public interface ApiFlatDirModelFactory
 {
-	ListFileItem listFileItem(@Assisted("url") String url, @Assisted("fileName") String fileName);
+	ListFileItem listFileItem(
+			@Assisted("url") String url,
+			@Assisted("fileName") String fileName,
+			@Assisted("kindUrl") String kindUrl);
 
 	ListFileResponse listFileResponse(List<ListFileItem> childResources);
 
-	ListFlatDirItem listFlatDirItem(@Assisted("url") String url, @Assisted("relativePath") String relativePath);
+	ListFlatDirItem listFlatDirItem(
+			@Assisted("url") String url,
+			@Assisted("relativePath") String relativePath,
+			@Assisted("kindUrl") String kindUrl);
 
 	ListFlatDirResponse listFlatDirResponse(List<ListFlatDirItem> childResources);
 }

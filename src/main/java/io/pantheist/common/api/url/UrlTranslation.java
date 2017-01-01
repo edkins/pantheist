@@ -59,4 +59,6 @@ public interface UrlTranslation
 
 	String flatDirToUrl(String dir);
 
+	CreateAction kindCreateAction();
+
 }

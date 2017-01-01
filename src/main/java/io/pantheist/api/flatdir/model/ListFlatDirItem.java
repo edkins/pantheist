@@ -11,4 +11,7 @@ public interface ListFlatDirItem
 
 	@JsonProperty("relativePath")
 	String relativePath();
+
+	@JsonProperty("kindUrl")
+	String kindUrl();
 }

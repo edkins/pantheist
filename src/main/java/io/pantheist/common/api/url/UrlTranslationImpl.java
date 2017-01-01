@@ -28,6 +28,7 @@ import io.pantheist.system.config.PantheistConfig;
 
 final class UrlTranslationImpl implements UrlTranslation
 {
+	private static final String APPLICATION_JSON = "application/json";
 	private static final String JSON_SCHEMA_MIME = "application/schema+json";
 	private static final String TEXT_PLAIN = "text/plain";
 	private final JavaModelFactory javaFactory;
@@ -239,6 +240,12 @@ final class UrlTranslationImpl implements UrlTranslation
 	public String flatDirToUrl(final String dir)
 	{
 		return flatDir.generate(ImmutableMap.of("dir", dir));
+	}
+
+	@Override
+	public CreateAction kindCreateAction()
+	{
+		return modelFactory.createAction(BasicContentType.json, APPLICATION_JSON, null);
 	}
 
 }

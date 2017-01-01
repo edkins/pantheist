@@ -9,6 +9,7 @@ import io.pantheist.api.entity.model.ListEntityItem;
 import io.pantheist.api.entity.model.ListEntityResponse;
 import io.pantheist.api.kind.model.ApiKind;
 import io.pantheist.api.kind.model.ApiKindModelFactory;
+import io.pantheist.api.kind.model.ListKindItem;
 import io.pantheist.api.kind.model.ListKindResponse;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.util.FailureReason;
@@ -116,12 +117,18 @@ final class KindBackendImpl implements KindBackend
 				.wrap(entityFactory::listEntityResponse);
 	}
 
+	private ListKindItem toListKindItem(final String kindId)
+	{
+		final String url = urlTranslation.kindToUrl(kindId);
+		final String kindUrl = urlTranslation.kindToUrl("kind"); // this is the meta-kind
+		return modelFactory.listKindItem(url, kindUrl);
+	}
+
 	@Override
 	public ListKindResponse listKinds()
 	{
 		return kindStore.listKindIds()
-				.map(urlTranslation::kindToUrl)
-				.map(modelFactory::listKindItem)
-				.wrap(modelFactory::listKindResponse);
+				.map(this::toListKindItem)
+				.wrap(xs -> modelFactory.listKindResponse(xs, urlTranslation.kindCreateAction()));
 	}
 }

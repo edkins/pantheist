@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -34,6 +35,8 @@ import io.pantheist.testclient.api.ResponseType;
 
 public class ListClassifierTest extends BaseTest
 {
+	private static final String APPLICATION_JSON = "application/json";
+	private static final String TEXT_PLAIN = "text/plain";
 	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
@@ -84,7 +87,7 @@ public class ListClassifierTest extends BaseTest
 	public void javaPkg_listed() throws Exception
 	{
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
-		pkg.file(JAVA_EMPTY_CLASS_NAME).data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+		pkg.file(JAVA_EMPTY_CLASS_NAME).data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
 
 		final List<ListJavaPkgItem> list = manage.listJavaPackages().childResources();
 
@@ -96,7 +99,7 @@ public class ListClassifierTest extends BaseTest
 	public void javaPkg_classifiers() throws Exception
 	{
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
-		pkg.file(JAVA_EMPTY_CLASS_NAME).data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+		pkg.file(JAVA_EMPTY_CLASS_NAME).data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
 
 		final List<? extends ListClassifierItem> list = pkg.listClassifiers().childResources();
 
@@ -112,7 +115,7 @@ public class ListClassifierTest extends BaseTest
 	{
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
 		final ManagementPathJavaPackage bad = manage.javaPackage("some.invalid.package");
-		pkg.file(JAVA_EMPTY_CLASS_NAME).data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+		pkg.file(JAVA_EMPTY_CLASS_NAME).data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
 
 		final ResponseType response1 = pkg.listClassifierResponseType();
 		final ResponseType response2 = bad.listClassifierResponseType();
@@ -143,7 +146,7 @@ public class ListClassifierTest extends BaseTest
 		final List<AdditionalStructureItem> additional = createAction.additionalStructure();
 
 		assertThat(createAction.basicType(), is(BasicContentType.java));
-		assertThat(createAction.mimeType(), is("text/plain"));
+		assertThat(createAction.mimeType(), is(TEXT_PLAIN));
 
 		assertThat(additional.size(), is(3));
 		assertTrue("First segment should be literal", additional.get(0).literal());
@@ -162,11 +165,11 @@ public class ListClassifierTest extends BaseTest
 	{
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
 		final ManagementPathJavaFile file = pkg.file(JAVA_EMPTY_CLASS_NAME);
-		file.data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+		file.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
 
 		final DataAction dataAction = file.describeJavaFile().dataAction();
 		assertThat(dataAction.basicType(), is(BasicContentType.java));
-		assertThat(dataAction.mimeType(), is("text/plain"));
+		assertThat(dataAction.mimeType(), is(TEXT_PLAIN));
 		assertTrue("Should say we can put", dataAction.canPut());
 	}
 
@@ -175,7 +178,7 @@ public class ListClassifierTest extends BaseTest
 	{
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
 		final ManagementPathJavaFile file = pkg.file(JAVA_EMPTY_CLASS_NAME);
-		file.data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+		file.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
 
 		assertThat(file.describeJavaFile().deleteAction(), notNullValue());
 	}
@@ -186,7 +189,7 @@ public class ListClassifierTest extends BaseTest
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
 		final ManagementPathJavaFile file = pkg.file(JAVA_EMPTY_CLASS_NAME);
 		final ManagementPathJavaFile bad = pkg.file("FileThatIsNotThere");
-		file.data().putResource(JAVA_EMPTY_CLASS_RES, "text/plain");
+		file.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
 
 		final ResponseType response1 = file.getJavaFileResponseType();
 		final ResponseType response2 = bad.getJavaFileResponseType();
@@ -270,5 +273,16 @@ public class ListClassifierTest extends BaseTest
 
 		assertThat(flatDir.listClassifierResponseType(), is(ResponseType.OK));
 		assertThat(badDir.listClassifierResponseType(), is(ResponseType.NOT_FOUND));
+	}
+
+	@Test
+	public void kind_createAction() throws Exception
+	{
+		final CreateAction createAction = manage.listKinds().createAction();
+
+		assertThat(createAction, notNullValue());
+		assertThat(createAction.basicType(), is(BasicContentType.json));
+		assertThat(createAction.mimeType(), is(APPLICATION_JSON));
+		assertThat(createAction.additionalStructure(), nullValue());
 	}
 }
