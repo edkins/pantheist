@@ -17,10 +17,7 @@ import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.PackageDeclaration;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import com.github.javaparser.ast.expr.AnnotationExpr;
 
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.FailureReason;
@@ -35,9 +32,7 @@ import io.pantheist.handler.java.model.JavaBinding;
 import io.pantheist.handler.java.model.JavaComponent;
 import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.java.model.JavaModelFactory;
-import io.pantheist.handler.kind.model.AnnotationClause;
 import io.pantheist.handler.kind.model.JavaClause;
-import io.pantheist.handler.kind.model.JavaKind;
 
 final class JavaStoreImpl implements JavaStore
 {
@@ -46,12 +41,17 @@ final class JavaStoreImpl implements JavaStore
 	private static final String ROOT = ".";
 	private final FilesystemStore filesystem;
 	private final JavaModelFactory modelFactory;
+	private final JavaKindValidator javaKindValidator;
 
 	@Inject
-	private JavaStoreImpl(final FilesystemStore filesystem, final JavaModelFactory modelFactory)
+	private JavaStoreImpl(
+			final FilesystemStore filesystem,
+			final JavaModelFactory modelFactory,
+			final JavaKindValidator javaKindValidator)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.modelFactory = checkNotNull(modelFactory);
+		this.javaKindValidator = checkNotNull(javaKindValidator);
 	}
 
 	private FsPath pkgAndFilePath(final FilesystemSnapshot snapshot, final String pkg, final String file)
@@ -192,96 +192,6 @@ final class JavaStoreImpl implements JavaStore
 		{
 			return Optional.empty();
 		}
-	}
-
-	/**
-	 * Return what we think this is, or empty if we have no idea.
-	 */
-	private Optional<JavaKind> classify(final TypeDeclaration<?> type)
-	{
-		if (type instanceof ClassOrInterfaceDeclaration)
-		{
-			if (((ClassOrInterfaceDeclaration) type).isInterface())
-			{
-				return Optional.of(JavaKind.INTERFACE);
-			}
-			else
-			{
-				return Optional.of(JavaKind.CLASS);
-			}
-		}
-		else if (type instanceof EnumDeclaration)
-		{
-			return Optional.of(JavaKind.ENUM);
-		}
-		else
-		{
-			// possibly annotation?
-			return Optional.empty();
-		}
-	}
-
-	@Override
-	public boolean validateKind(final JavaFileId javaFileId, final JavaClause javaClause)
-	{
-		checkNotNull(javaFileId);
-		checkNotNull(javaClause);
-		final String code = getJava(javaFileId).get();
-		final CompilationUnit compilationUnit = JavaParser.parse(code);
-
-		if (compilationUnit.getTypes() == null || compilationUnit.getTypes().size() != 1)
-		{
-			// currently reject all files with no types defined or multiple types defined.
-			return false;
-		}
-
-		if (javaClause.javaKind() != null)
-		{
-
-			// Work out the actual java kind and see if it agrees.
-			final TypeDeclaration<?> type = compilationUnit.getType(0);
-			final Optional<JavaKind> javaKind = classify(type);
-			if (!javaKind.isPresent() || !javaClause.javaKind().encompasses(javaKind))
-			{
-				return false;
-			}
-		}
-
-		if (javaClause.anyAnnotation() != null)
-		{
-			if (!validateAnyAnnotation(compilationUnit, javaClause.anyAnnotation()))
-			{
-				return false;
-			}
-		}
-
-		// Nothing left to complain about.
-		return true;
-	}
-
-	private boolean validateAnyAnnotation(final CompilationUnit compilationUnit, final AnnotationClause clause)
-	{
-		final NodeList<AnnotationExpr> annotations = compilationUnit.getType(0).getAnnotations();
-		for (int i = 0; i < annotations.size(); i++)
-		{
-			if (validateAnnotation(annotations.get(i), clause))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private boolean validateAnnotation(final AnnotationExpr annotationExpr, final AnnotationClause clause)
-	{
-		if (clause.name() != null)
-		{
-			if (!annotationExpr.getNameAsString().equals(clause.name()))
-			{
-				return false;
-			}
-		}
-		return true;
 	}
 
 	private String withoutDotJava(final String segment)
@@ -427,5 +337,16 @@ final class JavaStoreImpl implements JavaStore
 	private JavaBinding defaultBinding()
 	{
 		return modelFactory.javaBinding("system/java");
+	}
+
+	@Override
+	public boolean validateKind(final JavaFileId javaFileId, final JavaClause javaClause)
+	{
+		checkNotNull(javaFileId);
+		checkNotNull(javaClause);
+		final String code = getJava(javaFileId).get();
+		final CompilationUnit compilationUnit = JavaParser.parse(code);
+
+		return javaKindValidator.validateKind(compilationUnit, javaClause);
 	}
 }

@@ -5,10 +5,10 @@ import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonDeserialize(as = AnnotationClauseImpl.class)
-public interface AnnotationClause
+@JsonDeserialize(as = ArgClauseImpl.class)
+public interface ArgClause
 {
 	@Nullable
-	@JsonProperty("name")
-	String name();
+	@JsonProperty("anyAnnotation")
+	AnnotationClause anyAnnotation();
 }

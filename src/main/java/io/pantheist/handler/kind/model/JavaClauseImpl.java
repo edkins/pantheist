@@ -10,15 +10,18 @@ final class JavaClauseImpl implements JavaClause
 	private final boolean required;
 	private final JavaKind javaKind;
 	private final AnnotationClause anyAnnotation;
+	private final ConstructorClause anyConstructor;
 
 	private JavaClauseImpl(
 			@JsonProperty("required") final boolean required,
 			@Nullable @Assisted @JsonProperty("javaKind") final JavaKind javaKind,
-			@Nullable @JsonProperty("anyAnnotation") final AnnotationClause anyAnnotation)
+			@Nullable @JsonProperty("anyAnnotation") final AnnotationClause anyAnnotation,
+			@JsonProperty("anyConstructor") final ConstructorClause anyConstructor)
 	{
 		this.required = required;
 		this.javaKind = javaKind;
 		this.anyAnnotation = anyAnnotation;
+		this.anyConstructor = anyConstructor;
 	}
 
 	@Override
@@ -37,6 +40,12 @@ final class JavaClauseImpl implements JavaClause
 	public AnnotationClause anyAnnotation()
 	{
 		return anyAnnotation;
+	}
+
+	@Override
+	public ConstructorClause anyConstructor()
+	{
+		return anyConstructor;
 	}
 
 }

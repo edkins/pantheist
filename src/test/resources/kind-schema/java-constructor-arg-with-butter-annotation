@@ -1,0 +1,15 @@
+{
+	"level": "entity",
+	"discoverable": true,
+	"java": {
+		"required": true,
+		"javaKind": "class",
+		"anyConstructor": {
+			"anyArg": {
+				"anyAnnotation": {
+					"name": "Butter"
+				}
+			}
+		}
+	}
+}

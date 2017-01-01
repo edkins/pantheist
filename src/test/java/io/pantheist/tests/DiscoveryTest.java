@@ -29,6 +29,10 @@ public class DiscoveryTest extends BaseTest
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
 	private static final String JAVA_BUTTER_NAME = "WithButterAnnotation";
 	private static final String JAVA_BUTTER_RES = "/java-example/WithButterAnnotation";
+	private static final String JAVA_CONSTRUCTOR_BUTTER_NAME = "ConstructedFromButter";
+	private static final String JAVA_CONSTRUCTOR_BUTTER_NAME_RES = "/java-example/ConstructedFromButter";
+	private static final String JAVA_CONSTRUCTOR_NON_BUTTER_NAME = "ConstructedFromRegular";
+	private static final String JAVA_CONSTRUCTOR_NON_BUTTER_RES = "/java-example/ConstructedFromRegular";
 
 	@Test
 	public void javaEntity_isDiscovered() throws Exception
@@ -157,6 +161,22 @@ public class DiscoveryTest extends BaseTest
 
 		assertThat(butteryJava.describeJavaFile().kindUrl(), is(butteryKind.url()));
 		assertThat(otherJava.describeJavaFile().kindUrl(), is(baseKind.url()));
+	}
+
+	@Test
+	public void java_discoverByConstructorArg() throws Exception
+	{
+		final ManagementPathKind baseKind = manage.kind(JAVA_FILE);
+		final ManagementPathKind butteryKind = manage.kind("buttery");
+		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
+		final ManagementPathJavaFile butteryJava = pkg.file(JAVA_CONSTRUCTOR_BUTTER_NAME);
+		butteryJava.data().putResource(JAVA_CONSTRUCTOR_BUTTER_NAME_RES, TEXT_PLAIN);
+		final ManagementPathJavaFile otherJava = pkg.file(JAVA_CONSTRUCTOR_NON_BUTTER_NAME);
+		otherJava.data().putResource(JAVA_CONSTRUCTOR_NON_BUTTER_RES, TEXT_PLAIN);
+		butteryKind.putJsonResource("/kind-schema/java-constructor-arg-with-butter-annotation");
+
+		assertThat(otherJava.describeJavaFile().kindUrl(), is(baseKind.url()));
+		assertThat(butteryJava.describeJavaFile().kindUrl(), is(butteryKind.url()));
 	}
 
 	@Test

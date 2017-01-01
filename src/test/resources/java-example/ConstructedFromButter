@@ -1,0 +1,16 @@
+package io.pantheist.examples;
+
+import io.pantheist.examples.Butter;
+
+public final class ConstructedFromButter
+{
+	private final String x;
+
+	public ConstructedFromButter(
+		int nonButteryArgument,
+		@Butter String hereWeGo,
+		long otherArg)
+	{
+		x = hereWeGo;
+	}
+}

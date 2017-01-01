@@ -1,0 +1,16 @@
+package io.pantheist.examples;
+
+import io.pantheist.examples.OtherThing;
+
+public final class ConstructedFromRegular
+{
+	private final String x;
+
+	public ConstructedFromRegular(
+		int nonButteryArgument,
+		@OtherThing String boring,
+		long otherArg)
+	{
+		x = boring;
+	}
+}

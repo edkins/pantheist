@@ -11,6 +11,7 @@ public class HandlerJavaBackendModule extends PrivateModule
 	{
 		expose(JavaStore.class);
 		bind(JavaStore.class).to(JavaStoreImpl.class).in(Scopes.SINGLETON);
+		bind(JavaKindValidator.class).to(JavaKindValidatorImpl.class).in(Scopes.SINGLETON);
 	}
 
 }

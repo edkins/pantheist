@@ -18,4 +18,8 @@ public interface JavaClause
 	@Nullable
 	@JsonProperty("anyAnnotation")
 	AnnotationClause anyAnnotation();
+
+	@Nullable
+	@JsonProperty("anyConstructor")
+	ConstructorClause anyConstructor();
 }

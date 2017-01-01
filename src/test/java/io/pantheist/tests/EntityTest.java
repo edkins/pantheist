@@ -68,17 +68,19 @@ public class EntityTest extends BaseTest
 	{
 		entitySetup();
 
-		assertThat(manage.listEntities().childResources().size(), is(0));
-
 		final ManagementPathEntity entity = manage.entity(ENTITY_ID);
 		entity.putEntity(null, schema.url(), java.url());
 
 		final List<ListEntityItem> result = manage.listEntities().childResources();
 
-		assertThat(result.size(), is(1));
-		assertThat(result.get(0).entityId(), is(ENTITY_ID));
-		assertThat(result.get(0).url(), is(entity.url()));
-		assertFalse("Listed entity should not be marked as discovered", result.get(0).discovered());
+		final ListEntityItem item = result.stream()
+				.filter(x -> x.entityId().equals(ENTITY_ID))
+				.findFirst()
+				.get();
+
+		assertThat(item.entityId(), is(ENTITY_ID));
+		assertThat(item.url(), is(entity.url()));
+		assertFalse("Listed entity should not be marked as discovered", item.discovered());
 	}
 
 	@Test
