@@ -12,27 +12,27 @@ import javax.inject.Inject;
 
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.Possible;
-import io.pantheist.handler.entity.model.Entity;
-import io.pantheist.handler.entity.model.EntityModelFactory;
 import io.pantheist.handler.java.backend.JavaStore;
 import io.pantheist.handler.java.model.JavaFileId;
+import io.pantheist.handler.kind.model.Entity;
 import io.pantheist.handler.kind.model.Kind;
+import io.pantheist.handler.kind.model.KindModelFactory;
 
 final class KindValidationImpl implements KindValidation
 {
 	private final JavaStore javaStore;
 	private final KindStore kindStore;
-	private final EntityModelFactory entityFactory;
+	private final KindModelFactory modelFactory;
 
 	@Inject
 	private KindValidationImpl(
 			final JavaStore javaStore,
 			final KindStore kindStore,
-			final EntityModelFactory entityFactory)
+			final KindModelFactory modelFactory)
 	{
 		this.javaStore = checkNotNull(javaStore);
 		this.kindStore = checkNotNull(kindStore);
-		this.entityFactory = checkNotNull(entityFactory);
+		this.modelFactory = checkNotNull(modelFactory);
 	}
 
 	/**
@@ -131,7 +131,7 @@ final class KindValidationImpl implements KindValidation
 	public Entity discoverJavaKind(final JavaFileId javaFileId)
 	{
 		checkNotNull(javaFileId);
-		final Entity entity = entityFactory.entity(javaFileId.file(), true, null, null,
+		final Entity entity = modelFactory.entity(javaFileId.file(), true, null, null,
 				javaFileId);
 
 		return discoverKind(entity);
@@ -207,7 +207,7 @@ final class KindValidationImpl implements KindValidation
 		{
 			throw new IllegalArgumentException("entity should not have kind yet");
 		}
-		return entityFactory.entity(
+		return modelFactory.entity(
 				entity.entityId(),
 				entity.discovered(),
 				kind.kindId(),
@@ -240,7 +240,7 @@ final class KindValidationImpl implements KindValidation
 			throw new IllegalArgumentException("Can only be called for discoverable kinds");
 		}
 		return javaStore.allJavaFiles()
-				.map(jf -> entityFactory.entity(jf.file(), true, null, null, jf))
+				.map(jf -> modelFactory.entity(jf.file(), true, null, null, jf))
 				.filter(entity -> validateEntityAgainstKind(entity, kind))
 				.map(this::discoverKind); // actual kind may be a subkind of the one requested
 	}

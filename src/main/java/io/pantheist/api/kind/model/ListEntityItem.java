@@ -1,4 +1,4 @@
-package io.pantheist.api.entity.model;
+package io.pantheist.api.kind.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

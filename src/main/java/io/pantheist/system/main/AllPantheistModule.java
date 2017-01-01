@@ -2,9 +2,6 @@ package io.pantheist.system.main;
 
 import com.google.inject.AbstractModule;
 
-import io.pantheist.api.entity.backend.ApiEntityBackendModule;
-import io.pantheist.api.entity.model.ApiEntityModelModule;
-import io.pantheist.api.entity.resource.ApiEntityResourceModule;
 import io.pantheist.api.flatdir.backend.ApiFlatDirBackendModule;
 import io.pantheist.api.flatdir.model.ApiFlatDirModelModule;
 import io.pantheist.api.flatdir.resource.ApiFlatDirResourceModule;
@@ -23,8 +20,6 @@ import io.pantheist.api.schema.resource.ApiSchemaResourceModule;
 import io.pantheist.common.api.model.CommonApiModelModule;
 import io.pantheist.common.api.url.CommonApiUrlModule;
 import io.pantheist.common.http.CommonHttpModule;
-import io.pantheist.handler.entity.backend.HandlerEntityBackendModule;
-import io.pantheist.handler.entity.model.HandlerEntityModuleModule;
 import io.pantheist.handler.filesystem.backend.HandlerFilesystemBackendModule;
 import io.pantheist.handler.java.backend.HandlerJavaBackendModule;
 import io.pantheist.handler.java.model.HandlerJavaModelModule;
@@ -51,9 +46,6 @@ public class AllPantheistModule extends AbstractModule
 	@Override
 	protected void configure()
 	{
-		install(new ApiEntityBackendModule());
-		install(new ApiEntityModelModule());
-		install(new ApiEntityResourceModule());
 		install(new ApiFlatDirBackendModule());
 		install(new ApiFlatDirModelModule());
 		install(new ApiFlatDirResourceModule());
@@ -72,8 +64,6 @@ public class AllPantheistModule extends AbstractModule
 		install(new CommonApiModelModule());
 		install(new CommonApiUrlModule());
 		install(new CommonHttpModule());
-		install(new HandlerEntityBackendModule());
-		install(new HandlerEntityModuleModule());
 		install(new HandlerFilesystemBackendModule());
 		install(new HandlerJavaBackendModule());
 		install(new HandlerJavaModelModule());

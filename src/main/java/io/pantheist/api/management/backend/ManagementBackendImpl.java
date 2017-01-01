@@ -22,8 +22,6 @@ import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
-import io.pantheist.handler.entity.backend.EntityStore;
-import io.pantheist.handler.entity.model.EntityModelFactory;
 import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.kind.backend.KindStore;
 import io.pantheist.handler.nginx.manage.NginxService;
@@ -37,16 +35,14 @@ final class ManagementBackendImpl implements ManagementBackend
 	private final NginxService nginxService;
 	private final UrlTranslation urlTranslation;
 	private final Initializer initializer;
-	CommonApiModelFactory commonFactory;
+	private final CommonApiModelFactory commonFactory;
 
 	@Inject
 	ManagementBackendImpl(
 			final FilesystemStore filesystem,
 			final ApiManagementModelFactory modelFactory,
 			final NginxService nginxService,
-			final EntityStore entityStore,
 			final UrlTranslation urlTranslation,
-			final EntityModelFactory entityFactory,
 			final KindStore kindStore,
 			final Initializer initializer,
 			final CommonApiModelFactory commonFactory)

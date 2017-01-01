@@ -1,6 +1,5 @@
 package io.pantheist.testclient.api;
 
-import io.pantheist.api.entity.model.ListEntityResponse;
 import io.pantheist.api.flatdir.model.ListFlatDirResponse;
 import io.pantheist.api.java.model.ListJavaPkgResponse;
 import io.pantheist.api.kind.model.ListKindResponse;
@@ -34,14 +33,6 @@ public interface ManagementPathRoot
 	ManagementPathSchema jsonSchema(String schemaId);
 
 	/**
-	 * Returns an API for managing an entity.
-	 *
-	 * An entity gathers together different kinds of resource (e.g. a json-schema or a java class)
-	 * into one concept.
-	 */
-	ManagementPathEntity entity(String entityId);
-
-	/**
 	 * Returns an API for managing a kind.
 	 *
 	 * A kind is like a schema for entities. It specifies which handlers must be present
@@ -51,8 +42,6 @@ public interface ManagementPathRoot
 	 * its associated file must be an interface, not a class.
 	 */
 	ManagementPathKind kind(String kindId);
-
-	ListEntityResponse listEntities();
 
 	ListClassifierResponse listClassifiers();
 

@@ -3,19 +3,16 @@ package io.pantheist.tests;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
 import org.junit.Test;
 
-import io.pantheist.api.entity.model.ApiEntity;
-import io.pantheist.api.entity.model.ListEntityItem;
 import io.pantheist.api.java.model.ListJavaFileItem;
+import io.pantheist.api.kind.model.ListEntityItem;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathJavaPackage;
 import io.pantheist.testclient.api.ManagementPathKind;
-import io.pantheist.testclient.api.ResponseType;
 
 public class DiscoveryTest extends BaseTest
 {
@@ -26,66 +23,12 @@ public class DiscoveryTest extends BaseTest
 	private static final String JAVA_INTLIST_NAME = "NonEmptyNonNegativeIntList";
 	private static final String JAVA_INTLIST_RES = "/java-example/NonEmptyNonNegativeIntList";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
-	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
 	private static final String JAVA_BUTTER_NAME = "WithButterAnnotation";
 	private static final String JAVA_BUTTER_RES = "/java-example/WithButterAnnotation";
 	private static final String JAVA_CONSTRUCTOR_BUTTER_NAME = "ConstructedFromButter";
 	private static final String JAVA_CONSTRUCTOR_BUTTER_NAME_RES = "/java-example/ConstructedFromButter";
 	private static final String JAVA_CONSTRUCTOR_NON_BUTTER_NAME = "ConstructedFromRegular";
 	private static final String JAVA_CONSTRUCTOR_NON_BUTTER_RES = "/java-example/ConstructedFromRegular";
-
-	@Test
-	public void javaEntity_isDiscovered() throws Exception
-	{
-		manage.kind("java-interface-file").putJsonResource(KIND_INTERFACE_RES);
-
-		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
-		java.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
-
-		final ApiEntity entity = manage.entity(JAVA_INTLIST_NAME).getEntity();
-		assertTrue("Entity should be marked as discovered", entity.discovered());
-	}
-
-	@Test
-	public void javaEntity_wrongFileName_isNotDiscovered() throws Exception
-	{
-		manage.kind("java-interface-file").putJsonResource(KIND_INTERFACE_RES);
-
-		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
-		java.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
-
-		final ResponseType responseType1 = manage.entity(JAVA_INTLIST_NAME).getEntityResponseType();
-		final ResponseType responseType2 = manage.entity("SomeOtherGarbage").getEntityResponseType();
-
-		assertThat(responseType1, is(ResponseType.OK));
-		assertThat(responseType2, is(ResponseType.NOT_FOUND));
-	}
-
-	@Test
-	public void javaEntity_doesNotMatchKind_hasBaseKind() throws Exception
-	{
-		final ManagementPathKind baseKind = manage.kind(JAVA_FILE);
-		manage.kind("java-interface-file").putJsonResource(KIND_INTERFACE_RES);
-
-		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_EMPTY_CLASS_NAME);
-		java.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
-
-		final String kindUrl = manage.entity(JAVA_EMPTY_CLASS_NAME).getEntity().kindUrl();
-		assertThat(kindUrl, is(baseKind.url()));
-	}
-
-	@Test
-	public void discoveredJavaEntity_isListed() throws Exception
-	{
-		manage.kind("java-interface-file").putJsonResource(KIND_INTERFACE_RES);
-		manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME).data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
-
-		final List<ListEntityItem> result = manage.listEntities().childResources();
-
-		assertThat(result.size(), is(1));
-		assertThat(result.get(0).entityId(), is(JAVA_INTLIST_NAME));
-		assertThat(result.get(0).discovered(), is(true));
-	}
 
 	@Test
 	public void discoveredJavaEntity_isListed_underKind() throws Exception
@@ -192,7 +135,6 @@ public class DiscoveryTest extends BaseTest
 		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
 		java.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
 
-		final ApiEntity entity = manage.entity(JAVA_INTLIST_NAME).getEntity();
-		assertThat(entity.kindUrl(), isOneOf(kind1.url(), kind2.url()));
+		assertThat(java.describeJavaFile().kindUrl(), isOneOf(kind1.url(), kind2.url()));
 	}
 }

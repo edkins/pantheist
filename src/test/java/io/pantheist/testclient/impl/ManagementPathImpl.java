@@ -6,10 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.pantheist.api.entity.model.ApiComponent;
-import io.pantheist.api.entity.model.ApiEntity;
-import io.pantheist.api.entity.model.ListComponentResponse;
-import io.pantheist.api.entity.model.ListEntityResponse;
 import io.pantheist.api.flatdir.model.ListFileResponse;
 import io.pantheist.api.flatdir.model.ListFlatDirResponse;
 import io.pantheist.api.java.model.ApiJavaBinding;
@@ -17,6 +13,7 @@ import io.pantheist.api.java.model.ApiJavaFile;
 import io.pantheist.api.java.model.ListJavaFileResponse;
 import io.pantheist.api.java.model.ListJavaPkgResponse;
 import io.pantheist.api.kind.model.ApiKind;
+import io.pantheist.api.kind.model.ListEntityResponse;
 import io.pantheist.api.kind.model.ListKindResponse;
 import io.pantheist.api.management.model.ListConfigItem;
 import io.pantheist.api.management.model.ListConfigResponse;
@@ -25,7 +22,6 @@ import io.pantheist.api.schema.model.ListSchemaResponse;
 import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.testclient.api.ManagementData;
 import io.pantheist.testclient.api.ManagementFlatDirPath;
-import io.pantheist.testclient.api.ManagementPathEntity;
 import io.pantheist.testclient.api.ManagementPathJavaBinding;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathJavaPackage;
@@ -41,7 +37,6 @@ final class ManagementPathImpl implements
 		ManagementPathLocation,
 		ManagementPathRoot,
 		ManagementPathJavaPackage,
-		ManagementPathEntity,
 		ManagementPathKind,
 		ManagementPathJavaFile,
 		ManagementPathSchema,
@@ -56,7 +51,6 @@ final class ManagementPathImpl implements
 	private static final String SERVER = "server";
 	private static final String JSON_SCHEMA = "json-schema";
 	private static final String ENTITY = "entity";
-	private static final String COMPONENT = "component";
 	private static final String KIND = "kind";
 	private static final String VALIDATE = "validate";
 	private static final String JAVA_BINDING = "java-binding";
@@ -149,65 +143,6 @@ final class ManagementPathImpl implements
 	}
 
 	@Override
-	public ManagementPathEntity entity(final String entityId)
-	{
-		return new ManagementPathImpl(target.withSegment(ENTITY).withSegment(entityId));
-	}
-
-	@Override
-	public void putEntity(final String kindUrl, final String jsonSchemaUrl, final String javaUrl)
-	{
-		final Map<String, Object> map = new HashMap<>();
-		map.put("kindUrl", kindUrl);
-		map.put("jsonSchemaUrl", jsonSchemaUrl);
-		map.put("javaUrl", javaUrl);
-		target.putObjectAsJson(map);
-	}
-
-	@Override
-	public ResponseType putEntityResponseType(final boolean discovered, final String kindUrl,
-			final String jsonSchemaUrl,
-			final String javaUrl)
-	{
-		final Map<String, Object> map = new HashMap<>();
-		map.put("discovered", discovered);
-		map.put("kindUrl", kindUrl);
-		map.put("jsonSchemaUrl", jsonSchemaUrl);
-		map.put("javaUrl", javaUrl);
-		return target.putObjectJsonResponseType(map);
-	}
-
-	@Override
-	public ApiEntity getEntity()
-	{
-		return target.getJson(ApiEntity.class);
-	}
-
-	@Override
-	public ApiComponent getComponent(final String componentId)
-	{
-		return target.withSegment(COMPONENT).withSegment(componentId).getJson(ApiComponent.class);
-	}
-
-	@Override
-	public ResponseType getComponentResponseType(final String componentId)
-	{
-		return target.withSegment(COMPONENT).withSegment(componentId).getResponseType(APPLICATION_JSON);
-	}
-
-	@Override
-	public ListComponentResponse listComponents()
-	{
-		return target.withSegment(COMPONENT).getJson(ListComponentResponse.class);
-	}
-
-	@Override
-	public ResponseType getEntityResponseType()
-	{
-		return target.getResponseType(APPLICATION_JSON);
-	}
-
-	@Override
 	public ManagementPathKind kind(final String kindId)
 	{
 		return new ManagementPathImpl(target.withSegment(KIND).withSegment(kindId));
@@ -265,12 +200,6 @@ final class ManagementPathImpl implements
 	public ListJavaPkgResponse listJavaPackages()
 	{
 		return target.withSegment(JAVA_PKG).getJson(ListJavaPkgResponse.class);
-	}
-
-	@Override
-	public String urlOfComponent(final String componentId)
-	{
-		return target.withSegment(COMPONENT).withSegment(componentId).url();
 	}
 
 	@Override

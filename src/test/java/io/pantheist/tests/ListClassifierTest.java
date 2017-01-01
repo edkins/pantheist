@@ -2,7 +2,6 @@ package io.pantheist.tests;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
@@ -27,7 +26,6 @@ import io.pantheist.common.api.model.DataAction;
 import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.testclient.api.ManagementFlatDirPath;
-import io.pantheist.testclient.api.ManagementPathEntity;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathJavaPackage;
 import io.pantheist.testclient.api.ManagementPathKind;
@@ -53,7 +51,7 @@ public class ListClassifierTest extends BaseTest
 		final List<String> urls = Lists.transform(list, ListClassifierItem::url);
 		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
 
-		assertThat(segs, hasItems("data", "server", "java-pkg", "json-schema", "entity", "kind", "flat-dir"));
+		assertThat(segs, containsInAnyOrder("data", "server", "java-pkg", "json-schema", "kind", "flat-dir"));
 		assertThat(urls, hasItem(manage.urlOfService("java-pkg")));
 	}
 
@@ -63,33 +61,6 @@ public class ListClassifierTest extends BaseTest
 		final List<? extends ListClassifierItem> list = manage.listClassifiers().childResources();
 
 		assertThat(list.get(0).kindUrl(), is(manage.kind("pantheist-classifier").url()));
-	}
-
-	@Test
-	public void nonexistentEntity_noClassifiers() throws Exception
-	{
-		manage.entity("exists").putEntity(null, null, null);
-
-		final ResponseType response1 = manage.entity("exists").listClassifierResponseType();
-		final ResponseType response2 = manage.entity("does-not-exist").listClassifierResponseType();
-
-		assertThat(response1, is(ResponseType.OK));
-		assertThat(response2, is(ResponseType.NOT_FOUND));
-	}
-
-	@Test
-	public void entity_classifiers() throws Exception
-	{
-		final ManagementPathEntity entity = manage.entity("my-entity");
-		entity.putEntity(null, null, null);
-
-		final List<? extends ListClassifierItem> list = entity.listClassifiers().childResources();
-
-		final List<String> urls = Lists.transform(list, ListClassifierItem::url);
-		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
-
-		assertThat(urls, containsInAnyOrder(entity.urlOfService("component")));
-		assertThat(segs, containsInAnyOrder("component"));
 	}
 
 	@Test

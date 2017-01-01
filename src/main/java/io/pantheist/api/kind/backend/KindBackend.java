@@ -1,7 +1,7 @@
 package io.pantheist.api.kind.backend;
 
-import io.pantheist.api.entity.model.ListEntityResponse;
 import io.pantheist.api.kind.model.ApiKind;
+import io.pantheist.api.kind.model.ListEntityResponse;
 import io.pantheist.api.kind.model.ListKindResponse;
 import io.pantheist.common.util.Possible;
 

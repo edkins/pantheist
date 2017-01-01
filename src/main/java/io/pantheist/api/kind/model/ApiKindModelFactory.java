@@ -34,4 +34,12 @@ public interface ApiKindModelFactory
 			@Assisted("url") String url,
 			@Assisted("kindUrl") String kindUrl,
 			@Assisted("instancePresentation") Presentation instancePresentation);
+
+	ListEntityItem listEntityItem(
+			@Assisted("url") String url,
+			@Assisted("entityId") String entityId,
+			@Assisted("discovered") boolean discovered,
+			@Assisted("kindUrl") String kindUrl);
+
+	ListEntityResponse listEntityResponse(List<ListEntityItem> childResources);
 }

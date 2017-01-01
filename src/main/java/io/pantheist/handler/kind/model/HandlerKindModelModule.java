@@ -12,7 +12,7 @@ public class HandlerKindModelModule extends PrivateModule
 		expose(KindModelFactory.class);
 		install(new FactoryModuleBuilder()
 				.implement(Kind.class, KindImpl.class)
-				.implement(JavaClause.class, JavaClauseImpl.class)
+				.implement(Entity.class, EntityImpl.class)
 				.build(KindModelFactory.class));
 	}
 

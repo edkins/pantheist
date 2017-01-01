@@ -132,7 +132,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	public List<ListClassifierItem> listRootClassifiers()
 	{
 		return classifiers(managementRoot, ImmutableMap.of(), false,
-				"entity", "kind", "java-pkg", "json-schema", "server", "data", "flat-dir");
+				"kind", "java-pkg", "json-schema", "server", "data", "flat-dir");
 	}
 
 	@Override

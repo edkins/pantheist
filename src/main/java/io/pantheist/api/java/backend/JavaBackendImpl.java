@@ -23,12 +23,12 @@ import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
-import io.pantheist.handler.entity.model.Entity;
 import io.pantheist.handler.java.backend.JavaStore;
 import io.pantheist.handler.java.model.JavaBinding;
 import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.java.model.JavaModelFactory;
 import io.pantheist.handler.kind.backend.KindValidation;
+import io.pantheist.handler.kind.model.Entity;
 
 final class JavaBackendImpl implements JavaBackend
 {

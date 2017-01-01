@@ -16,9 +16,9 @@ import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.pantheist.api.entity.model.ListEntityResponse;
 import io.pantheist.api.kind.backend.KindBackend;
 import io.pantheist.api.kind.model.ApiKind;
+import io.pantheist.api.kind.model.ListEntityResponse;
 import io.pantheist.common.annotations.ResourceTag;
 import io.pantheist.common.http.Resp;
 import io.pantheist.common.util.Possible;

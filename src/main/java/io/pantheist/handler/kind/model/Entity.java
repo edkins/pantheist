@@ -1,4 +1,4 @@
-package io.pantheist.handler.entity.model;
+package io.pantheist.handler.kind.model;
 
 import javax.annotation.Nullable;
 
