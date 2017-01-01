@@ -16,7 +16,6 @@ public interface Entity
 	@JsonProperty("discovered")
 	boolean discovered();
 
-	@Nullable
 	@JsonProperty("kindId")
 	String kindId();
 

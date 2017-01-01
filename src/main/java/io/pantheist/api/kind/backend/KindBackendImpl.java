@@ -2,6 +2,8 @@ package io.pantheist.api.kind.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Optional;
+
 import javax.inject.Inject;
 
 import io.pantheist.api.entity.model.ApiEntityModelFactory;
@@ -90,7 +92,14 @@ final class KindBackendImpl implements KindBackend
 		return entityFactory.listEntityItem(
 				urlTranslation.entityToUrl(entity.entityId()),
 				entity.entityId(),
-				entity.discovered());
+				entity.discovered(),
+				kindUrlForEntity(entity));
+	}
+
+	private String kindUrlForEntity(final Entity entity)
+	{
+		final String kindId = Optional.ofNullable(entity.kindId()).orElse("unknown");
+		return urlTranslation.kindToUrl(kindId);
 	}
 
 	@Override

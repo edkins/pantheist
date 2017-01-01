@@ -90,7 +90,8 @@ public class DiscoveryTest extends BaseTest
 	@Test
 	public void discoveredJavaEntity_isListed_underKind() throws Exception
 	{
-		manage.kind("java-interface-file").putJsonResource(KIND_INTERFACE_RES);
+		final ManagementPathKind kind = manage.kind("java-interface-file");
+		kind.putJsonResource(KIND_INTERFACE_RES);
 
 		final ManagementPathJavaFile jclass = manage.javaPackage(JAVA_PKG).file("EmptyClass");
 		jclass.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
@@ -98,11 +99,12 @@ public class DiscoveryTest extends BaseTest
 		final ManagementPathJavaFile jinterface = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
 		jinterface.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
 
-		final List<ListEntityItem> list = manage.kind("java-interface-file").listEntities().childResources();
+		final List<ListEntityItem> list = kind.listEntities().childResources();
 
 		assertThat(list.size(), is(1));
 
 		assertThat(list.get(0).entityId(), is(JAVA_INTLIST_NAME));
+		assertThat(list.get(0).kindUrl(), is(kind.url()));
 	}
 
 	@Test

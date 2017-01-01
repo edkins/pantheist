@@ -159,7 +159,14 @@ final class EntityBackendImpl implements EntityBackend
 		return modelFactory.listEntityItem(
 				urlTranslation.entityToUrl(entity.entityId()),
 				entity.entityId(),
-				entity.discovered());
+				entity.discovered(),
+				kindUrlForEntity(entity));
+	}
+
+	private String kindUrlForEntity(final Entity entity)
+	{
+		final String kindId = Optional.ofNullable(entity.kindId()).orElse("unknown");
+		return urlTranslation.kindToUrl(kindId);
 	}
 
 	@Override

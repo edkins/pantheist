@@ -113,6 +113,7 @@ final class KindValidationImpl implements KindValidation
 		}
 		return javaStore.allJavaFiles()
 				.map(jf -> entityFactory.entity(jf.file(), true, null, null, jf))
-				.filter(entity -> validateEntityAgainstKind(entity, kind));
+				.filter(entity -> validateEntityAgainstKind(entity, kind))
+				.map(entity -> supplyKind(entity, kind));
 	}
 }
