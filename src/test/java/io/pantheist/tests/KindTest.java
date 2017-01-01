@@ -11,8 +11,6 @@ import org.junit.Test;
 
 import io.pantheist.api.kind.model.ApiKind;
 import io.pantheist.api.kind.model.ListKindItem;
-import io.pantheist.handler.kind.model.JavaKind;
-import io.pantheist.handler.kind.model.KindLevel;
 import io.pantheist.testclient.api.ManagementPathKind;
 import io.pantheist.testclient.api.ResponseType;
 
@@ -30,8 +28,6 @@ public class KindTest extends BaseTest
 
 		final ApiKind kind = manage.kind("my-kind").getKind();
 
-		assertThat(kind.level(), is(KindLevel.entity));
-		assertThat(kind.java().javaKind(), is(JavaKind.INTERFACE));
 		assertThat(kind.kindId(), is("my-kind"));
 		assertThat(kind.instancePresentation().iconUrl(), is("http://example.com/icon.png"));
 		assertThat(kind.instancePresentation().openIconUrl(), is("http://example.com/icon2.png"));

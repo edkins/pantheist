@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.InjectableValues;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.base.Throwables;
 import com.google.inject.Injector;
 import com.google.inject.PrivateModule;
@@ -31,6 +32,7 @@ public class SystemInjectModule extends PrivateModule
 		//		.addValue(ObjectMapper.class, objectMapper);
 		final InjectableValues injectableValues = new GuiceInjectableValues(injector);
 		objectMapper.setInjectableValues(injectableValues);
+		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 		return objectMapper;
 	}
 

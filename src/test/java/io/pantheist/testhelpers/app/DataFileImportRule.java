@@ -73,6 +73,7 @@ public class DataFileImportRule implements TestRule
 		{
 			final File source = new File(sourceDir, name);
 			final File target = new File(targetDir, name);
+			LOGGER.info(source.getAbsolutePath());
 			if (source.isFile())
 			{
 				final Kind kind = session.objectMapper().readValue(source, Kind.class);

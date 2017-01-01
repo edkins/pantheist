@@ -1,12 +1,14 @@
 {
-	"level": "entity",
-	"discoverable": false,
-	"java": {
-		"javaKind": "interface"
-	},
-	"subKindOf":["java-file"],
-	"instancePresentation": {
-		"iconUrl": "http://example.com/icon.png",
-		"openIconUrl": "http://example.com/icon2.png"
-	}
+  "instancePresentation": {
+    "iconUrl": "http://example.com/icon.png",
+    "openIconUrl": "http://example.com/icon2.png"
+  },
+  "schema": {
+    "java": {
+      "javaKind": "interface"
+    },
+    "subKindOf": [
+      "java-file"
+    ]
+  }
 }

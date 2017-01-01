@@ -1,10 +1,12 @@
 {
-	"level": "entity",
-	"discoverable": true,
-	"java": {
-		"anyAnnotation": {
-			"name": "Sugar"
-		}
-	},
-	"subKindOf":["java-file"]
+  "schema": {
+    "java": {
+      "anyAnnotation": {
+        "name": "Sugar"
+      }
+    },
+    "subKindOf": [
+      "java-file"
+    ]
+  }
 }

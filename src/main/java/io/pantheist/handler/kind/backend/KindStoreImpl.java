@@ -60,16 +60,6 @@ final class KindStoreImpl implements KindStore
 	}
 
 	@Override
-	public AntiIterator<Kind> discoverKinds()
-	{
-		final FilesystemSnapshot snapshot = filesystem.snapshot();
-		return snapshot
-				.listFilesAndDirectories(kindDir())
-				.map(path -> snapshot.readJson(path, Kind.class))
-				.filter(kind -> kind.discoverable());
-	}
-
-	@Override
 	public AntiIterator<Kind> listAllKinds()
 	{
 		final FilesystemSnapshot snapshot = filesystem.snapshot();

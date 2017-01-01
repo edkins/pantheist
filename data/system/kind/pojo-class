@@ -1,1 +1,24 @@
-{"kindId":"pojo-class","level":"entity","discoverable":true,"java":{"javaKind":null,"anyAnnotation":null,"anyConstructor":{"anyArg":{"anyAnnotation":{"name":"JsonProperty"}}}},"partOfSystem":false,"subKindOf":["java-class-file"],"instancePresentation":{"iconUrl":"/resources/images/pojo-class.png","openIconUrl":null}}
+{
+  "kindId": "pojo-class",
+  "partOfSystem": false,
+  "instancePresentation": {
+    "iconUrl": "/resources/images/pojo-class.png",
+    "openIconUrl": null
+  },
+  "schema": {
+    "java": {
+      "javaKind": null,
+      "anyAnnotation": null,
+      "anyConstructor": {
+        "anyArg": {
+          "anyAnnotation": {
+            "name": "JsonProperty"
+          }
+        }
+      }
+    },
+    "subKindOf": [
+      "java-class-file"
+    ]
+  }
+}

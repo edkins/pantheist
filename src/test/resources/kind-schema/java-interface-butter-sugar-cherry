@@ -1,10 +1,13 @@
 {
-	"level": "entity",
-	"discoverable": true,
-	"java": {
-		"anyAnnotation": {
-			"name": "CherryOnTop"
-		}
-	},
-	"subKindOf":["java-interface-with-butter-annotation","java-interface-sugar"]
+  "schema": {
+    "java": {
+      "anyAnnotation": {
+        "name": "CherryOnTop"
+      }
+    },
+    "subKindOf": [
+      "java-interface-with-butter-annotation",
+      "java-interface-sugar"
+    ]
+  }
 }

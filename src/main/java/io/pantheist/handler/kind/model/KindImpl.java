@@ -2,8 +2,6 @@ package io.pantheist.handler.kind.model;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.List;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
@@ -16,48 +14,21 @@ import io.pantheist.common.util.OtherPreconditions;
 final class KindImpl implements Kind
 {
 	private final String kindId;
-	private final KindLevel level;
-	private final JavaClause java;
-	private final boolean discoverable;
 	private final boolean partOfSystem;
-	private final List<String> subKindOf;
+	private final KindSchema schema;
 	private final Presentation instancePresentation;
 
 	@Inject
 	private KindImpl(
 			@Assisted("kindId") @JsonProperty("kindId") final String kindId,
-			@Assisted @JsonProperty("level") final KindLevel level,
-			@Assisted("discoverable") @JsonProperty("discoverable") final Boolean discoverable,
-			@Nullable @Assisted @JsonProperty("java") final JavaClause java,
 			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
-			@Assisted("subKindOf") @JsonProperty("subKindOf") final List<String> subKindOf,
-			@Nullable @Assisted("instancePresentation") @JsonProperty("instancePresentation") final Presentation instancePresentation)
+			@Nullable @Assisted("instancePresentation") @JsonProperty("instancePresentation") final Presentation instancePresentation,
+			@Assisted @JsonProperty("schema") final KindSchema schema)
 	{
 		this.kindId = OtherPreconditions.checkNotNullOrEmpty(kindId);
-		this.discoverable = checkNotNull(discoverable);
-		this.level = checkNotNull(level);
-		this.java = java;
 		this.partOfSystem = partOfSystem;
-		this.subKindOf = checkNotNull(subKindOf);
+		this.schema = checkNotNull(schema);
 		this.instancePresentation = instancePresentation;
-	}
-
-	@Override
-	public KindLevel level()
-	{
-		return level;
-	}
-
-	@Override
-	public JavaClause java()
-	{
-		return java;
-	}
-
-	@Override
-	public boolean discoverable()
-	{
-		return discoverable;
 	}
 
 	@Override
@@ -73,15 +44,15 @@ final class KindImpl implements Kind
 	}
 
 	@Override
-	public List<String> subKindOf()
-	{
-		return subKindOf;
-	}
-
-	@Override
 	public Presentation instancePresentation()
 	{
 		return instancePresentation;
+	}
+
+	@Override
+	public KindSchema schema()
+	{
+		return schema;
 	}
 
 }

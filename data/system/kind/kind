@@ -1,1 +1,11 @@
-{"kindId":"kind","level":"entity","discoverable":false,"partOfSystem":true,"subKindOf":[],"instancePresentation":{"iconUrl":"/resources/images/kind.png","openIconUrl":null}}
+{
+  "kindId": "kind",
+  "partOfSystem": true,
+  "instancePresentation": {
+    "iconUrl": "/resources/images/kind.png",
+    "openIconUrl": null
+  },
+  "schema": {
+    "subKindOf": []
+  }
+}

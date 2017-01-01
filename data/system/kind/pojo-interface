@@ -1,1 +1,20 @@
-{"kindId":"pojo-interface","level":"entity","discoverable":true,"java":{"javaKind":"interface","anyAnnotation":{"name":"JsonDeserialize"},"anyConstructor":null},"partOfSystem":false,"subKindOf":["java-interface-file"],"instancePresentation":{"iconUrl":"/resources/images/pojo-interface.png","openIconUrl":null}}
+{
+  "kindId": "pojo-interface",
+  "partOfSystem": false,
+  "instancePresentation": {
+    "iconUrl": "/resources/images/pojo-interface.png",
+    "openIconUrl": null
+  },
+  "schema": {
+    "java": {
+      "javaKind": "interface",
+      "anyAnnotation": {
+        "name": "JsonDeserialize"
+      },
+      "anyConstructor": null
+    },
+    "subKindOf": [
+      "java-interface-file"
+    ]
+  }
+}

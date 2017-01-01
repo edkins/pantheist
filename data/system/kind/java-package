@@ -1,1 +1,11 @@
-{"kindId":"java-package","level":"entity","discoverable":false,"partOfSystem":true,"subKindOf":[],"instancePresentation":{"iconUrl":"/resources/images/java-package.png","openIconUrl":null}}
+{
+  "kindId": "java-package",
+  "partOfSystem": true,
+  "instancePresentation": {
+    "iconUrl": "/resources/images/java-package.png",
+    "openIconUrl": null
+  },
+  "schema": {
+    "subKindOf": []
+  }
+}

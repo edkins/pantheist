@@ -8,25 +8,20 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.common.api.model.Presentation;
 import io.pantheist.common.api.model.ReplaceAction;
-import io.pantheist.handler.kind.model.JavaClause;
-import io.pantheist.handler.kind.model.KindLevel;
+import io.pantheist.handler.kind.model.KindSchema;
 
 final class ApiKindImpl implements ApiKind
 {
 	private final List<? extends ListClassifierItem> childResources;
 	private final String kindId;
-	private final KindLevel level;
-	private final boolean discoverable;
-	private final JavaClause java;
+	private final KindSchema schema;
 	private final boolean partOfSystem;
 	private final ReplaceAction replaceAction;
-	private final List<String> subKindOf;
 	private final Presentation instancePresentation;
 
 	@Inject
@@ -34,22 +29,16 @@ final class ApiKindImpl implements ApiKind
 			@Nullable @Assisted @JsonProperty("childResources") final List<ListClassifierItem> childResources,
 			@Nullable @Assisted @JsonProperty("replaceAction") final ReplaceAction replaceAction,
 			@Nullable @Assisted("kindId") @JsonProperty("kindId") final String kindId,
-			@Assisted @JsonProperty("level") final KindLevel level,
-			@Assisted("discoverable") @JsonProperty("discoverable") final boolean discoverable,
-			@Nullable @Assisted @JsonProperty("java") final JavaClause java,
+			@Assisted @JsonProperty("schema") final KindSchema schema,
 			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
-			@Assisted("subKindOf") @JsonProperty("subKindOf") final List<String> subKindOf,
 			@Nullable @Assisted("instancePresentation") @JsonProperty("instancePresentation") final Presentation instancePresentation)
 	{
 		this.childResources = childResources;
 		this.replaceAction = replaceAction;
 		this.kindId = kindId;
-		this.level = checkNotNull(level);
-		this.discoverable = discoverable;
-		this.java = java;
 		this.partOfSystem = partOfSystem;
-		this.subKindOf = ImmutableList.copyOf(subKindOf);
 		this.instancePresentation = instancePresentation;
+		this.schema = checkNotNull(schema);
 	}
 
 	@Override
@@ -65,24 +54,6 @@ final class ApiKindImpl implements ApiKind
 	}
 
 	@Override
-	public KindLevel level()
-	{
-		return level;
-	}
-
-	@Override
-	public boolean discoverable()
-	{
-		return discoverable;
-	}
-
-	@Override
-	public JavaClause java()
-	{
-		return java;
-	}
-
-	@Override
 	public boolean partOfSystem()
 	{
 		return partOfSystem;
@@ -95,14 +66,14 @@ final class ApiKindImpl implements ApiKind
 	}
 
 	@Override
-	public List<String> subKindOf()
-	{
-		return subKindOf;
-	}
-
-	@Override
 	public Presentation instancePresentation()
 	{
 		return instancePresentation;
+	}
+
+	@Override
+	public KindSchema schema()
+	{
+		return schema;
 	}
 }

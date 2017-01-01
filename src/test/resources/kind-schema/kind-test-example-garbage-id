@@ -1,9 +1,11 @@
 {
-	"kindId": "someGarbageGoesHere",
-	"level": "entity",
-	"discoverable": false,
-	"java": {
-		"javaKind": "interface"
-	},
-	"subKindOf":["java-file"]
+  "kindId": "someGarbageGoesHere",
+  "schema": {
+    "java": {
+      "javaKind": "interface"
+    },
+    "subKindOf": [
+      "java-file"
+    ]
+  }
 }

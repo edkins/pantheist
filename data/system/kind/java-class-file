@@ -1,1 +1,16 @@
-{"kindId":"java-class-file","level":"entity","discoverable":true,"java":{"javaKind":"class","anyAnnotation":null,"anyConstructor":null},"partOfSystem":false,"subKindOf":["java-file"],"instancePresentation":{"iconUrl":"/resources/images/java-class-unknown.png","openIconUrl":null}}
+{
+  "kindId": "java-class-file",
+  "partOfSystem": false,
+  "instancePresentation": {
+    "iconUrl": "/resources/images/java-class-unknown.png",
+    "openIconUrl": null
+  },
+  "schema": {
+    "java": {
+      "javaKind": "class"
+    },
+    "subKindOf": [
+      "java-file"
+    ]
+  }
+}

@@ -10,10 +10,5 @@ public interface KindStore
 
 	Possible<Kind> getKind(String kindId);
 
-	/**
-	 * Returns all kinds that are discoverable
-	 */
-	AntiIterator<Kind> discoverKinds();
-
 	AntiIterator<Kind> listAllKinds();
 }

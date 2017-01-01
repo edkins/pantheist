@@ -1,1 +1,13 @@
-{"kindId":"json-schema","level":"entity","discoverable":false,"partOfSystem":true,"subKindOf":["json"],"instancePresentation":{"iconUrl":"/resources/images/json-schema.png","openIconUrl":null}}
+{
+  "kindId": "json-schema",
+  "partOfSystem": true,
+  "instancePresentation": {
+    "iconUrl": "/resources/images/json-schema.png",
+    "openIconUrl": null
+  },
+  "schema": {
+    "subKindOf": [
+      "json"
+    ]
+  }
+}

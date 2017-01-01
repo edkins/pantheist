@@ -1,9 +1,11 @@
 {
-	"kindId": "my-kind",
-	"level": "entity",
-	"discoverable": false,
-	"java": {
-		"javaKind": "interface"
-	},
-	"subKindOf":["java-file"]
+  "kindId": "my-kind",
+  "schema": {
+    "java": {
+      "javaKind": "interface"
+    },
+    "subKindOf": [
+      "java-file"
+    ]
+  }
 }

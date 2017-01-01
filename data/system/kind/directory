@@ -1,1 +1,11 @@
-{"kindId":"directory","level":"entity","discoverable":false,"partOfSystem":true,"subKindOf":[],"instancePresentation":{"iconUrl":"/resources/images/directory-closed.png","openIconUrl":"/resources/images/directory-open.png"}}
+{
+  "kindId": "directory",
+  "partOfSystem": true,
+  "instancePresentation": {
+    "iconUrl": "/resources/images/directory-closed.png",
+    "openIconUrl": "/resources/images/directory-open.png"
+  },
+  "schema": {
+    "subKindOf": []
+  }
+}

@@ -1,11 +1,13 @@
 {
-	"level": "entity",
-	"discoverable": true,
-	"java": {
-		"javaKind": "interface",
-		"anyAnnotation": {
-			"name": "Butter"
-		}
-	},
-	"subKindOf":["java-file"]
+  "schema": {
+    "java": {
+      "javaKind": "interface",
+      "anyAnnotation": {
+        "name": "Butter"
+      }
+    },
+    "subKindOf": [
+      "java-file"
+    ]
+  }
 }

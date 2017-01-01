@@ -10,8 +10,7 @@ import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.common.api.model.Presentation;
 import io.pantheist.common.api.model.ReplaceAction;
-import io.pantheist.handler.kind.model.JavaClause;
-import io.pantheist.handler.kind.model.KindLevel;
+import io.pantheist.handler.kind.model.KindSchema;
 
 public interface ApiKindModelFactory
 {
@@ -19,11 +18,8 @@ public interface ApiKindModelFactory
 			@Nullable List<ListClassifierItem> childResources,
 			ReplaceAction replaceAction,
 			@Nullable @Assisted("kindId") String kindId,
-			KindLevel level,
-			@Assisted("discoverable") Boolean discoverable,
-			@Nullable JavaClause java,
+			KindSchema schema,
 			@Assisted("partOfSystem") boolean partOfSystem,
-			@Assisted("subKindOf") List<String> subKindOf,
 			@Assisted("instancePresentation") Presentation instancePresentation);
 
 	ListKindResponse listKindResponse(

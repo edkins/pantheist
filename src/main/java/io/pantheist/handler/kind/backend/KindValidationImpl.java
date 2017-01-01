@@ -10,6 +10,9 @@ import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.Possible;
 import io.pantheist.handler.java.backend.JavaStore;
@@ -20,6 +23,7 @@ import io.pantheist.handler.kind.model.KindModelFactory;
 
 final class KindValidationImpl implements KindValidation
 {
+	private static final Logger LOGGER = LogManager.getLogger(KindValidationImpl.class);
 	private final JavaStore javaStore;
 	private final KindStore kindStore;
 	private final KindModelFactory modelFactory;
@@ -61,7 +65,7 @@ final class KindValidationImpl implements KindValidation
 	private void recurseSuperKinds(final Kind kind, final Set<String> encountered, final Consumer<Kind> consumer)
 	{
 		encountered.add(kind.kindId());
-		for (final String parentId : kind.subKindOf())
+		for (final String parentId : kind.schema().subKindOf())
 		{
 			if (!encountered.contains(parentId))
 			{
@@ -92,10 +96,12 @@ final class KindValidationImpl implements KindValidation
 			return false;
 		}
 
-		if (kind.java() != null)
+		if (kind.schema().java() != null)
 		{
-			if (!javaStore.validateKind(entity.javaFileId(), kind.java()))
+			LOGGER.info("kind = {}, java = {}", kind.kindId(), kind.schema().java());
+			if (!javaStore.validateKind(entity.javaFileId(), kind.schema().java()))
 			{
+				LOGGER.info("not valid.");
 				// Java store says the details are invalid.
 				return false;
 			}
@@ -113,6 +119,10 @@ final class KindValidationImpl implements KindValidation
 		if (kind.partOfSystem())
 		{
 			if (kind.kindId().equals("java-file") && entity.javaFileId() == null)
+			{
+				return false;
+			}
+			if (!kind.kindId().equals("java-file") && entity.javaFileId() != null)
 			{
 				return false;
 			}
@@ -140,7 +150,7 @@ final class KindValidationImpl implements KindValidation
 	private Entity discoverKind(final Entity entity)
 	{
 		final Map<String, KindStatus> map = new HashMap<>();
-		final Map<String, Kind> kinds = kindStore.discoverKinds().toMap(Kind::kindId);
+		final Map<String, Kind> kinds = kindStore.listAllKinds().toMap(Kind::kindId);
 
 		boolean anythingHappened;
 		do
@@ -156,7 +166,7 @@ final class KindValidationImpl implements KindValidation
 					// Fail if any parent failed.
 					// Otherwise, not ready yet if any parent hasn't been visited.
 
-					for (final String superId : kind.subKindOf())
+					for (final String superId : kind.schema().subKindOf())
 					{
 						if (!map.containsKey(superId))
 						{
@@ -181,7 +191,7 @@ final class KindValidationImpl implements KindValidation
 					}
 					else if (canVisit)
 					{
-						for (final String superId : kind.subKindOf())
+						for (final String superId : kind.schema().subKindOf())
 						{
 							map.put(superId, KindStatus.SUPERSEDED);
 						}
@@ -235,10 +245,6 @@ final class KindValidationImpl implements KindValidation
 	@Override
 	public AntiIterator<Entity> discoverEntitiesWithKind(final Kind kind)
 	{
-		if (!kind.discoverable())
-		{
-			throw new IllegalArgumentException("Can only be called for discoverable kinds");
-		}
 		return javaStore.allJavaFiles()
 				.map(jf -> modelFactory.entity(jf.file(), true, null, null, jf))
 				.filter(entity -> validateEntityAgainstKind(entity, kind))

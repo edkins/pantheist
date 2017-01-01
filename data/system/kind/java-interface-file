@@ -1,1 +1,16 @@
-{"kindId":"java-interface-file","level":"entity","discoverable":true,"java":{"javaKind":"interface","anyAnnotation":null,"anyConstructor":null},"partOfSystem":false,"subKindOf":["java-file"],"instancePresentation":{"iconUrl":"/resources/images/java-interface-unknown.png","openIconUrl":null}}
+{
+  "kindId": "java-interface-file",
+  "partOfSystem": false,
+  "instancePresentation": {
+    "iconUrl": "/resources/images/java-interface-unknown.png",
+    "openIconUrl": null
+  },
+  "schema": {
+    "java": {
+      "javaKind": "interface"
+    },
+    "subKindOf": [
+      "java-file"
+    ]
+  }
+}

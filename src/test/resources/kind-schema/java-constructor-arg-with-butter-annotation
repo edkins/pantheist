@@ -1,15 +1,17 @@
 {
-	"level": "entity",
-	"discoverable": true,
-	"java": {
-		"javaKind": "class",
-		"anyConstructor": {
-			"anyArg": {
-				"anyAnnotation": {
-					"name": "Butter"
-				}
-			}
-		}
-	},
-	"subKindOf":["java-file"]
+  "schema": {
+    "java": {
+      "javaKind": "class",
+      "anyConstructor": {
+        "anyArg": {
+          "anyAnnotation": {
+            "name": "Butter"
+          }
+        }
+      }
+    },
+    "subKindOf": [
+      "java-file"
+    ]
+  }
 }

@@ -1,9 +1,11 @@
 {
-	"level": "entity",
-	"discoverable": false,
-	"java": {
-		"javaKind": "interface"
-	},
-	"partOfSystem": true,
-	"subKindOf":["java-file"]
+  "partOfSystem": true,
+  "schema": {
+    "java": {
+      "javaKind": "interface"
+    },
+    "subKindOf": [
+      "java-file"
+    ]
+  }
 }

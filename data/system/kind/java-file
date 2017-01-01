@@ -1,1 +1,13 @@
-{"kindId":"java-file","level":"entity","discoverable":true,"java":{"javaKind":null,"anyAnnotation":null,"anyConstructor":null},"partOfSystem":true,"subKindOf":[],"instancePresentation":{"iconUrl":"/resources/images/file.png","openIconUrl":null}}
+{
+  "kindId": "java-file",
+  "partOfSystem": true,
+  "instancePresentation": {
+    "iconUrl": "/resources/images/file.png",
+    "openIconUrl": null
+  },
+  "schema": {
+    "java": {
+    },
+    "subKindOf": []
+  }
+}

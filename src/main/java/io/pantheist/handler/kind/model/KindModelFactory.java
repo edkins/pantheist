@@ -12,11 +12,13 @@ import io.pantheist.handler.java.model.JavaFileId;
 public interface KindModelFactory
 {
 	Kind kind(
-			@Nullable @Assisted("kindId") String kindId,
-			KindLevel level,
-			@Assisted("discoverable") Boolean discoverable,
-			@Nullable JavaClause java,
+			@Assisted("kindId") String kindId,
+			KindSchema schema,
 			@Assisted("partOfSystem") boolean partOfSystem,
+			@Nullable @Assisted("instancePresentation") Presentation instancePresentation);
+
+	KindSchema schema(
+			@Nullable JavaClause java,
 			@Assisted("subKindOf") List<String> subKindOf,
 			@Assisted("instancePresentation") Presentation instancePresentation);
 
