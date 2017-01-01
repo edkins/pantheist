@@ -12,16 +12,19 @@ final class ListClassifierItemImpl implements ListClassifierItem
 	private final String url;
 	private final String classifierSegment;
 	private final boolean suggestHiding;
+	private final String kindUrl;
 
 	@Inject
 	private ListClassifierItemImpl(
 			@Assisted("url") @JsonProperty("url") final String url,
 			@Assisted("classifierSegment") @JsonProperty("classifierSegment") final String classifierSegment,
-			@Assisted("suggestHiding") @JsonProperty("suggestHiding") final boolean suggestHiding)
+			@Assisted("suggestHiding") @JsonProperty("suggestHiding") final boolean suggestHiding,
+			@Assisted("kindUrl") @JsonProperty("kindUrl") final String kindUrl)
 	{
 		this.url = OtherPreconditions.checkNotNullOrEmpty(url);
 		this.classifierSegment = OtherPreconditions.checkNotNullOrEmpty(classifierSegment);
 		this.suggestHiding = suggestHiding;
+		this.kindUrl = OtherPreconditions.checkNotNullOrEmpty(kindUrl);
 	}
 
 	@Override
@@ -40,6 +43,12 @@ final class ListClassifierItemImpl implements ListClassifierItem
 	public boolean suggestHiding()
 	{
 		return suggestHiding;
+	}
+
+	@Override
+	public String kindUrl()
+	{
+		return kindUrl;
 	}
 
 }

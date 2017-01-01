@@ -40,6 +40,8 @@ public class KindTest extends BaseTest
 		assertThat(kind.level(), is(KindLevel.entity));
 		assertThat(kind.java().javaKind(), is(JavaKind.INTERFACE));
 		assertThat(kind.kindId(), is("my-kind"));
+		assertThat(kind.instancePresentation().iconUrl(), is("http://example.com/icon.png"));
+		assertThat(kind.instancePresentation().openIconUrl(), is("http://example.com/icon2.png"));
 		assertFalse("This kind not part of system", kind.partOfSystem());
 	}
 
@@ -63,6 +65,7 @@ public class KindTest extends BaseTest
 
 		final ListKindItem item = list.stream().filter(k -> k.url().equals(kind.url())).findFirst().get();
 		assertThat(item.url(), is(kind.url()));
+		assertThat(item.instancePresentation().iconUrl(), is("http://example.com/icon.png"));
 	}
 
 	@Test

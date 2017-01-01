@@ -4,5 +4,9 @@
 	"java": {
 		"javaKind": "interface"
 	},
-	"subKindOf":["java-file"]
+	"subKindOf":["java-file"],
+	"instancePresentation": {
+		"iconUrl": "http://example.com/icon.png",
+		"openIconUrl": "http://example.com/icon2.png"
+	}
 }

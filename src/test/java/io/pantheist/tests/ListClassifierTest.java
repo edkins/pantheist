@@ -58,6 +58,14 @@ public class ListClassifierTest extends BaseTest
 	}
 
 	@Test
+	public void root_classifier_kind() throws Exception
+	{
+		final List<? extends ListClassifierItem> list = manage.listClassifiers().childResources();
+
+		assertThat(list.get(0).kindUrl(), is(manage.kind("pantheist-classifier").url()));
+	}
+
+	@Test
 	public void nonexistentEntity_noClassifiers() throws Exception
 	{
 		manage.entity("exists").putEntity(null, null, null);
@@ -109,6 +117,7 @@ public class ListClassifierTest extends BaseTest
 
 		assertThat(urls, containsInAnyOrder(pkg.urlOfService("file")));
 		assertThat(segs, containsInAnyOrder("file"));
+		assertThat(list.get(0).kindUrl(), is(manage.kind("pantheist-classifier").url()));
 	}
 
 	@Test

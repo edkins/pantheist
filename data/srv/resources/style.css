@@ -75,8 +75,7 @@ tree-item is the block of text inside the <li> element which represents
 the item itself (as opposed to its children).
 */
 
-.tree-item::before {
-	content:'';
+.tree-item-icon {
 	width: 12pt;
 	height: 12pt;
     background-size: 12pt;
@@ -85,53 +84,6 @@ the item itself (as opposed to its children).
     position: relative;
     top: 2pt;
     padding-right: 4pt;
-}
-
-.tree-item.unknown-kind::before {
-    background-image: url('/resources/images/pantheist-folder-closed.png');
-}
-
-.tree-item.unknown-kind.expanded::before {
-    background-image: url('/resources/images/pantheist-folder-open.png');
-}
-
-.tree-item.java-package::before {
-    background-image: url('/resources/images/java-package.png');
-}
-
-.tree-item.java-file::before {
-    background-image: url('/resources/images/java-class-unknown.png');
-}
-
-.tree-item.java-interface-file::before {
-    background-image: url('/resources/images/java-interface-unknown.png');
-}
-
-.tree-item.pojo-interface::before {
-    background-image: url('/resources/images/pojo-interface.png');
-}
-
-.tree-item.pojo-class::before {
-    background-image: url('/resources/images/pojo-class.png');
-}
-
-.tree-item.kind::before {
-    background-image: url('/resources/images/kind.png');
-}
-
-.tree-item.file::before {
-    background-image: url('/resources/images/file.png');
-}
-
-.tree-item.directory::before {
-    background-image: url('/resources/images/directory-closed.png');
-}
-
-.tree-item.directory.expanded::before {
-    background-image: url('/resources/images/directory-open.png');
-}
-
-.tree-item {
 }
 
 .tree-item:hover {

@@ -119,10 +119,11 @@ final class UrlTranslationImpl implements UrlTranslation
 			final boolean suggestHidingAll,
 			final String... classifierSegments)
 	{
+		final String classifierKindUrl = kindToUrl("pantheist-classifier");
 		return AntiIt.array(classifierSegments)
 				.<ListClassifierItem>map(seg -> {
 					final String url = pattern.segment(seg).generate(values);
-					return modelFactory.listClassifierItem(url, seg, suggestHidingAll);
+					return modelFactory.listClassifierItem(url, seg, suggestHidingAll, classifierKindUrl);
 				})
 				.toList();
 	}

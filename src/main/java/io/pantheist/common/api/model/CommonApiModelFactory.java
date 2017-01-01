@@ -11,7 +11,8 @@ public interface CommonApiModelFactory
 	ListClassifierItem listClassifierItem(
 			@Assisted("url") String url,
 			@Assisted("classifierSegment") String classifierSegment,
-			@Assisted("suggestHiding") boolean suggestHiding);
+			@Assisted("suggestHiding") boolean suggestHiding,
+			@Assisted("kindUrl") String kindUrl);
 
 	AdditionalStructureItem additionalStructureItem(
 			@Assisted("literal") boolean literal,

@@ -19,4 +19,7 @@ public interface ListClassifierItem
 	 */
 	@JsonProperty("suggestHiding")
 	boolean suggestHiding();
+
+	@JsonProperty("kindUrl")
+	String kindUrl();
 }

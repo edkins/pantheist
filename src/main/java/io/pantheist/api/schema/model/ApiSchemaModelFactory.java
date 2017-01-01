@@ -14,7 +14,9 @@ public interface ApiSchemaModelFactory
 			List<ListSchemaItem> childResources,
 			CreateAction createAction);
 
-	ListSchemaItem listSchemaItem(@Assisted("url") String url);
+	ListSchemaItem listSchemaItem(
+			@Assisted("url") String url,
+			@Assisted("kindUrl") String kindUrl);
 
 	ApiSchema apiSchema(DataAction dataAction, DeleteAction deleteAction);
 }

@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.api.model.ListClassifierItem;
+import io.pantheist.common.api.model.Presentation;
 import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.handler.kind.model.JavaClause;
 import io.pantheist.handler.kind.model.KindLevel;
@@ -26,6 +27,7 @@ final class ApiKindImpl implements ApiKind
 	private final boolean partOfSystem;
 	private final ReplaceAction replaceAction;
 	private final List<String> subKindOf;
+	private final Presentation instancePresentation;
 
 	@Inject
 	private ApiKindImpl(
@@ -36,7 +38,8 @@ final class ApiKindImpl implements ApiKind
 			@Assisted("discoverable") @JsonProperty("discoverable") final boolean discoverable,
 			@Nullable @Assisted @JsonProperty("java") final JavaClause java,
 			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
-			@Assisted("subKindOf") @JsonProperty("subKindOf") final List<String> subKindOf)
+			@Assisted("subKindOf") @JsonProperty("subKindOf") final List<String> subKindOf,
+			@Nullable @Assisted("instancePresentation") @JsonProperty("instancePresentation") final Presentation instancePresentation)
 	{
 		this.childResources = childResources;
 		this.replaceAction = replaceAction;
@@ -46,6 +49,7 @@ final class ApiKindImpl implements ApiKind
 		this.java = java;
 		this.partOfSystem = partOfSystem;
 		this.subKindOf = ImmutableList.copyOf(subKindOf);
+		this.instancePresentation = instancePresentation;
 	}
 
 	@Override
@@ -94,5 +98,11 @@ final class ApiKindImpl implements ApiKind
 	public List<String> subKindOf()
 	{
 		return subKindOf;
+	}
+
+	@Override
+	public Presentation instancePresentation()
+	{
+		return instancePresentation;
 	}
 }

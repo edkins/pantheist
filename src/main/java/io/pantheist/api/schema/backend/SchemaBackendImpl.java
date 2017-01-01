@@ -6,6 +6,7 @@ import javax.inject.Inject;
 
 import io.pantheist.api.schema.model.ApiSchema;
 import io.pantheist.api.schema.model.ApiSchemaModelFactory;
+import io.pantheist.api.schema.model.ListSchemaItem;
 import io.pantheist.api.schema.model.ListSchemaResponse;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.util.FailureReason;
@@ -48,12 +49,17 @@ final class SchemaBackendImpl implements SchemaBackend
 		return schemaStore.validateAgainstJsonSchema(schemaId, text);
 	}
 
+	ListSchemaItem toListSchemaItem(final String url)
+	{
+		return modelFactory.listSchemaItem(url, urlTranslation.kindToUrl("json-schema"));
+	}
+
 	@Override
 	public ListSchemaResponse listSchemas()
 	{
 		return schemaStore.listJsonSchemaIds()
 				.map(urlTranslation::jsonSchemaToUrl)
-				.map(modelFactory::listSchemaItem)
+				.map(this::toListSchemaItem)
 				.wrap(xs -> modelFactory.listSchemaResponse(xs, urlTranslation.jsonSchemaCreateAction()));
 	}
 

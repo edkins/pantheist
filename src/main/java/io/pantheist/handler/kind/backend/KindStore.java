@@ -15,5 +15,5 @@ public interface KindStore
 	 */
 	AntiIterator<Kind> discoverKinds();
 
-	AntiIterator<String> listKindIds();
+	AntiIterator<Kind> listAllKinds();
 }

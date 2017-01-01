@@ -2,6 +2,7 @@ package io.pantheist.api.kind.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -58,7 +59,8 @@ final class KindBackendImpl implements KindBackend
 		return modelFactory.kind(
 				urlTranslation.listKindClassifiers(k.kindId()),
 				urlTranslation.listKindReplaceAction(k.kindId()),
-				k.kindId(), k.level(), k.discoverable(), k.java(), k.partOfSystem(), k.subKindOf());
+				k.kindId(), k.level(), k.discoverable(), k.java(), k.partOfSystem(), k.subKindOf(),
+				k.instancePresentation());
 	}
 
 	@Override
@@ -72,7 +74,7 @@ final class KindBackendImpl implements KindBackend
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
 		return kindFactory.kind(kindId, kind.level(), kind.discoverable(), kind.java(), kind.partOfSystem(),
-				kind.subKindOf());
+				kind.subKindOf(), kind.instancePresentation());
 	}
 
 	@Override
@@ -129,18 +131,19 @@ final class KindBackendImpl implements KindBackend
 				.wrap(entityFactory::listEntityResponse);
 	}
 
-	private ListKindItem toListKindItem(final String kindId)
+	private ListKindItem toListKindItem(final Kind kind)
 	{
-		final String url = urlTranslation.kindToUrl(kindId);
+		final String url = urlTranslation.kindToUrl(kind.kindId());
 		final String kindUrl = urlTranslation.kindToUrl("kind"); // this is the meta-kind
-		return modelFactory.listKindItem(url, kindUrl);
+		return modelFactory.listKindItem(url, kindUrl, kind.instancePresentation());
 	}
 
 	@Override
 	public ListKindResponse listKinds()
 	{
-		return kindStore.listKindIds()
+		final List<ListKindItem> list = kindStore.listAllKinds()
 				.map(this::toListKindItem)
-				.wrap(xs -> modelFactory.listKindResponse(xs, urlTranslation.kindCreateAction()));
+				.toSortedList((k1, k2) -> k1.url().compareTo(k2.url()));
+		return modelFactory.listKindResponse(list, urlTranslation.kindCreateAction());
 	}
 }

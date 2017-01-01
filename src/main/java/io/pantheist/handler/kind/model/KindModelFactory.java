@@ -6,6 +6,8 @@ import javax.annotation.Nullable;
 
 import com.google.inject.assistedinject.Assisted;
 
+import io.pantheist.common.api.model.Presentation;
+
 public interface KindModelFactory
 {
 	Kind kind(
@@ -14,5 +16,6 @@ public interface KindModelFactory
 			@Assisted("discoverable") Boolean discoverable,
 			@Nullable JavaClause java,
 			@Assisted("partOfSystem") boolean partOfSystem,
-			@Assisted("subKindOf") List<String> subKindOf);
+			@Assisted("subKindOf") List<String> subKindOf,
+			@Assisted("instancePresentation") Presentation instancePresentation);
 }

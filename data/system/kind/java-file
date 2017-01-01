@@ -1,9 +1,1 @@
-{
-  "kindId": "java-file",
-  "level": "entity",
-  "discoverable": true,
-  "java": {
-  },
-  "partOfSystem": true,
-  "subKindOf":[]
-}
+{"kindId":"java-file","level":"entity","discoverable":true,"java":{"javaKind":null,"anyAnnotation":null,"anyConstructor":null},"partOfSystem":true,"subKindOf":[],"instancePresentation":{"iconUrl":"/resources/images/file.png","openIconUrl":null}}

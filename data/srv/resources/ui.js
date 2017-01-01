@@ -24,7 +24,7 @@ function invertExpansion(url)
 
 function listThings(t)
 {
-	var rootItem = createTreeItem(undefined,true,http.home,'root'); 
+	var rootItem = createTreeItem(t,http.home + '/kind/pantheist-root',true,http.home,'root'); 
 	return createUl(t,http.home).then(
 		ul => {
 			var panel = document.getElementById('resource-list');
@@ -47,25 +47,23 @@ function processList(i,array,fn)
 	}
 }
 
-function createTreeItem(kindUrl,expanded,url,name)
+function createTreeItem(t,kindUrl,expanded,url,name)
 {
 	var item = document.createElement('div');
+	var icon = document.createElement('span');
+	
+	var iconUrl = t.getKindIcon(kindUrl,expanded);
+	
+	icon.style['background-image'] = "url('" + iconUrl + "')";
+	icon.classList.add('tree-item-icon');
+	
+	item.append(icon);
+	
 	item.classList.add('tree-item');
 	item.append(name);
 	item.dataset.url = url;
 	item.onclick = clickTreeItem;
-	if (kindUrl !== undefined)
-	{
-		item.classList.add(http.lastSegment(kindUrl));
-	}
-	else
-	{
-		item.classList.add('unknown-kind');
-	}
-	if (expanded)
-	{
-		item.classList.add('expanded');
-	}
+
 	return item;
 }
 
@@ -91,7 +89,7 @@ function createTreeNode(t,kindUrl,url)
 	
 	var expanded = (url in t.expandedNodes);
 	
-	var item = createTreeItem(kindUrl,expanded,url,name);
+	var item = createTreeItem(t,kindUrl,expanded,url,name);
 	li.append(item);
 
 	li.classList.add('tree-node');

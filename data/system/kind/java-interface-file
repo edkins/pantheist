@@ -1,10 +1,1 @@
-{
-  "kindId": "java-interface-file",
-  "level": "entity",
-  "discoverable": true,
-  "java": {
-    "javaKind": "interface"
-  },
-  "partOfSystem": false,
-  "subKindOf": ["java-file"]
-}
+{"kindId":"java-interface-file","level":"entity","discoverable":true,"java":{"javaKind":"interface","anyAnnotation":null,"anyConstructor":null},"partOfSystem":false,"subKindOf":["java-file"],"instancePresentation":{"iconUrl":"/resources/images/java-interface-unknown.png","openIconUrl":null}}

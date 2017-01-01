@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.assistedinject.Assisted;
 
+import io.pantheist.common.api.model.Presentation;
 import io.pantheist.common.util.OtherPreconditions;
 
 final class KindImpl implements Kind
@@ -20,6 +21,7 @@ final class KindImpl implements Kind
 	private final boolean discoverable;
 	private final boolean partOfSystem;
 	private final List<String> subKindOf;
+	private final Presentation instancePresentation;
 
 	@Inject
 	private KindImpl(
@@ -28,7 +30,8 @@ final class KindImpl implements Kind
 			@Assisted("discoverable") @JsonProperty("discoverable") final Boolean discoverable,
 			@Nullable @Assisted @JsonProperty("java") final JavaClause java,
 			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
-			@Assisted("subKindOf") @JsonProperty("subKindOf") final List<String> subKindOf)
+			@Assisted("subKindOf") @JsonProperty("subKindOf") final List<String> subKindOf,
+			@Nullable @Assisted("instancePresentation") @JsonProperty("instancePresentation") final Presentation instancePresentation)
 	{
 		this.kindId = OtherPreconditions.checkNotNullOrEmpty(kindId);
 		this.discoverable = checkNotNull(discoverable);
@@ -36,6 +39,7 @@ final class KindImpl implements Kind
 		this.java = java;
 		this.partOfSystem = partOfSystem;
 		this.subKindOf = checkNotNull(subKindOf);
+		this.instancePresentation = instancePresentation;
 	}
 
 	@Override
@@ -72,6 +76,12 @@ final class KindImpl implements Kind
 	public List<String> subKindOf()
 	{
 		return subKindOf;
+	}
+
+	@Override
+	public Presentation instancePresentation()
+	{
+		return instancePresentation;
 	}
 
 }

@@ -8,4 +8,7 @@ public interface ListSchemaItem
 {
 	@JsonProperty("url")
 	String url();
+
+	@JsonProperty("kindUrl")
+	String kindUrl();
 }
