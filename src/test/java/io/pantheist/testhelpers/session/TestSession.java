@@ -24,7 +24,7 @@ public interface TestSession extends SeleniumInfo
 
 	int nginxPort();
 
-	URL managementUrl();
+	int postgresPort();
 
 	URL mainUrl();
 

@@ -13,11 +13,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 
-@VisibleForTesting
-public class PantheistConfigImpl implements PantheistConfig
+final class PantheistConfigImpl implements PantheistConfig
 {
 	private static final Logger LOGGER = LogManager.getLogger(PantheistConfigImpl.class);
 	private final ObjectMapper objectMapper;
@@ -93,6 +91,12 @@ public class PantheistConfigImpl implements PantheistConfig
 	public String nginxExecutable()
 	{
 		return property(PantheistConfigFile::nginxExecutable).orElse("/usr/sbin/nginx");
+	}
+
+	@Override
+	public int postgresPort()
+	{
+		return property(PantheistConfigFile::postgresPort).orElse(3302);
 	}
 
 	private String relativeToDataDir(final String path)

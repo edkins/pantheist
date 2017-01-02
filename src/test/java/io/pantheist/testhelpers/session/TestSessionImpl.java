@@ -19,9 +19,11 @@ import io.pantheist.testhelpers.selenium.SeleniumInfo;
 
 public final class TestSessionImpl implements TestSession
 {
-	private final PortFinder managementPort;
+	private final PortFinder internalPort;
 
 	private final PortFinder mainPort;
+
+	private final PortFinder postgresPort;
 
 	private final SeleniumInfo seleniumInfo;
 
@@ -33,8 +35,9 @@ public final class TestSessionImpl implements TestSession
 
 	private TestSessionImpl(final SeleniumInfo seleniumInfo)
 	{
-		this.managementPort = PortFinder.empty();
+		this.internalPort = PortFinder.empty();
 		this.mainPort = PortFinder.empty();
+		this.postgresPort = PortFinder.empty();
 		this.seleniumInfo = checkNotNull(seleniumInfo);
 		this.dataDir = View.mutableOpt();
 		this.configFile = View.mutableOpt();
@@ -49,7 +52,7 @@ public final class TestSessionImpl implements TestSession
 	@Override
 	public void clear()
 	{
-		managementPort.clear();
+		internalPort.clear();
 		dataDir.clear();
 	}
 
@@ -62,13 +65,13 @@ public final class TestSessionImpl implements TestSession
 	@Override
 	public int internalPort()
 	{
-		return managementPort.get();
+		return internalPort.get();
 	}
 
 	@Override
-	public URL managementUrl()
+	public int postgresPort()
 	{
-		return localhostWithPort(managementPort.get());
+		return postgresPort.get();
 	}
 
 	private URL localhostWithPort(final int port)
@@ -98,7 +101,7 @@ public final class TestSessionImpl implements TestSession
 	@Override
 	public File dataDir()
 	{
-		return dataDir.get();
+		return new File("test-data");
 	}
 
 	@Override

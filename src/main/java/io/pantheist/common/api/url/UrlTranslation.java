@@ -12,6 +12,7 @@ import io.pantheist.handler.java.model.JavaFileId;
 
 public interface UrlTranslation
 {
+	// Converting id's to and from url's
 	String kindToUrl(String kindId);
 
 	String kindFromUrl(String url);
@@ -32,6 +33,13 @@ public interface UrlTranslation
 
 	String componentToUrl(String entityId, String componentId);
 
+	String flatDirFileToUrl(String dir, String file);
+
+	String flatDirToUrl(String dir);
+
+	String sqlTableToUrl(String tableName);
+
+	// Listing classifiers
 	List<ListClassifierItem> listRootClassifiers();
 
 	List<ListClassifierItem> listEntityClassifiers(String entityId);
@@ -42,6 +50,9 @@ public interface UrlTranslation
 
 	List<ListClassifierItem> listFlatDirClassifiers(String dir);
 
+	List<ListClassifierItem> listSqlTableClassifiers(String table);
+
+	// Obtaining actions
 	CreateAction javaPkgCreateAction();
 
 	DataAction javaFileDataAction(JavaFileId javaFileId);
@@ -55,10 +66,6 @@ public interface UrlTranslation
 	DeleteAction jsonSchemaDeleteAction();
 
 	BindingAction javaPkgBindingAction();
-
-	String flatDirFileToUrl(String dir, String file);
-
-	String flatDirToUrl(String dir);
 
 	CreateAction kindCreateAction();
 

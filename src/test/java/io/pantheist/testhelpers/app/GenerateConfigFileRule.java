@@ -40,6 +40,7 @@ public class GenerateConfigFileRule implements TestRule
 				map.put("dataDir", session.dataDir().getAbsolutePath());
 				map.put("nginxPort", session.nginxPort());
 				map.put("internalPort", session.internalPort());
+				map.put("postgresPort", session.postgresPort());
 
 				session.objectMapper().writeValue(configFile, map);
 				session.supplyConfigFile(configFile);

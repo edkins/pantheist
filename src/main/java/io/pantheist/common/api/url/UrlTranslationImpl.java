@@ -23,6 +23,7 @@ import io.pantheist.common.api.model.DeleteAction;
 import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.common.util.AntiIt;
+import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.java.model.JavaModelFactory;
 import io.pantheist.system.config.PantheistConfig;
@@ -46,6 +47,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	private final UriPattern component;
 	private final UriPattern flatDir;
 	private final UriPattern flatDirFile;
+	private final UriPattern sqlTable;
 
 	@Inject
 	private UrlTranslationImpl(
@@ -69,6 +71,7 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.location = root.segment("server").var("serverId").segment("location").var("locationId");
 		this.flatDir = root.segment("flat-dir").var("dir");
 		this.flatDirFile = flatDir.segment("file").var("file");
+		this.sqlTable = root.segment("sql-table").var("table");
 	}
 
 	@Override
@@ -132,7 +135,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	public List<ListClassifierItem> listRootClassifiers()
 	{
 		return classifiers(managementRoot, ImmutableMap.of(), false,
-				"kind", "java-pkg", "json-schema", "server", "data", "flat-dir");
+				"kind", "java-pkg", "json-schema", "server", "data", "flat-dir", "sql-table");
 	}
 
 	@Override
@@ -254,6 +257,19 @@ final class UrlTranslationImpl implements UrlTranslation
 	public ReplaceAction listKindReplaceAction(final String kindId)
 	{
 		return modelFactory.replaceAction(BasicContentType.json, APPLICATION_JSON);
+	}
+
+	@Override
+	public String sqlTableToUrl(final String table)
+	{
+		return sqlTable.generate(ImmutableMap.of("table", table));
+	}
+
+	@Override
+	public List<ListClassifierItem> listSqlTableClassifiers(final String table)
+	{
+		OtherPreconditions.checkNotNullOrEmpty(table);
+		return classifiers(sqlTable, ImmutableMap.of("table", table), true, "row");
 	}
 
 }

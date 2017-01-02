@@ -42,7 +42,9 @@ final class UriPatternSegmentVarImpl implements UriPatternSegment
 	{
 		if (values.containsKey(name))
 		{
-			return values.get(name);
+			final String result = values.get(name);
+			OtherPreconditions.checkNotNullOrEmpty(result);
+			return result;
 		}
 		else
 		{

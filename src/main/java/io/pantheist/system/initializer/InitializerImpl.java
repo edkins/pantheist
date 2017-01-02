@@ -12,6 +12,7 @@ import io.pantheist.handler.filesystem.backend.FilesystemSnapshot;
 import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.filesystem.backend.FsPath;
 import io.pantheist.handler.nginx.manage.NginxService;
+import io.pantheist.handler.sql.backend.SqlService;
 import io.pantheist.system.config.PantheistConfig;
 import io.pantheist.system.server.PantheistServer;
 
@@ -22,17 +23,20 @@ final class InitializerImpl implements Initializer
 	private final NginxService nginxService;
 	private final PantheistServer server;
 	private final PantheistConfig config;
+	private final SqlService sqlService;
 
 	@Inject
 	private InitializerImpl(final FilesystemStore filesystem,
 			final NginxService nginxService,
 			final PantheistServer server,
-			final PantheistConfig config)
+			final PantheistConfig config,
+			final SqlService sqlService)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.nginxService = checkNotNull(nginxService);
 		this.server = checkNotNull(server);
 		this.config = checkNotNull(config);
+		this.sqlService = checkNotNull(sqlService);
 	}
 
 	@Override
@@ -46,6 +50,7 @@ final class InitializerImpl implements Initializer
 			anonymizeNginxConf();
 			server.start();
 			nginxService.startOrRestart();
+			sqlService.startOrRestart();
 		}
 		catch (final RuntimeException ex)
 		{
@@ -58,7 +63,7 @@ final class InitializerImpl implements Initializer
 	@Override
 	public void close()
 	{
-		Cleanup.run(nginxService::stop, server::stop);
+		Cleanup.run(nginxService::stop, server::stop, sqlService::stop);
 	}
 
 	private String slashed(final String relativePath)

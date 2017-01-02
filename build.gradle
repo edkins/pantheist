@@ -22,6 +22,7 @@ dependencies {
 	compile group: 'com.github.fge', name: 'json-schema-validator', version: '2.2.6'
 	compile group: 'com.github.javaparser', name: 'javaparser-core', version: '3.0.0-RC.3'
 	compile group: 'jparsec', name: 'jparsec', version: '2.0.1'
+	compile group: 'org.postgresql', name: 'postgresql', version: '9.4.1212'
 
 	testCompile group: 'org.seleniumhq.selenium', name: 'selenium-firefox-driver', version: '3.0.1'
 	testCompile group: 'org.seleniumhq.selenium', name: 'selenium-support', version: '3.0.1'

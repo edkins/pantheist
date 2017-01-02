@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -13,12 +14,14 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import com.google.common.collect.ImmutableSet;
+
 import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.testhelpers.session.TestSession;
 
 public class DataFileImportRule implements TestRule
 {
-	private static final Logger LOGGER = LogManager.getLogger(TempDirRule.class);
+	private static final Logger LOGGER = LogManager.getLogger(DataFileImportRule.class);
 	private final TestSession session;
 
 	private DataFileImportRule(final TestSession session)
@@ -39,28 +42,8 @@ public class DataFileImportRule implements TestRule
 			@Override
 			public void evaluate() throws Throwable
 			{
-				final File target = session.dataDir();
-				final File srv = new File(target, "srv");
-				final File system = new File(target, "system");
-				final File kind = new File(target, "system/kind");
-				srv.mkdir();
-				system.mkdir();
-				kind.mkdir();
-
-				final File source = session.originalDataDir();
-				LOGGER.info("Copying stuff from {} to {}", source.getAbsolutePath(), target.getAbsolutePath());
-				FileUtils.copyDirectory(new File(source, "srv/resources"), new File(target, "srv/resources"));
-
-				deanonymizeNginxConf(
-						new File(source, "system/nginx-anon.conf"),
-						new File(target, "system/nginx.conf"),
-						system.getAbsolutePath(),
-						srv.getAbsolutePath(),
-						target.getAbsolutePath(),
-						"127.0.0.1:" + session.nginxPort(),
-						"127.0.0.1:" + session.internalPort());
-
-				copyBuiltInKinds(new File(source, "system/kind"), kind);
+				cleanOldFiles();
+				copyFiles();
 
 				base.evaluate();
 			}
@@ -73,7 +56,6 @@ public class DataFileImportRule implements TestRule
 		{
 			final File source = new File(sourceDir, name);
 			final File target = new File(targetDir, name);
-			LOGGER.info(source.getAbsolutePath());
 			if (source.isFile())
 			{
 				final Kind kind = session.objectMapper().readValue(source, Kind.class);
@@ -83,6 +65,76 @@ public class DataFileImportRule implements TestRule
 				}
 			}
 		}
+	}
+
+	/**
+	 * Delete any files left over from the last test.
+	 *
+	 * We don't create a completely fresh directory each time because of the postgres database,
+	 * which is slow to initialize.
+	 */
+	private void cleanOldFiles() throws IOException
+	{
+		final File root = session.dataDir();
+		final File system = new File(root, "system");
+
+		if (root.isDirectory())
+		{
+			cleanAllExcept(system, "database");
+			cleanAllExcept(root, "system");
+		}
+		else
+		{
+			root.mkdir();
+		}
+	}
+
+	private void cleanAllExcept(final File dir, final String... exceptions) throws IOException
+	{
+		final Set<String> exceptionSet = ImmutableSet.copyOf(exceptions);
+		if (dir.isDirectory())
+		{
+			for (final File file : dir.listFiles())
+			{
+				if (!exceptionSet.contains(file.getName()))
+				{
+					if (file.isDirectory())
+					{
+						FileUtils.deleteDirectory(file);
+					}
+					else
+					{
+						file.delete();
+					}
+				}
+			}
+		}
+	}
+
+	private void copyFiles() throws IOException
+	{
+		final File target = session.dataDir();
+		final File srv = new File(target, "srv");
+		final File system = new File(target, "system");
+		final File kind = new File(target, "system/kind");
+		srv.mkdir();
+		system.mkdir();
+		kind.mkdir();
+
+		final File source = session.originalDataDir();
+		LOGGER.info("Copying stuff from {} to {}", source.getAbsolutePath(), target.getAbsolutePath());
+		FileUtils.copyDirectory(new File(source, "srv/resources"), new File(target, "srv/resources"));
+
+		deanonymizeNginxConf(
+				new File(source, "system/nginx-anon.conf"),
+				new File(target, "system/nginx.conf"),
+				system.getAbsolutePath(),
+				srv.getAbsolutePath(),
+				target.getAbsolutePath(),
+				"127.0.0.1:" + session.nginxPort(),
+				"127.0.0.1:" + session.internalPort());
+
+		copyBuiltInKinds(new File(source, "system/kind"), kind);
 	}
 
 	private void deanonymizeNginxConf(

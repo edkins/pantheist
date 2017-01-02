@@ -1,22 +1,21 @@
 package io.pantheist.system.config;
 
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 final class PantheistConfigFileImpl implements PantheistConfigFile
 {
 	private final Integer internalPort;
 	private final Integer nginxPort;
+	private final Integer postgresPort;
 	private final String dataDir;
 	private final String systemDir;
 	private final String srvDir;
 	private final String nginxExecutable;
 
-	@Inject
 	private PantheistConfigFileImpl(
 			@JsonProperty("internalPort") final Integer internalPort,
 			@JsonProperty("nginxPort") final Integer nginxPort,
+			@JsonProperty("postgresPort") final Integer postgresPort,
 			@JsonProperty("dataDir") final String dataDir,
 			@JsonProperty("systemDir") final String systemDir,
 			@JsonProperty("srvDir") final String srvDir,
@@ -24,6 +23,7 @@ final class PantheistConfigFileImpl implements PantheistConfigFile
 	{
 		this.internalPort = internalPort;
 		this.nginxPort = nginxPort;
+		this.postgresPort = postgresPort;
 		this.dataDir = dataDir;
 		this.systemDir = systemDir;
 		this.srvDir = srvDir;
@@ -64,6 +64,12 @@ final class PantheistConfigFileImpl implements PantheistConfigFile
 	public String nginxExecutable()
 	{
 		return nginxExecutable;
+	}
+
+	@Override
+	public Integer postgresPort()
+	{
+		return postgresPort;
 	}
 
 }

@@ -30,6 +30,7 @@ import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathJavaPackage;
 import io.pantheist.testclient.api.ManagementPathKind;
 import io.pantheist.testclient.api.ManagementPathSchema;
+import io.pantheist.testclient.api.ManagementPathSqlTable;
 import io.pantheist.testclient.api.ResponseType;
 
 public class ListClassifierTest extends BaseTest
@@ -51,7 +52,8 @@ public class ListClassifierTest extends BaseTest
 		final List<String> urls = Lists.transform(list, ListClassifierItem::url);
 		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
 
-		assertThat(segs, containsInAnyOrder("data", "server", "java-pkg", "json-schema", "kind", "flat-dir"));
+		assertThat(segs,
+				containsInAnyOrder("data", "server", "java-pkg", "json-schema", "kind", "flat-dir", "sql-table"));
 		assertThat(urls, hasItem(manage.urlOfService("java-pkg")));
 	}
 
@@ -278,5 +280,16 @@ public class ListClassifierTest extends BaseTest
 		assertThat(replaceAction, notNullValue());
 		assertThat(replaceAction.basicType(), is(BasicContentType.json));
 		assertThat(replaceAction.mimeType(), is(APPLICATION_JSON));
+	}
+
+	@Test
+	public void sqlTable_classifiers() throws Exception
+	{
+		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
+		final List<? extends ListClassifierItem> list = table.listClassifiers().childResources();
+
+		assertThat(list.size(), is(1));
+		assertThat(list.get(0).classifierSegment(), is("row"));
+		assertThat(list.get(0).url(), is(table.urlOfService("row")));
 	}
 }

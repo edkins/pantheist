@@ -4,9 +4,20 @@ import java.io.File;
 
 public interface PantheistConfig
 {
+	/**
+	 * Default 3142. Point your browser at this one.
+	 */
+	int nginxPort();
+
+	/**
+	 * Default 3301
+	 */
 	int internalPort();
 
-	int nginxPort();
+	/**
+	 * Default 3302
+	 */
+	int postgresPort();
 
 	/**
 	 * @return the directory where all the files get put.

@@ -9,7 +9,10 @@
 /data/system/nginx.pid
 /data/system/nginx.conf
 /data/system/java-binding
+/data/system/database
 /data/srv/third-party/
 /dump/
 /src/experiment
 /other-documents/
+/test-data/
+

@@ -19,6 +19,7 @@ import io.pantheist.api.management.model.ListConfigItem;
 import io.pantheist.api.management.model.ListConfigResponse;
 import io.pantheist.api.schema.model.ApiSchema;
 import io.pantheist.api.schema.model.ListSchemaResponse;
+import io.pantheist.api.sql.model.ListSqlTableResponse;
 import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.testclient.api.ManagementData;
 import io.pantheist.testclient.api.ManagementFlatDirPath;
@@ -30,6 +31,7 @@ import io.pantheist.testclient.api.ManagementPathLocation;
 import io.pantheist.testclient.api.ManagementPathRoot;
 import io.pantheist.testclient.api.ManagementPathSchema;
 import io.pantheist.testclient.api.ManagementPathServer;
+import io.pantheist.testclient.api.ManagementPathSqlTable;
 import io.pantheist.testclient.api.ResponseType;
 
 final class ManagementPathImpl implements
@@ -41,7 +43,8 @@ final class ManagementPathImpl implements
 		ManagementPathJavaFile,
 		ManagementPathSchema,
 		ManagementPathJavaBinding,
-		ManagementFlatDirPath
+		ManagementFlatDirPath,
+		ManagementPathSqlTable
 {
 	// Path segments
 	private static final String JAVA_PKG = "java-pkg";
@@ -55,6 +58,7 @@ final class ManagementPathImpl implements
 	private static final String VALIDATE = "validate";
 	private static final String JAVA_BINDING = "java-binding";
 	private static final String FLAT_DIR = "flat-dir";
+	private static final String SQL_TABLE = "sql-table";
 
 	// Content types
 	private static final String APPLICATION_JSON = "application/json";
@@ -292,5 +296,17 @@ final class ManagementPathImpl implements
 	public ListFlatDirResponse listFlatDirs()
 	{
 		return target.withSegment(FLAT_DIR).getJson(ListFlatDirResponse.class);
+	}
+
+	@Override
+	public ManagementPathSqlTable sqlTable(final String tableName)
+	{
+		return new ManagementPathImpl(target.withSegment(SQL_TABLE).withSegment(tableName));
+	}
+
+	@Override
+	public ListSqlTableResponse listSqlTables()
+	{
+		return target.withSegment(SQL_TABLE).getJson(ListSqlTableResponse.class);
 	}
 }

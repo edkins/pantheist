@@ -98,10 +98,8 @@ final class KindValidationImpl implements KindValidation
 
 		if (kind.schema().java() != null)
 		{
-			LOGGER.info("kind = {}, java = {}", kind.kindId(), kind.schema().java());
 			if (!javaStore.validateKind(entity.javaFileId(), kind.schema().java()))
 			{
-				LOGGER.info("not valid.");
 				// Java store says the details are invalid.
 				return false;
 			}

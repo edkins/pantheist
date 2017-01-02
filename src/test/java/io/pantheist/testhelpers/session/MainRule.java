@@ -18,7 +18,6 @@ import io.pantheist.testclient.impl.ManagementClientImpl;
 import io.pantheist.testhelpers.app.AppRule;
 import io.pantheist.testhelpers.app.DataFileImportRule;
 import io.pantheist.testhelpers.app.GenerateConfigFileRule;
-import io.pantheist.testhelpers.app.TempDirRule;
 import io.pantheist.testhelpers.app.WaitForServerRule;
 import io.pantheist.testhelpers.selenium.NavigateToHomeRule;
 import io.pantheist.testhelpers.selenium.ScreenshotRule;
@@ -39,9 +38,8 @@ public class MainRule implements TestRule
 		return RuleChain
 				.outerRule(SessionClearingRule.forTest(session))
 				.around(new ErrorLoggingRule())
-				.around(TempDirRule.forTest(session))
-				.around(GenerateConfigFileRule.forTest(session))
 				.around(DataFileImportRule.forTest(session))
+				.around(GenerateConfigFileRule.forTest(session))
 				.around(AppRule.forTest(session))
 				.around(WaitForServerRule.forTest(session))
 				.around(navigateToHomeRule())
