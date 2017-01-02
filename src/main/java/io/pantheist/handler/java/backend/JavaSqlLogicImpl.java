@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.inject.Inject;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
@@ -18,12 +17,17 @@ final class JavaSqlLogicImpl implements JavaSqlLogic
 {
 	private final SqlService sqlService;
 	private final CommonSharedModelFactory sharedFactory;
+	private final JavaParse javaParse;
 
 	@Inject
-	private JavaSqlLogicImpl(final SqlService sqlService, final CommonSharedModelFactory sharedFactory)
+	private JavaSqlLogicImpl(
+			final SqlService sqlService,
+			final CommonSharedModelFactory sharedFactory,
+			final JavaParse javaParse)
 	{
 		this.sqlService = checkNotNull(sqlService);
 		this.sharedFactory = checkNotNull(sharedFactory);
+		this.javaParse = checkNotNull(javaParse);
 	}
 
 	@Override
@@ -31,7 +35,7 @@ final class JavaSqlLogicImpl implements JavaSqlLogic
 	{
 		final String qualifiedName = id.qualifiedName();
 
-		final CompilationUnit compilationUnit = JavaParser.parse(code);
+		final CompilationUnit compilationUnit = javaParse.parse(code);
 
 		boolean isClass = false;
 		boolean isInterface = false;

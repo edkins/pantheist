@@ -12,7 +12,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
@@ -43,18 +42,21 @@ final class JavaStoreImpl implements JavaStore
 	private final JavaModelFactory modelFactory;
 	private final JavaKindValidator javaKindValidator;
 	private final JavaSqlLogic javaSqlLogic;
+	private final JavaParse javaParse;
 
 	@Inject
 	private JavaStoreImpl(
 			final FilesystemStore filesystem,
 			final JavaModelFactory modelFactory,
 			final JavaKindValidator javaKindValidator,
-			final JavaSqlLogic javaSqlLogic)
+			final JavaSqlLogic javaSqlLogic,
+			final JavaParse javaParse)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.javaKindValidator = checkNotNull(javaKindValidator);
 		this.javaSqlLogic = checkNotNull(javaSqlLogic);
+		this.javaParse = checkNotNull(javaParse);
 	}
 
 	private FsPath pkgAndFilePath(final FilesystemSnapshot snapshot, final String pkg, final String file)
@@ -101,7 +103,7 @@ final class JavaStoreImpl implements JavaStore
 
 		try
 		{
-			compilationUnit = JavaParser.parse(code);
+			compilationUnit = javaParse.parse(code);
 		}
 		catch (final ParseProblemException e)
 		{
@@ -351,7 +353,7 @@ final class JavaStoreImpl implements JavaStore
 		checkNotNull(javaFileId);
 		checkNotNull(javaClause);
 		final String code = getJava(javaFileId).get();
-		final CompilationUnit compilationUnit = JavaParser.parse(code);
+		final CompilationUnit compilationUnit = javaParse.parse(code);
 
 		return javaKindValidator.validateKind(compilationUnit, javaClause);
 	}
