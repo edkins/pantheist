@@ -3,6 +3,7 @@ package io.pantheist.handler.kind.model;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -12,12 +13,12 @@ final class KindSchemaImpl implements KindSchema
 {
 	private final JavaClause java;
 	private final List<String> subKindOf;
-	private final List<KindProperty> properties;
+	private final Map<String, KindProperty> properties;
 
 	private KindSchemaImpl(
 			@Nullable @JsonProperty("java") final JavaClause java,
 			@JsonProperty("subKindOf") final List<String> subKindOf,
-			@Nullable @JsonProperty("properties") final List<KindProperty> properties)
+			@Nullable @JsonProperty("properties") final Map<String, KindProperty> properties)
 	{
 		this.java = java;
 		this.subKindOf = checkNotNull(subKindOf);
@@ -37,7 +38,7 @@ final class KindSchemaImpl implements KindSchema
 	}
 
 	@Override
-	public List<KindProperty> properties()
+	public Map<String, KindProperty> properties()
 	{
 		return properties;
 	}

@@ -8,7 +8,7 @@ import io.pantheist.common.shared.model.GenericProperty;
 import io.pantheist.common.shared.model.GenericPropertyValue;
 import io.pantheist.common.shared.model.PropertyType;
 import io.pantheist.common.util.AntiIterator;
-import io.pantheist.handler.kind.model.KindProperty;
+import io.pantheist.handler.sql.model.SqlProperty;
 
 public interface SqlService
 {
@@ -27,10 +27,7 @@ public interface SqlService
 
 	void deleteAllTables();
 
-	/**
-	 * The list is KindProperty not GenericProperty, because it needs the "isIdentifier"
-	 */
-	void createTable(String tableName, List<KindProperty> columns);
+	void createTable(String tableName, List<SqlProperty> columns);
 
 	/**
 	 * Perform an SQL select for the given column names, returning all rows in the table.

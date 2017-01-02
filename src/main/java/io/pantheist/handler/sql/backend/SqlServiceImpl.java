@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -34,7 +35,7 @@ import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.handler.filesystem.backend.FilesystemSnapshot;
 import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.filesystem.backend.FsPath;
-import io.pantheist.handler.kind.model.KindProperty;
+import io.pantheist.handler.sql.model.SqlProperty;
 import io.pantheist.system.config.PantheistConfig;
 
 final class SqlServiceImpl implements SqlService
@@ -142,11 +143,11 @@ final class SqlServiceImpl implements SqlService
 		}
 	}
 
-	private String toSqlCreateTableArg(final KindProperty property)
+	private String toSqlCreateTableArg(final SqlProperty property)
 	{
 		final String sqlName = toSqlColumnName(property.name());
 
-		if (property.isIdentifier())
+		if (property.isPrimaryKey())
 		{
 			return String.format("%s %s PRIMARY KEY", sqlName, property.type().sql());
 		}
@@ -167,8 +168,13 @@ final class SqlServiceImpl implements SqlService
 	}
 
 	@Override
-	public void createTable(final String tableName, final List<KindProperty> columns)
+	public void createTable(final String tableName, final List<SqlProperty> columns)
 	{
+		if (columns.stream().filter(SqlProperty::isPrimaryKey).collect(Collectors.counting()) != 1)
+		{
+			throw new IllegalArgumentException("Need exactly one primary key");
+		}
+
 		final String columnSql = AntiIt.from(columns).map(this::toSqlCreateTableArg).join(",").orElse("");
 		final String sql = String.format("CREATE TABLE %s (%s)", toSqlTableName(tableName), columnSql);
 

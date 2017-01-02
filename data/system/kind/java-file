@@ -9,20 +9,17 @@
     "java": {
     },
     "subKindOf": [],
-    "properties": [
-      {
-        "name":"qualifiedName",
+    "properties": {
+      "qualifiedName": {
         "type":"string",
         "isIdentifier":true
       },
-      {
-        "name":"isInterface",
+      "isInterface": {
         "type":"boolean"
       },
-      {
-        "name":"isClass",
+      "isClass": {
         "type":"boolean"
       }
-    ]
+    }
   }
 }

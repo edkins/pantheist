@@ -5,17 +5,11 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import io.pantheist.common.shared.model.GenericProperty;
 import io.pantheist.common.shared.model.PropertyType;
 
 @JsonDeserialize(as = KindPropertyImpl.class)
-public interface KindProperty extends GenericProperty
+public interface KindProperty
 {
-	@Override
-	@JsonProperty("name")
-	String name();
-
-	@Override
 	@JsonProperty("type")
 	PropertyType type();
 

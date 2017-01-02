@@ -34,6 +34,7 @@ import io.pantheist.handler.nginx.parser.HandlerNginxParserModule;
 import io.pantheist.handler.schema.backend.HandlerSchemaBackendModule;
 import io.pantheist.handler.schema.model.HandlerSchemaModelModule;
 import io.pantheist.handler.sql.backend.HandlerSqlBackendModule;
+import io.pantheist.handler.sql.model.HandlerSqlModelModule;
 import io.pantheist.system.config.SystemConfigModule;
 import io.pantheist.system.initializer.SystemInitializerModule;
 import io.pantheist.system.inject.SystemInjectModule;
@@ -83,6 +84,7 @@ public class AllPantheistModule extends AbstractModule
 		install(new HandlerSchemaBackendModule());
 		install(new HandlerSchemaModelModule());
 		install(new HandlerSqlBackendModule());
+		install(new HandlerSqlModelModule());
 		install(new SystemConfigModule(args));
 		install(new SystemInitializerModule());
 		install(new SystemInjectModule());
