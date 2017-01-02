@@ -45,7 +45,7 @@ public interface SqlService
 	 *
 	 * The list of values must be nonempty.
 	 */
-	void updateOrInsert(String tableName, List<GenericPropertyValue> values);
+	void updateOrInsert(String tableName, String primaryKeyColumn, List<GenericPropertyValue> values);
 
 	/**
 	 * Returns empty if either the table or the column doesn't exist

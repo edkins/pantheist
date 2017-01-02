@@ -300,7 +300,10 @@ final class SqlServiceImpl implements SqlService
 	}
 
 	@Override
-	public void updateOrInsert(final String tableName, final List<GenericPropertyValue> values)
+	public void updateOrInsert(
+			final String tableName,
+			final String primaryKeyColumn,
+			final List<GenericPropertyValue> values)
 	{
 		if (values.isEmpty())
 		{
@@ -308,10 +311,20 @@ final class SqlServiceImpl implements SqlService
 		}
 		final String columnSql = AntiIt.from(values).map(v -> toSqlColumnName(v.name())).join(",").get();
 		final String questionMarks = AntiIt.from(values).map(v -> "?").join(",").get();
-		final String sql = String.format("INSERT INTO %s (%s) VALUES (%s)",
+
+		final String doUpdateSql = AntiIt.from(values)
+				.filter(v -> !v.name().equals(primaryKeyColumn))
+				.map(v -> toSqlColumnName(v.name()) + " = EXCLUDED." + toSqlColumnName(v.name()))
+				.join(",")
+				.get();
+
+		final String sql = String.format("INSERT INTO %s (%s) VALUES (%s) ON CONFLICT (%s) DO UPDATE SET %s",
 				toSqlTableName(tableName),
 				columnSql,
-				questionMarks);
+				questionMarks,
+				toSqlColumnName(primaryKeyColumn),
+				doUpdateSql);
+		LOGGER.info("SQL = {}", sql);
 		try (final Connection db = connect())
 		{
 			try (PreparedStatement statement = db.prepareStatement(sql))

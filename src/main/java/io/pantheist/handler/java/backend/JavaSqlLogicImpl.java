@@ -50,7 +50,7 @@ final class JavaSqlLogicImpl implements JavaSqlLogic
 			}
 		}
 
-		sqlService.updateOrInsert("java-file", ImmutableList.of(
+		sqlService.updateOrInsert("java-file", "qualifiedName", ImmutableList.of(
 				sharedFactory.stringValue("qualifiedName", qualifiedName),
 				sharedFactory.booleanValue("isClass", isClass),
 				sharedFactory.booleanValue("isInterface", isInterface)));

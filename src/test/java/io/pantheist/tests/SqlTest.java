@@ -37,16 +37,21 @@ public class SqlTest
 
 	private ManagementPathRoot manage;
 
+	private ObjectMapper objectMapper;
+
 	private static final String JAVA_FILE = "java-file";
 	private static final String APPLICATION_JSON = "application/json";
 	private static final String SIMPLE_NAME = "EmptyClass";
 	private static final String QNAME = "io.pantheist.examples.EmptyClass";
+	private static final String JAVATHING_SNAME = "JavaThing";
+	private static final String JAVATHING_QNAME = "io.pantheist.examples.JavaThing";
 	private static final String QUALIFIEDNAME = "qualifiedname";
 
 	@Before
 	public void setup()
 	{
 		manage = mainRule.actions().manage();
+		objectMapper = new ObjectMapper();
 	}
 
 	@Test
@@ -135,8 +140,6 @@ public class SqlTest
 	{
 		mainRule.putJavaResource(SIMPLE_NAME);
 
-		mainRule.actions().regenerateDb();
-
 		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
 		final ResponseType response1 = table.row(QUALIFIEDNAME, QNAME)
 				.getSqlRowResponseType();
@@ -161,14 +164,26 @@ public class SqlTest
 	{
 		mainRule.putJavaResource(SIMPLE_NAME);
 
-		mainRule.actions().regenerateDb();
-
 		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
 		final String json = table.row(QUALIFIEDNAME, QNAME).data().getString(APPLICATION_JSON);
 
-		final Map<?, ?> map = new ObjectMapper().readValue(json, Map.class);
+		final Map<?, ?> map = objectMapper.readValue(json, Map.class);
 		assertThat(map.get("qualifiedname"), is(QNAME));
 		assertThat(map.get("isclass"), is(true));
 		assertThat(map.get("isinterface"), is(false));
+	}
+
+	@Test
+	public void javaFile_update_canGetNewData() throws Exception
+	{
+		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
+		mainRule.putJavaResource(JAVATHING_SNAME, "JavaThing-interface");
+
+		final String json1 = table.row(QUALIFIEDNAME, JAVATHING_QNAME).data().getString(APPLICATION_JSON);
+		assertThat(objectMapper.readValue(json1, Map.class).get("isinterface"), is(true));
+
+		mainRule.putJavaResource(JAVATHING_SNAME, "JavaThing-class");
+		final String json2 = table.row(QUALIFIEDNAME, JAVATHING_QNAME).data().getString(APPLICATION_JSON);
+		assertThat(objectMapper.readValue(json2, Map.class).get("isinterface"), is(false));
 	}
 }
