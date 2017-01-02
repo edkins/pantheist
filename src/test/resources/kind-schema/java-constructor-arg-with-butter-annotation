@@ -10,8 +10,8 @@
         }
       }
     },
-    "subKindOf": [
-      "java-file"
-    ]
+    "identification": {
+      "parentKind": "java-file"
+    }
   }
 }

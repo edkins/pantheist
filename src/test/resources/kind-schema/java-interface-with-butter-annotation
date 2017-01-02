@@ -6,8 +6,8 @@
         "name": "Butter"
       }
     },
-    "subKindOf": [
-      "java-file"
-    ]
+    "identification": {
+      "parentKind": "java-file"
+    }
   }
 }

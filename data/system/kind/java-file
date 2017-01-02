@@ -8,7 +8,6 @@
   "schema": {
     "java": {
     },
-    "subKindOf": [],
     "properties": {
       "qualifiedName": {
         "type":"string",

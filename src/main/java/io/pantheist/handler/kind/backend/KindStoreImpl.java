@@ -3,12 +3,12 @@ package io.pantheist.handler.kind.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
 import io.pantheist.common.util.AntiIterator;
-import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
 import io.pantheist.handler.filesystem.backend.FilesystemSnapshot;
@@ -56,17 +56,17 @@ final class KindStoreImpl implements KindStore
 	}
 
 	@Override
-	public Possible<Kind> getKind(final String kindId)
+	public Optional<Kind> getKind(final String kindId)
 	{
 		final JsonSnapshot<Kind> snapshot = filesystem.jsonSnapshot(path(kindId), Kind.class);
 
 		if (snapshot.exists())
 		{
-			return View.ok(snapshot.read());
+			return Optional.of(snapshot.read());
 		}
 		else
 		{
-			return FailureReason.DOES_NOT_EXIST.happened();
+			return Optional.empty();
 		}
 	}
 
@@ -80,11 +80,33 @@ final class KindStoreImpl implements KindStore
 				.map(path -> snapshot.readJson(path, Kind.class));
 	}
 
+	/**
+	 * Has to meet fairly strict requirements, to avoid registering things in sql table accidentally.
+	 *
+	 * The partOfSystem is the important one; user-defined kinds shouldn't be setting this flag.
+	 */
+	private boolean shouldRegisterInSql(final Kind k)
+	{
+		if (!k.partOfSystem())
+		{
+			return false;
+		}
+		if (k.schema().properties() == null || k.schema().properties().isEmpty())
+		{
+			return false;
+		}
+		if (k.schema().identification() != null && k.schema().identification().has("parentKind"))
+		{
+			return false;
+		}
+		return true;
+	}
+
 	@Override
 	public void registerKindsInSql()
 	{
 		listAllKinds().forEach(k -> {
-			if (k.partOfSystem() && k.schema().subKindOf().isEmpty() && k.schema().properties() != null)
+			if (shouldRegisterInSql(k))
 			{
 				final List<SqlProperty> properties = k.schema()
 						.properties()
@@ -95,5 +117,21 @@ final class KindStoreImpl implements KindStore
 				sqlService.createTable(k.kindId(), properties);
 			}
 		});
+	}
+
+	private boolean hasParent(final Kind kind, final String parentId)
+	{
+		if (kind.schema().identification() == null || !kind.schema().identification().has("parentKind"))
+		{
+			return false;
+		}
+		return parentId.equals(kind.schema().identification().get("parentKind").textValue());
+	}
+
+	@Override
+	public AntiIterator<Kind> listChildKinds(final String parentId)
+	{
+		return listAllKinds()
+				.filter(k -> hasParent(k, parentId));
 	}
 }

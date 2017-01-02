@@ -29,13 +29,6 @@ import io.pantheist.testhelpers.rule.MainRule;
 
 public class SqlTest
 {
-
-	private static final String SIMPLE_NAME = "EmptyClass";
-
-	private static final String QNAME = "io.pantheist.examples.EmptyClass";
-
-	private static final String QUALIFIEDNAME = "qualifiedname";
-
 	@ClassRule
 	public static final TestSessionImpl outerRule = TestSessionImpl.forApi();
 
@@ -46,6 +39,9 @@ public class SqlTest
 
 	private static final String JAVA_FILE = "java-file";
 	private static final String APPLICATION_JSON = "application/json";
+	private static final String SIMPLE_NAME = "EmptyClass";
+	private static final String QNAME = "io.pantheist.examples.EmptyClass";
+	private static final String QUALIFIEDNAME = "qualifiedname";
 
 	@Before
 	public void setup()

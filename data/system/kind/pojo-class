@@ -17,8 +17,8 @@
         }
       }
     },
-    "subKindOf": [
-      "java-class-file"
-    ]
+    "identification": {
+      "parentKind": "java-class-file"
+    }
   }
 }

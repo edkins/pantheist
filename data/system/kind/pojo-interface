@@ -13,8 +13,8 @@
       },
       "anyConstructor": null
     },
-    "subKindOf": [
-      "java-interface-file"
-    ]
+    "identification": {
+      "parentKind": "java-interface-file"
+    }
   }
 }

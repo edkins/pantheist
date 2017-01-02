@@ -13,9 +13,6 @@ public interface Entity
 	@JsonProperty("entityId")
 	String entityId();
 
-	@JsonProperty("discovered")
-	boolean discovered();
-
 	@JsonProperty("kindId")
 	String kindId();
 

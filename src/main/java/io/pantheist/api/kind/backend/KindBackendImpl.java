@@ -17,6 +17,7 @@ import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.common.util.Possible;
+import io.pantheist.common.util.View;
 import io.pantheist.handler.kind.backend.KindStore;
 import io.pantheist.handler.kind.backend.KindValidation;
 import io.pantheist.handler.kind.model.Entity;
@@ -58,7 +59,9 @@ final class KindBackendImpl implements KindBackend
 	public Possible<ApiKind> getKind(final String kindId)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
-		return kindStore.getKind(kindId).map(this::toApiKind);
+		return kindStore.getKind(kindId)
+				.map(k -> View.ok(toApiKind(k)))
+				.orElse(FailureReason.DOES_NOT_EXIST.happened());
 	}
 
 	private Kind supplyKindId(final String kindId, final ApiKind kind)
@@ -84,7 +87,6 @@ final class KindBackendImpl implements KindBackend
 		return modelFactory.listEntityItem(
 				urlTranslation.entityToUrl(entity.kindId(), entity.entityId()),
 				entity.entityId(),
-				entity.discovered(),
 				kindUrlForEntity(entity));
 	}
 
@@ -98,11 +100,13 @@ final class KindBackendImpl implements KindBackend
 	public Possible<ListEntityResponse> listEntitiesWithKind(final String kindId)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
-		return kindStore.getKind(kindId).map(kind -> {
-			return kindValidation.discoverEntitiesWithKind(kind)
-					.map(this::toListEntityItem)
-					.wrap(modelFactory::listEntityResponse);
-		});
+		if (!kindStore.getKind(kindId).isPresent())
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
+		return View.ok(kindValidation.discoverEntitiesWithKind(kindId)
+				.map(this::toListEntityItem)
+				.wrap(modelFactory::listEntityResponse));
 	}
 
 	private ListKindItem toListKindItem(final Kind kind)

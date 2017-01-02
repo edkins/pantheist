@@ -5,8 +5,8 @@
         "name": "Sugar"
       }
     },
-    "subKindOf": [
-      "java-interface-with-butter-annotation"
-    ]
+    "identification": {
+      "parentKind": "java-interface-with-butter-annotation"
+    }
   }
 }

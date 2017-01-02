@@ -12,7 +12,6 @@ import io.pantheist.handler.java.model.JavaFileId;
 final class EntityImpl implements Entity
 {
 	private final String entityId;
-	private final boolean discovered;
 	private final String kindId;
 	private final String jsonSchemaId;
 	private final JavaFileId javaFileId;
@@ -20,14 +19,12 @@ final class EntityImpl implements Entity
 	@Inject
 	private EntityImpl(
 			@Assisted("entityId") @JsonProperty("entityId") final String entityId,
-			@Assisted("discovered") @JsonProperty("discovered") final boolean discovered,
-			@Nullable @Assisted("kindId") @JsonProperty("kindId") final String kindId,
+			@Assisted("kindId") @JsonProperty("kindId") final String kindId,
 			@Nullable @Assisted("jsonSchemaId") @JsonProperty("jsonSchemaId") final String jsonSchemaId,
 			@Nullable @Assisted @JsonProperty("javaFileId") final JavaFileId javaFileId)
 	{
 		this.entityId = OtherPreconditions.checkNotNullOrEmpty(entityId);
-		this.discovered = discovered;
-		this.kindId = kindId;
+		this.kindId = OtherPreconditions.checkNotNullOrEmpty(kindId);
 		this.jsonSchemaId = jsonSchemaId;
 		this.javaFileId = javaFileId;
 	}
@@ -36,12 +33,6 @@ final class EntityImpl implements Entity
 	public String entityId()
 	{
 		return entityId;
-	}
-
-	@Override
-	public boolean discovered()
-	{
-		return discovered;
 	}
 
 	@Override

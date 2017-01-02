@@ -7,8 +7,8 @@
     "java": {
       "javaKind": "interface"
     },
-    "subKindOf": [
-      "java-file"
-    ]
+    "identification": {
+      "parentKind": "java-file"
+    }
   }
 }

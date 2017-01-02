@@ -12,9 +12,6 @@ public interface ListEntityItem
 	@JsonProperty("entityId")
 	String entityId();
 
-	@JsonProperty("discovered")
-	boolean discovered();
-
 	@JsonProperty("kindUrl")
 	String kindUrl();
 }

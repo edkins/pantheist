@@ -2,16 +2,16 @@ package io.pantheist.handler.kind.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
+import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
-import io.pantheist.common.util.Possible;
+import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.handler.java.backend.JavaStore;
 import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.kind.model.Entity;
@@ -36,62 +36,10 @@ final class KindValidationImpl implements KindValidation
 	}
 
 	/**
-	 * Return a list of all superkinds (including the kind itself). Each will be listed at most once.
-	 *
-	 * If there are no cycles then they will be listed with the most super first.
-	 * i.e.
-	 *
-	 * java-file
-	 * java-interface-file
-	 * java-interface-with-some-crazy-annotation
-	 *
-	 * If there are cycles then all of the relevant kinds will be returned but the
-	 * order might not be what you're expecting.
-	 *
-	 * kindId's that point to a missing kind won't be added.
-	 */
-	private AntiIterator<Kind> allSuperKinds(final Kind kind)
-	{
-		checkNotNull(kind);
-		return consumer -> {
-			recurseSuperKinds(kind, new HashSet<>(), consumer);
-		};
-	}
-
-	private void recurseSuperKinds(final Kind kind, final Set<String> encountered, final Consumer<Kind> consumer)
-	{
-		encountered.add(kind.kindId());
-		for (final String parentId : kind.schema().subKindOf())
-		{
-			if (!encountered.contains(parentId))
-			{
-				final Possible<Kind> parentKind = kindStore.getKind(parentId);
-				if (parentKind.isPresent())
-				{
-					recurseSuperKinds(parentKind.get(), encountered, consumer);
-				}
-			}
-		}
-		consumer.accept(kind);
-	}
-
-	@Override
-	public boolean validateEntityAgainstKind(final Entity entity, final Kind kind)
-	{
-		return allSuperKinds(kind)
-				.allMatch(k -> validateIndividual(entity, k));
-	}
-
-	/**
 	 * Validate without regards for superkinds.
 	 */
 	private boolean validateIndividual(final Entity entity, final Kind kind)
 	{
-		if (!validateBuiltin(entity, kind))
-		{
-			return false;
-		}
-
 		if (kind.schema().java() != null)
 		{
 			if (!javaStore.validateKind(entity.javaFileId(), kind.schema().java()))
@@ -105,143 +53,122 @@ final class KindValidationImpl implements KindValidation
 		return true;
 	}
 
-	/**
-	 * Deal with any built-in kinds with special meanings.
-	 */
-	private boolean validateBuiltin(final Entity entity, final Kind kind)
-	{
-		if (kind.partOfSystem())
-		{
-			if (kind.kindId().equals("java-file") && entity.javaFileId() == null)
-			{
-				return false;
-			}
-			if (!kind.kindId().equals("java-file") && entity.javaFileId() != null)
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private static enum KindStatus
-	{
-		FAILED,
-		SUPERSEDED,
-		OK;
-	}
-
 	@Override
 	public Entity discoverJavaKind(final JavaFileId javaFileId)
 	{
 		checkNotNull(javaFileId);
-		final Entity entity = modelFactory.entity(javaFileId.file(), true, null, null,
+		final Entity entity = modelFactory.entity(javaFileId.file(), "java-file", null,
 				javaFileId);
 
-		return discoverKind(entity);
+		return differentiate(entity);
 	}
 
-	private Entity discoverKind(final Entity entity)
+	/**
+	 * Entity already has a kind specified, but we want to go further and discover
+	 * if it matches any child kind.
+	 *
+	 * This is recursive, so if it matches one it will go on and try to differentiate it
+	 * further.
+	 */
+	private Entity differentiate(final Entity entity)
 	{
-		final Map<String, KindStatus> map = new HashMap<>();
-		final Map<String, Kind> kinds = kindStore.listAllKinds().toMap(Kind::kindId);
+		checkNotNull(entity);
+		OtherPreconditions.checkNotNullOrEmpty(entity.kindId());
+		final List<Kind> kinds = kindStore.listChildKinds(entity.kindId()).toList();
 
-		boolean anythingHappened;
-		do
+		for (final Kind kind : kinds)
 		{
-			anythingHappened = false;
-			for (final Kind kind : kinds.values())
+			if (validateIndividual(entity, kind))
 			{
-				if (!map.containsKey(kind.kindId()))
-				{
-					boolean canVisit = true;
-					boolean failed = false;
-
-					// Fail if any parent failed.
-					// Otherwise, not ready yet if any parent hasn't been visited.
-
-					for (final String superId : kind.schema().subKindOf())
-					{
-						if (!map.containsKey(superId))
-						{
-							canVisit = false;
-						}
-						else if (map.get(superId) == KindStatus.FAILED)
-						{
-							failed = true;
-						}
-					}
-
-					// If we're ready, validate this kind
-					if (canVisit && !failed)
-					{
-						failed = !validateIndividual(entity, kind);
-					}
-
-					if (failed)
-					{
-						map.put(kind.kindId(), KindStatus.FAILED);
-						anythingHappened = true;
-					}
-					else if (canVisit)
-					{
-						for (final String superId : kind.schema().subKindOf())
-						{
-							map.put(superId, KindStatus.SUPERSEDED);
-						}
-						map.put(kind.kindId(), KindStatus.OK);
-						anythingHappened = true;
-					}
-				}
+				return differentiate(supplyKind(entity, kind));
 			}
-		} while (anythingHappened);
+		}
 
-		return supplyKind(entity, map.entrySet()
-				.stream()
-				.filter(e -> e.getValue().equals(KindStatus.OK))
-				.map(e -> kinds.get(e.getKey()))
-				.findAny()
-				.orElseThrow(() -> new IllegalStateException(
-						"Java file did not match any kind. java-file must be missing")));
+		return entity;
 	}
 
 	private Entity supplyKind(final Entity entity, final Kind kind)
 	{
-		if (entity.kindId() != null)
-		{
-			throw new IllegalArgumentException("entity should not have kind yet");
-		}
 		return modelFactory.entity(
 				entity.entityId(),
-				entity.discovered(),
 				kind.kindId(),
 				entity.jsonSchemaId(),
 				entity.javaFileId());
 	}
 
 	@Override
-	public boolean validateEntityAgainstStoredKind(final Entity entity)
+	public AntiIterator<Entity> discoverEntitiesWithKind(final String kindId)
 	{
-		if (entity.kindId() == null)
-		{
-			// If kind is not specified then anything is valid.
-			return true;
-		}
-		final Possible<Kind> kind = kindStore.getKind(entity.kindId());
-		if (!kind.isPresent())
-		{
-			// If kind refers to something we don't know about, default to not being valid.
-			return false;
-		}
-		return validateEntityAgainstKind(entity, kind.get());
+		OtherPreconditions.checkNotNullOrEmpty(kindId);
+		return discoverEntitiesWithKindRecursive(kindId, new HashSet<>())
+				.map(this::differentiate); // may be a subkind of the one specified
 	}
 
-	@Override
-	public AntiIterator<Entity> discoverEntitiesWithKind(final Kind kind)
+	/**
+	 * Finds entities that have the specified kind or one of its subkinds.
+	 *
+	 * They are returned tagged with the kind specified, not the most precise refinement of it.
+	 *
+	 * alreadyVisited is a mutable set of kindIds that have already been visited in this call.
+	 * The only purpose of this is to check for cycles, which otherwise would lead to
+	 * infinite recursion.
+	 *
+	 * This is the counterpart to {{@link #differentiate(Entity)}. This looks "up" the chain,
+	 * while differentiate looks "down". It's assumed the chain will end with one of the builtin kinds,
+	 * which we have special logic to handle.
+	 */
+	private AntiIterator<Entity> discoverEntitiesWithKindRecursive(final String kindId,
+			final Set<String> alreadyVisited)
 	{
-		return javaStore.allJavaFiles()
-				.map(jf -> modelFactory.entity(jf.file(), true, null, null, jf))
-				.filter(entity -> validateEntityAgainstKind(entity, kind))
-				.map(this::discoverKind); // actual kind may be a subkind of the one requested
+		final Optional<Kind> optKind = kindStore.getKind(kindId);
+
+		if (!optKind.isPresent())
+		{
+			// Kind does not exist
+			return AntiIt.empty();
+		}
+
+		final Kind kind = optKind.get();
+		if (kind.partOfSystem())
+		{
+			return discoverEntitiesWithBuiltinKind(kind);
+		}
+
+		if (kind.schema().identification() == null || !kind.schema().identification().has("parentKind"))
+		{
+			// Not a valid user-defined kind: no parentKind specified
+			return AntiIt.empty();
+		}
+
+		final String parentId = kind.schema().identification().get("parentKind").textValue();
+
+		if (alreadyVisited.contains(parentId))
+		{
+			// You horrible person
+			return AntiIt.empty();
+		}
+		alreadyVisited.add(parentId);
+
+		return discoverEntitiesWithKind(parentId)
+				.filter(entity -> validateIndividual(entity, kind))
+				.map(e -> supplyKind(e, kind));
+	}
+
+	private AntiIterator<Entity> discoverEntitiesWithBuiltinKind(final Kind kind)
+	{
+		if (!kind.partOfSystem()
+				|| (kind.schema().identification() != null && kind.schema().identification().has("parentKind")))
+		{
+			throw new IllegalStateException("Not a valid builtin kind");
+		}
+
+		switch (kind.kindId()) {
+		case "java-file":
+			return javaStore.allJavaFiles()
+					.map(jf -> modelFactory.entity(jf.file(), kind.kindId(), null, jf));
+		default:
+			// Not listing other things for now.
+			return AntiIt.empty();
+		}
 	}
 }

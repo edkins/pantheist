@@ -55,4 +55,9 @@ final class KindImpl implements Kind
 		return schema;
 	}
 
+	@Override
+	public String toString()
+	{
+		return "[kind " + kindId + "]";
+	}
 }
