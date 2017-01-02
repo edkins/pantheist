@@ -69,4 +69,6 @@ public interface UrlTranslation
 
 	ReplaceAction listKindReplaceAction(String kindId);
 
+	DataAction sqlRowDataAction(String table, String column, String row);
+
 }

@@ -15,6 +15,7 @@ public class ApiSqlModelModule extends PrivateModule
 				.implement(ListSqlTableResponse.class, ListSqlTableResponseImpl.class)
 				.implement(ListRowItem.class, ListRowItemImpl.class)
 				.implement(ListRowResponse.class, ListRowResponseImpl.class)
+				.implement(ApiSqlRow.class, ApiSqlRowImpl.class)
 				.build(ApiSqlModelFactory.class));
 	}
 

@@ -14,7 +14,8 @@ final class ListRowResponseImpl implements ListRowResponse
 	private final List<ListRowItem> childResources;
 
 	@Inject
-	private ListRowResponseImpl(@Assisted @JsonProperty("childResources") final List<ListRowItem> childResources)
+	private ListRowResponseImpl(
+			@Assisted @JsonProperty("childResources") final List<ListRowItem> childResources)
 	{
 		this.childResources = checkNotNull(childResources);
 	}
@@ -24,5 +25,4 @@ final class ListRowResponseImpl implements ListRowResponse
 	{
 		return childResources;
 	}
-
 }

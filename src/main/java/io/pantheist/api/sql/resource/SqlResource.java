@@ -91,4 +91,26 @@ public class SqlResource implements ResourceTag
 			return resp.unexpectedError(ex);
 		}
 	}
+
+	/**
+	 * Handles retrieving info about a particular row (GET)
+	 */
+	@GET
+	@Path("sql-table/{table}/{column}/{row}")
+	@Produces("application/json")
+	public Response listTableClassifiers(
+			@PathParam("table") final String table,
+			@PathParam("column") final String column,
+			@PathParam("row") final String row)
+	{
+		LOGGER.info("GET sql-table/{}/{}/{}", table, column, row);
+		try
+		{
+			return resp.possibleToJson(backend.getRowInfo(table, column, row));
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
 }

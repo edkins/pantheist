@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -25,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 
 import io.pantheist.common.shared.model.GenericProperty;
 import io.pantheist.common.shared.model.GenericPropertyValue;
+import io.pantheist.common.shared.model.PropertyType;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.OtherPreconditions;
@@ -174,6 +176,84 @@ final class SqlServiceImpl implements SqlService
 	}
 
 	@Override
+	public Optional<PropertyType> getColumnType(final String table, final String columnName)
+	{
+		final String sql = "SELECT data_type FROM information_schema.columns WHERE table_name = ? AND column_name = ?";
+		final String sqlTableName = toSqlTableName(table);
+		final String sqlColumnName = toSqlColumnName(columnName);
+
+		try (final Connection db = connect())
+		{
+			try (PreparedStatement statement = db.prepareStatement(sql))
+			{
+				statement.setString(1, sqlTableName);
+				statement.setString(2, sqlColumnName);
+				try (ResultSet resultSet = statement.executeQuery())
+				{
+					if (resultSet.next())
+					{
+						return Optional.of(sqlTypeNameToPropertyType(resultSet.getString(1)));
+					}
+					else
+					{
+						return Optional.empty();
+					}
+				}
+			}
+		}
+		catch (final SQLException e)
+		{
+			throw new SqlServiceException(e);
+		}
+	}
+
+	private PropertyType sqlTypeNameToPropertyType(final String string)
+	{
+		switch (string) {
+		case "character varying":
+			return PropertyType.STRING;
+		default:
+			throw new IllegalStateException("Unknown column type: " + string);
+		}
+	}
+
+	@Override
+	public AntiIterator<ResultSet> selectIndividualRow(final String tableName, final GenericPropertyValue indexValue,
+			final ImmutableList<String> columnNames)
+	{
+		if (columnNames.isEmpty())
+		{
+			throw new IllegalArgumentException("List of column names must be nonempty");
+		}
+		final String columnSql = AntiIt.from(columnNames).map(this::toSqlColumnName).join(",").get();
+		final String sql = String.format("SELECT %s FROM %s WHERE %s=?",
+				columnSql,
+				toSqlTableName(tableName),
+				toSqlColumnName(indexValue.name()));
+
+		return consumer -> {
+			try (final Connection db = connect())
+			{
+				try (PreparedStatement statement = db.prepareStatement(sql))
+				{
+					setStatementValue(statement, 1, indexValue);
+					try (ResultSet resultSet = statement.executeQuery())
+					{
+						while (resultSet.next())
+						{
+							consumer.accept(resultSet);
+						}
+					}
+				}
+			}
+			catch (final SQLException e)
+			{
+				throw new SqlServiceException(e);
+			}
+		};
+	}
+
+	@Override
 	public AntiIterator<ResultSet> selectAllRows(final String tableName, final List<String> columnNames)
 	{
 		if (columnNames.isEmpty())
@@ -237,16 +317,23 @@ final class SqlServiceImpl implements SqlService
 		for (int i = 0; i < values.size(); i++)
 		{
 			final GenericPropertyValue v = values.get(i);
-			switch (v.type()) {
-			case BOOLEAN:
-				statement.setBoolean(i + 1, v.booleanValue());
-				break;
-			case STRING:
-				statement.setString(i + 1, v.stringValue());
-				break;
-			default:
-				throw new UnsupportedOperationException("Unrecognized property type: " + v.type());
-			}
+			setStatementValue(statement, i + 1, v);
+		}
+	}
+
+	private void setStatementValue(final PreparedStatement statement, final int parameterIndex,
+			final GenericPropertyValue v)
+			throws SQLException
+	{
+		switch (v.type()) {
+		case BOOLEAN:
+			statement.setBoolean(parameterIndex, v.booleanValue());
+			break;
+		case STRING:
+			statement.setString(parameterIndex, v.stringValue());
+			break;
+		default:
+			throw new UnsupportedOperationException("Unrecognized property type: " + v.type());
 		}
 	}
 

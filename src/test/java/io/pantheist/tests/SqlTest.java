@@ -2,6 +2,7 @@ package io.pantheist.tests;
 
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
@@ -15,6 +16,8 @@ import com.google.common.collect.Lists;
 
 import io.pantheist.api.sql.model.ListRowItem;
 import io.pantheist.api.sql.model.ListSqlTableItem;
+import io.pantheist.common.api.model.BasicContentType;
+import io.pantheist.common.api.model.DataAction;
 import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.testclient.api.ManagementPathRoot;
 import io.pantheist.testclient.api.ManagementPathSqlTable;
@@ -24,6 +27,13 @@ import io.pantheist.testhelpers.rule.MainRule;
 
 public class SqlTest
 {
+
+	private static final String SIMPLE_NAME = "EmptyClass";
+
+	private static final String QNAME = "io.pantheist.examples.EmptyClass";
+
+	private static final String QUALIFIEDNAME = "qualifiedname";
+
 	@ClassRule
 	public static final TestSessionImpl outerRule = TestSessionImpl.forApi();
 
@@ -33,6 +43,7 @@ public class SqlTest
 	private ManagementPathRoot manage;
 
 	private static final String JAVA_FILE = "java-file";
+	private static final String APPLICATION_JSON = "application/json";
 
 	@Before
 	public void setup()
@@ -63,19 +74,19 @@ public class SqlTest
 		final List<? extends ListClassifierItem> list = table.listClassifiers().childResources();
 
 		assertThat(list.size(), is(1));
-		assertThat(list.get(0).classifierSegment(), is("qualifiedname"));
-		assertThat(list.get(0).url(), is(table.urlOfService("qualifiedname")));
+		assertThat(list.get(0).classifierSegment(), is(QUALIFIEDNAME));
+		assertThat(list.get(0).url(), is(table.urlOfService(QUALIFIEDNAME)));
 	}
 
 	@Test
 	public void javaFile_badTableName_nothingListed() throws Exception
 	{
-		mainRule.putJavaResource("EmptyClass");
+		mainRule.putJavaResource(SIMPLE_NAME);
 
 		final ManagementPathSqlTable table1 = manage.sqlTable(JAVA_FILE);
-		final ResponseType response1 = table1.listByResponseType("qualifiedname");
+		final ResponseType response1 = table1.listByResponseType(QUALIFIEDNAME);
 		final ManagementPathSqlTable table2 = manage.sqlTable("badtable");
-		final ResponseType response2 = table2.listByResponseType("qualifiedname");
+		final ResponseType response2 = table2.listByResponseType(QUALIFIEDNAME);
 
 		assertThat(response1, is(ResponseType.OK));
 		assertThat(response2, is(ResponseType.NOT_FOUND));
@@ -84,10 +95,10 @@ public class SqlTest
 	@Test
 	public void javaFile_badIndexName_nothingListed() throws Exception
 	{
-		mainRule.putJavaResource("EmptyClass");
+		mainRule.putJavaResource(SIMPLE_NAME);
 
 		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
-		final ResponseType response1 = table.listByResponseType("qualifiedname");
+		final ResponseType response1 = table.listByResponseType(QUALIFIEDNAME);
 		final ResponseType response2 = table.listByResponseType("sjgkrjgahrklga");
 
 		assertThat(response1, is(ResponseType.OK));
@@ -97,27 +108,53 @@ public class SqlTest
 	@Test
 	public void javaFile_create_listedInTable() throws Exception
 	{
-		mainRule.putJavaResource("EmptyClass");
+		mainRule.putJavaResource(SIMPLE_NAME);
 
 		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
-		final List<ListRowItem> list = table.listBy("qualifiedname").childResources();
+		final List<ListRowItem> list = table.listBy(QUALIFIEDNAME).childResources();
 
 		assertThat(list.size(), is(1));
-		assertThat(list.get(0).url(), is(table.row("qualifiedname", "io.pantheist.examples.EmptyClass").url()));
+		assertThat(list.get(0).url(), is(table.row(QUALIFIEDNAME, QNAME).url()));
 		assertThat(list.get(0).kindUrl(), is(manage.kind("sql-row").url()));
 	}
 
 	@Test
 	public void javaFile_regenerateDb_stillListed() throws Exception
 	{
-		mainRule.putJavaResource("EmptyClass");
+		mainRule.putJavaResource(SIMPLE_NAME);
 
 		mainRule.actions().regenerateDb();
 
 		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
-		final List<ListRowItem> list = table.listBy("qualifiedname").childResources();
+		final List<ListRowItem> list = table.listBy(QUALIFIEDNAME).childResources();
 
 		assertThat(list.size(), is(1));
-		assertThat(list.get(0).url(), is(table.row("qualifiedname", "io.pantheist.examples.EmptyClass").url()));
+		assertThat(list.get(0).url(), is(table.row(QUALIFIEDNAME, QNAME).url()));
+	}
+
+	@Test
+	public void javaFile_create_canSeeItem() throws Exception
+	{
+		mainRule.putJavaResource(SIMPLE_NAME);
+
+		mainRule.actions().regenerateDb();
+
+		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
+		final ResponseType response1 = table.row(QUALIFIEDNAME, QNAME)
+				.getSqlRowResponseType();
+		final ResponseType response2 = table.row(QUALIFIEDNAME, "io.pantheist.examples.BadClass")
+				.getSqlRowResponseType();
+		final ResponseType response3 = table.row("badcolumn", QNAME)
+				.getSqlRowResponseType();
+
+		assertThat(response1, is(ResponseType.OK));
+		assertThat(response2, is(ResponseType.NOT_FOUND));
+		assertThat(response3, is(ResponseType.NOT_FOUND));
+
+		final DataAction dataAction = table.row(QUALIFIEDNAME, QNAME).getSqlRow()
+				.dataAction();
+		assertThat(dataAction.basicType(), is(BasicContentType.json));
+		assertThat(dataAction.mimeType(), is(APPLICATION_JSON));
+		assertFalse("SQL table does not support putting", dataAction.canPut());
 	}
 }

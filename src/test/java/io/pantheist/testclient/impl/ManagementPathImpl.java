@@ -19,6 +19,7 @@ import io.pantheist.api.management.model.ListConfigItem;
 import io.pantheist.api.management.model.ListConfigResponse;
 import io.pantheist.api.schema.model.ApiSchema;
 import io.pantheist.api.schema.model.ListSchemaResponse;
+import io.pantheist.api.sql.model.ApiSqlRow;
 import io.pantheist.api.sql.model.ListRowResponse;
 import io.pantheist.api.sql.model.ListSqlTableResponse;
 import io.pantheist.common.api.model.ListClassifierResponse;
@@ -329,5 +330,17 @@ final class ManagementPathImpl implements
 	public ManagementPathSqlRow row(final String indexColumn, final String indexValue)
 	{
 		return new ManagementPathImpl(target.withSegment(indexColumn).withSegment(indexValue));
+	}
+
+	@Override
+	public ResponseType getSqlRowResponseType()
+	{
+		return target.getResponseType(APPLICATION_JSON);
+	}
+
+	@Override
+	public ApiSqlRow getSqlRow()
+	{
+		return target.getJson(ApiSqlRow.class);
 	}
 }

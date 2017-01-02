@@ -265,4 +265,10 @@ final class UrlTranslationImpl implements UrlTranslation
 		return kindEntity.generate(ImmutableMap.of("kindId", kindId, "entityId", entityId));
 	}
 
+	@Override
+	public DataAction sqlRowDataAction(final String table, final String column, final String row)
+	{
+		return modelFactory.dataAction(BasicContentType.json, APPLICATION_JSON, false);
+	}
+
 }

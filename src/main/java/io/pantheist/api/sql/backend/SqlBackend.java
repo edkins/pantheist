@@ -1,5 +1,6 @@
 package io.pantheist.api.sql.backend;
 
+import io.pantheist.api.sql.model.ApiSqlRow;
 import io.pantheist.api.sql.model.ListRowResponse;
 import io.pantheist.api.sql.model.ListSqlTableResponse;
 import io.pantheist.common.api.model.ListClassifierResponse;
@@ -12,4 +13,6 @@ public interface SqlBackend
 	Possible<ListClassifierResponse> listSqlTableClassifiers(String table);
 
 	Possible<ListRowResponse> listRows(String table, String column);
+
+	Possible<ApiSqlRow> getRowInfo(String table, String column, String row);
 }

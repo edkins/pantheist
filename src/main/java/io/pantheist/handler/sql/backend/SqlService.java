@@ -2,9 +2,13 @@ package io.pantheist.handler.sql.backend;
 
 import java.sql.ResultSet;
 import java.util.List;
+import java.util.Optional;
+
+import com.google.common.collect.ImmutableList;
 
 import io.pantheist.common.shared.model.GenericProperty;
 import io.pantheist.common.shared.model.GenericPropertyValue;
+import io.pantheist.common.shared.model.PropertyType;
 import io.pantheist.common.util.AntiIterator;
 
 public interface SqlService
@@ -38,4 +42,16 @@ public interface SqlService
 	 * The list of values must be nonempty.
 	 */
 	void updateOrInsert(String tableName, List<GenericPropertyValue> values);
+
+	/**
+	 * Returns empty if either the table or the column doesn't exist
+	 *
+	 * Throws an exception if it's a type we don't support.
+	 */
+	Optional<PropertyType> getColumnType(String tableName, String columnName);
+
+	AntiIterator<ResultSet> selectIndividualRow(
+			String tableName,
+			GenericPropertyValue indexValue,
+			ImmutableList<String> columnNames);
 }

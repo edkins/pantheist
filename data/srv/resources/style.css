@@ -86,6 +86,10 @@ the item itself (as opposed to its children).
     padding-right: 4pt;
 }
 
+.tree-item {
+	white-space: nowrap;
+}
+
 .tree-item:hover {
 	background: #eef;
 }
