@@ -9,4 +9,6 @@ public interface ManagementPathSqlRow
 	ResponseType getSqlRowResponseType();
 
 	ApiSqlRow getSqlRow();
+
+	ManagementData data();
 }

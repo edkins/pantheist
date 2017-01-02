@@ -6,12 +6,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 import io.pantheist.api.sql.model.ListRowItem;
@@ -156,5 +158,21 @@ public class SqlTest
 		assertThat(dataAction.basicType(), is(BasicContentType.json));
 		assertThat(dataAction.mimeType(), is(APPLICATION_JSON));
 		assertFalse("SQL table does not support putting", dataAction.canPut());
+	}
+
+	@Test
+	public void javaFile_create_canGetData() throws Exception
+	{
+		mainRule.putJavaResource(SIMPLE_NAME);
+
+		mainRule.actions().regenerateDb();
+
+		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
+		final String json = table.row(QUALIFIEDNAME, QNAME).data().getString(APPLICATION_JSON);
+
+		final Map<?, ?> map = new ObjectMapper().readValue(json, Map.class);
+		assertThat(map.get("qualifiedname"), is(QNAME));
+		assertThat(map.get("isclass"), is(true));
+		assertThat(map.get("isinterface"), is(false));
 	}
 }

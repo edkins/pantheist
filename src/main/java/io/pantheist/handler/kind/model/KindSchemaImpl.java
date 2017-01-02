@@ -8,18 +8,16 @@ import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.pantheist.common.shared.model.GenericProperty;
-
 final class KindSchemaImpl implements KindSchema
 {
 	private final JavaClause java;
 	private final List<String> subKindOf;
-	private final List<GenericProperty> properties;
+	private final List<KindProperty> properties;
 
 	private KindSchemaImpl(
 			@Nullable @JsonProperty("java") final JavaClause java,
 			@JsonProperty("subKindOf") final List<String> subKindOf,
-			@Nullable @JsonProperty("properties") final List<GenericProperty> properties)
+			@Nullable @JsonProperty("properties") final List<KindProperty> properties)
 	{
 		this.java = java;
 		this.subKindOf = checkNotNull(subKindOf);
@@ -39,7 +37,7 @@ final class KindSchemaImpl implements KindSchema
 	}
 
 	@Override
-	public List<GenericProperty> properties()
+	public List<KindProperty> properties()
 	{
 		return properties;
 	}

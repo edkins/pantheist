@@ -6,6 +6,8 @@ import com.google.inject.assistedinject.Assisted;
 
 public interface CommonSharedModelFactory
 {
+	GenericProperty property(@Assisted("name") String name, PropertyType type);
+
 	@Named("boolean")
 	GenericPropertyValue booleanValue(
 			@Assisted("name") final String name,

@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableList;
 
+import io.pantheist.common.shared.model.CommonSharedModelFactory;
 import io.pantheist.common.shared.model.GenericProperty;
 import io.pantheist.common.shared.model.GenericPropertyValue;
 import io.pantheist.common.shared.model.PropertyType;
@@ -33,6 +34,7 @@ import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.handler.filesystem.backend.FilesystemSnapshot;
 import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.filesystem.backend.FsPath;
+import io.pantheist.handler.kind.model.KindProperty;
 import io.pantheist.system.config.PantheistConfig;
 
 final class SqlServiceImpl implements SqlService
@@ -45,13 +47,18 @@ final class SqlServiceImpl implements SqlService
 	private final Pattern WORD = Pattern.compile("[a-z][a-z_]*");
 
 	private final Set<String> reservedWordsLowercase;
+	private final CommonSharedModelFactory sharedFactory;
 
 	@Inject
-	private SqlServiceImpl(final FilesystemStore filesystem, final PantheistConfig config)
+	private SqlServiceImpl(
+			final FilesystemStore filesystem,
+			final PantheistConfig config,
+			final CommonSharedModelFactory sharedFactory)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.config = checkNotNull(config);
 		this.reservedWordsLowercase = new HashSet<>();
+		this.sharedFactory = checkNotNull(sharedFactory);
 	}
 
 	@Override
@@ -135,7 +142,7 @@ final class SqlServiceImpl implements SqlService
 		}
 	}
 
-	private String toSqlCreateTableArg(final GenericProperty property)
+	private String toSqlCreateTableArg(final KindProperty property)
 	{
 		final String sqlName = toSqlColumnName(property.name());
 
@@ -160,7 +167,7 @@ final class SqlServiceImpl implements SqlService
 	}
 
 	@Override
-	public void createTable(final String tableName, final List<GenericProperty> columns)
+	public void createTable(final String tableName, final List<KindProperty> columns)
 	{
 		final String columnSql = AntiIt.from(columns).map(this::toSqlCreateTableArg).join(",").orElse("");
 		final String sql = String.format("CREATE TABLE %s (%s)", toSqlTableName(tableName), columnSql);
@@ -210,6 +217,8 @@ final class SqlServiceImpl implements SqlService
 	private PropertyType sqlTypeNameToPropertyType(final String string)
 	{
 		switch (string) {
+		case "boolean":
+			return PropertyType.BOOLEAN;
 		case "character varying":
 			return PropertyType.STRING;
 		default:
@@ -219,7 +228,7 @@ final class SqlServiceImpl implements SqlService
 
 	@Override
 	public AntiIterator<ResultSet> selectIndividualRow(final String tableName, final GenericPropertyValue indexValue,
-			final ImmutableList<String> columnNames)
+			final List<String> columnNames)
 	{
 		if (columnNames.isEmpty())
 		{
@@ -371,7 +380,7 @@ final class SqlServiceImpl implements SqlService
 	}
 
 	@Override
-	public List<String> listTableIdentifiers(final String tableName)
+	public List<String> listTableKeyColumnNames(final String tableName)
 	{
 		final String sqlTableName = toSqlTableName(tableName);
 		final String sql = "SELECT column_name FROM information_schema.key_column_usage where table_name=?";
@@ -396,6 +405,35 @@ final class SqlServiceImpl implements SqlService
 		{
 			throw new SqlServiceException(e);
 		}
+	}
+
+	@Override
+	public AntiIterator<GenericProperty> listAllColumns(final String tableName)
+	{
+		final String sqlTableName = toSqlTableName(tableName);
+		final String sql = "SELECT column_name, data_type FROM information_schema.columns where table_name=?";
+		return consumer -> {
+			try (final Connection db = connect())
+			{
+				try (PreparedStatement statement = db.prepareStatement(sql))
+				{
+					statement.setString(1, sqlTableName);
+					try (ResultSet resultSet = statement.executeQuery())
+					{
+						while (resultSet.next())
+						{
+							final String columnName = resultSet.getString(1);
+							final PropertyType type = sqlTypeNameToPropertyType(resultSet.getString(2));
+							consumer.accept(sharedFactory.property(columnName, type));
+						}
+					}
+				}
+			}
+			catch (final SQLException e)
+			{
+				throw new SqlServiceException(e);
+			}
+		};
 	}
 
 	@Override

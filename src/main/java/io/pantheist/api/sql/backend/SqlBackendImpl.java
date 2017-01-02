@@ -4,10 +4,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
@@ -22,6 +26,7 @@ import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.shared.model.CommonSharedModelFactory;
+import io.pantheist.common.shared.model.GenericProperty;
 import io.pantheist.common.shared.model.GenericPropertyValue;
 import io.pantheist.common.shared.model.PropertyType;
 import io.pantheist.common.util.AntiIt;
@@ -37,6 +42,7 @@ final class SqlBackendImpl implements SqlBackend
 	private final UrlTranslation urlTranslation;
 	private final CommonApiModelFactory commonFactory;
 	private final CommonSharedModelFactory sharedFactory;
+	private final ObjectMapper objectMapper;
 
 	@Inject
 	private SqlBackendImpl(
@@ -44,13 +50,15 @@ final class SqlBackendImpl implements SqlBackend
 			final ApiSqlModelFactory modelFactory,
 			final UrlTranslation urlTranslation,
 			final CommonApiModelFactory commonFactory,
-			final CommonSharedModelFactory sharedFactory)
+			final CommonSharedModelFactory sharedFactory,
+			final ObjectMapper objectMapper)
 	{
 		this.sqlService = checkNotNull(sqlStore);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.urlTranslation = checkNotNull(urlTranslation);
 		this.commonFactory = checkNotNull(commonFactory);
 		this.sharedFactory = checkNotNull(sharedFactory);
+		this.objectMapper = checkNotNull(objectMapper);
 	}
 
 	private ListSqlTableItem toListSqlTableItem(final String tableName)
@@ -84,7 +92,7 @@ final class SqlBackendImpl implements SqlBackend
 			return View.ok(
 					commonFactory.listClassifierResponse(
 							Lists.transform(
-									sqlService.listTableIdentifiers(table),
+									sqlService.listTableKeyColumnNames(table),
 									column -> toListClassifierItem(table, column))));
 		}
 		else
@@ -112,7 +120,7 @@ final class SqlBackendImpl implements SqlBackend
 	public Possible<ListRowResponse> listRows(final String table, final String column)
 	{
 		if (sqlService.listTableNames().contains(table) &&
-				sqlService.listTableIdentifiers(table).contains(column))
+				sqlService.listTableKeyColumnNames(table).contains(column))
 		{
 			return View.ok(sqlService.selectAllRows(table, ImmutableList.of(column))
 					.map(rs -> rsToListRowItem(table, column, rs))
@@ -164,6 +172,58 @@ final class SqlBackendImpl implements SqlBackend
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
 		}
+	}
+
+	private JsonNode rsToJsonNode(final ResultSet resultSet, final List<GenericProperty> columns)
+	{
+		try
+		{
+			final ObjectNode result = new ObjectNode(objectMapper.getNodeFactory());
+			for (int i = 0; i < columns.size(); i++)
+			{
+				final String fieldName = columns.get(i).name();
+				switch (columns.get(i).type()) {
+				case BOOLEAN:
+					result.put(fieldName, resultSet.getBoolean(i + 1));
+					break;
+				case STRING:
+					result.put(fieldName, resultSet.getString(i + 1));
+					break;
+				default:
+					throw new UnsupportedOperationException("Cannot convert type to json: " + columns.get(i).type());
+				}
+			}
+			return result;
+		}
+		catch (final SQLException e)
+		{
+			throw new SqlBackendException(e);
+		}
+	}
+
+	@Override
+	public Possible<JsonNode> getRowData(final String table, final String column, final String row)
+	{
+		final Optional<PropertyType> columnType = sqlService.getColumnType(table, column);
+		if (!columnType.isPresent())
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
+
+		final List<GenericProperty> columns = sqlService.listAllColumns(table).toList();
+		if (columns.isEmpty())
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
+
+		final List<String> columnNames = Lists.transform(columns, GenericProperty::name);
+		final GenericPropertyValue index = parseValue(column, columnType.get(), row);
+
+		return sqlService.selectIndividualRow(table, index, columnNames)
+				.map(rs -> rsToJsonNode(rs, columns))
+				.failIfMultiple()
+				.map(View::ok)
+				.orElse(FailureReason.DOES_NOT_EXIST.happened());
 	}
 
 }

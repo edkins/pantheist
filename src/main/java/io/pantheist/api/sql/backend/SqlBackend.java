@@ -1,5 +1,7 @@
 package io.pantheist.api.sql.backend;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import io.pantheist.api.sql.model.ApiSqlRow;
 import io.pantheist.api.sql.model.ListRowResponse;
 import io.pantheist.api.sql.model.ListSqlTableResponse;
@@ -15,4 +17,6 @@ public interface SqlBackend
 	Possible<ListRowResponse> listRows(String table, String column);
 
 	Possible<ApiSqlRow> getRowInfo(String table, String column, String row);
+
+	Possible<JsonNode> getRowData(String table, String column, String row);
 }

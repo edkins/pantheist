@@ -4,12 +4,11 @@ import java.sql.ResultSet;
 import java.util.List;
 import java.util.Optional;
 
-import com.google.common.collect.ImmutableList;
-
 import io.pantheist.common.shared.model.GenericProperty;
 import io.pantheist.common.shared.model.GenericPropertyValue;
 import io.pantheist.common.shared.model.PropertyType;
 import io.pantheist.common.util.AntiIterator;
+import io.pantheist.handler.kind.model.KindProperty;
 
 public interface SqlService
 {
@@ -19,11 +18,19 @@ public interface SqlService
 
 	List<String> listTableNames();
 
-	List<String> listTableIdentifiers(String tableName);
+	List<String> listTableKeyColumnNames(String tableName);
+
+	/**
+	 * Returns an empty sequence if the table doesn't exist.
+	 */
+	AntiIterator<GenericProperty> listAllColumns(String tableName);
 
 	void deleteAllTables();
 
-	void createTable(String tableName, List<GenericProperty> columns);
+	/**
+	 * The list is KindProperty not GenericProperty, because it needs the "isIdentifier"
+	 */
+	void createTable(String tableName, List<KindProperty> columns);
 
 	/**
 	 * Perform an SQL select for the given column names, returning all rows in the table.
@@ -53,5 +60,5 @@ public interface SqlService
 	AntiIterator<ResultSet> selectIndividualRow(
 			String tableName,
 			GenericPropertyValue indexValue,
-			ImmutableList<String> columnNames);
+			List<String> columnNames);
 }

@@ -77,7 +77,7 @@ public class SqlResource implements ResourceTag
 	@GET
 	@Path("sql-table/{table}/{column}")
 	@Produces("application/json")
-	public Response listTableClassifiers(
+	public Response listRows(
 			@PathParam("table") final String table,
 			@PathParam("column") final String column)
 	{
@@ -98,7 +98,7 @@ public class SqlResource implements ResourceTag
 	@GET
 	@Path("sql-table/{table}/{column}/{row}")
 	@Produces("application/json")
-	public Response listTableClassifiers(
+	public Response getRowInfo(
 			@PathParam("table") final String table,
 			@PathParam("column") final String column,
 			@PathParam("row") final String row)
@@ -107,6 +107,28 @@ public class SqlResource implements ResourceTag
 		try
 		{
 			return resp.possibleToJson(backend.getRowInfo(table, column, row));
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles retrieving row data (GET)
+	 */
+	@GET
+	@Path("sql-table/{table}/{column}/{row}/data")
+	@Produces("application/json")
+	public Response getRowData(
+			@PathParam("table") final String table,
+			@PathParam("column") final String column,
+			@PathParam("row") final String row)
+	{
+		LOGGER.info("GET sql-table/{}/{}/{}/data", table, column, row);
+		try
+		{
+			return resp.possibleToJson(backend.getRowData(table, column, row));
 		}
 		catch (final RuntimeException ex)
 		{
