@@ -9,7 +9,12 @@ interface UriPatternSegment
 
 	Optional<String> name();
 
-	String generate(Map<String, String> values);
+	/**
+	 * Takes a mutable key/value map.
+	 *
+	 * If this uses a variable name, it will take that variable out of the map.
+	 */
+	String generateAndDelete(Map<String, String> values);
 
 	boolean isEmpty();
 }

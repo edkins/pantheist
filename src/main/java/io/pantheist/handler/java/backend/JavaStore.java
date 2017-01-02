@@ -57,4 +57,6 @@ public interface JavaStore
 	void setJavaBinding(JavaBinding binding);
 
 	JavaBinding getJavaBinding();
+
+	void registerFilesInSql();
 }

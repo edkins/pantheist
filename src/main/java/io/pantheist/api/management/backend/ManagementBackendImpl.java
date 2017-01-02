@@ -148,7 +148,13 @@ final class ManagementBackendImpl implements ManagementBackend
 	@Override
 	public void reloadConfiguration()
 	{
-		nginxService.startOrRestart();
+		initializer.reload();
+	}
+
+	@Override
+	public void regenerateDb()
+	{
+		initializer.regenerateDb();
 	}
 
 	@Override

@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -149,6 +150,7 @@ public class UriPatternImpl implements UriPattern
 
 	private String generate(final Map<String, String> values, final boolean trailingSlash)
 	{
+		final Map<String, String> mutableValues = new HashMap<>(values);
 		if (trailingSlash && !allowTrailingSlash)
 		{
 			throw new IllegalArgumentException("trailingSlash requested when it is not allowed by this pattern");
@@ -165,11 +167,16 @@ public class UriPatternImpl implements UriPattern
 				sb.append('/');
 			}
 			first = false;
-			sb.append(Escapers.url(segment.generate(values)));
+			sb.append(Escapers.url(segment.generateAndDelete(mutableValues)));
 		}
 		if (trailingSlash)
 		{
 			sb.append('/');
+		}
+		if (!mutableValues.isEmpty())
+		{
+			throw new IllegalArgumentException(
+					"Variable name specified but was not in pattern: " + mutableValues.keySet());
 		}
 		return sb.toString();
 	}

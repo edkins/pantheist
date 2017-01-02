@@ -10,9 +10,6 @@ import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.Possible;
 import io.pantheist.handler.java.backend.JavaStore;
@@ -23,7 +20,6 @@ import io.pantheist.handler.kind.model.KindModelFactory;
 
 final class KindValidationImpl implements KindValidation
 {
-	private static final Logger LOGGER = LogManager.getLogger(KindValidationImpl.class);
 	private final JavaStore javaStore;
 	private final KindStore kindStore;
 	private final KindModelFactory modelFactory;

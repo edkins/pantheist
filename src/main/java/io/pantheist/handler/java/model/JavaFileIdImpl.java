@@ -62,4 +62,10 @@ final class JavaFileIdImpl implements JavaFileId
 		return false;
 	}
 
+	@Override
+	public String qualifiedName()
+	{
+		return pkg + "." + file;
+	}
+
 }

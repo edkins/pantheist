@@ -67,4 +67,28 @@ public class SqlResource implements ResourceTag
 			return resp.unexpectedError(ex);
 		}
 	}
+
+	/**
+	 * Handles listing all rows in a particular table (GET)
+	 *
+	 * This breaks the usual pattern: the third segment is a variable here, identifying which column
+	 * in the table we want to search by.
+	 */
+	@GET
+	@Path("sql-table/{table}/{column}")
+	@Produces("application/json")
+	public Response listTableClassifiers(
+			@PathParam("table") final String table,
+			@PathParam("column") final String column)
+	{
+		LOGGER.info("GET sql-table/{}/{}", table, column);
+		try
+		{
+			return resp.possibleToJson(backend.listRows(table, column));
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
 }

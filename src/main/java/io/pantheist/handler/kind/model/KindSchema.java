@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import io.pantheist.common.shared.model.GenericProperty;
+
 @JsonInclude(Include.NON_NULL)
 @JsonDeserialize(as = KindSchemaImpl.class)
 public interface KindSchema
@@ -19,4 +21,8 @@ public interface KindSchema
 
 	@JsonProperty("subKindOf")
 	List<String> subKindOf();
+
+	@Nullable
+	@JsonProperty("properties")
+	List<GenericProperty> properties();
 }

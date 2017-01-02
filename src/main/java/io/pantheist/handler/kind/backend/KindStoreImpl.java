@@ -13,15 +13,18 @@ import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.filesystem.backend.FsPath;
 import io.pantheist.handler.filesystem.backend.JsonSnapshot;
 import io.pantheist.handler.kind.model.Kind;
+import io.pantheist.handler.sql.backend.SqlService;
 
 final class KindStoreImpl implements KindStore
 {
 	private final FilesystemStore filesystem;
+	private final SqlService sqlService;
 
 	@Inject
-	private KindStoreImpl(final FilesystemStore filesystem)
+	private KindStoreImpl(final FilesystemStore filesystem, final SqlService sqlService)
 	{
 		this.filesystem = checkNotNull(filesystem);
+		this.sqlService = checkNotNull(sqlService);
 	}
 
 	@Override
@@ -67,5 +70,16 @@ final class KindStoreImpl implements KindStore
 				.listFilesAndDirectories(kindDir())
 				.filter(snapshot::safeIsFile)
 				.map(path -> snapshot.readJson(path, Kind.class));
+	}
+
+	@Override
+	public void registerKindsInSql()
+	{
+		listAllKinds().forEach(k -> {
+			if (k.partOfSystem() && k.schema().subKindOf().isEmpty() && k.schema().properties() != null)
+			{
+				sqlService.createTable(k.kindId(), k.schema().properties());
+			}
+		});
 	}
 }

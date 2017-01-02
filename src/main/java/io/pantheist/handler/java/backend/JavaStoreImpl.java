@@ -42,16 +42,19 @@ final class JavaStoreImpl implements JavaStore
 	private final FilesystemStore filesystem;
 	private final JavaModelFactory modelFactory;
 	private final JavaKindValidator javaKindValidator;
+	private final JavaSqlLogic javaSqlLogic;
 
 	@Inject
 	private JavaStoreImpl(
 			final FilesystemStore filesystem,
 			final JavaModelFactory modelFactory,
-			final JavaKindValidator javaKindValidator)
+			final JavaKindValidator javaKindValidator,
+			final JavaSqlLogic javaSqlLogic)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.javaKindValidator = checkNotNull(javaKindValidator);
+		this.javaSqlLogic = checkNotNull(javaSqlLogic);
 	}
 
 	private FsPath pkgAndFilePath(final FilesystemSnapshot snapshot, final String pkg, final String file)
@@ -154,6 +157,9 @@ final class JavaStoreImpl implements JavaStore
 			}
 			FileUtils.write(map.get(filePath), code, StandardCharsets.UTF_8);
 		});
+
+		javaSqlLogic.update(javaFileId, code);
+
 		return View.noContent();
 	}
 
@@ -348,5 +354,19 @@ final class JavaStoreImpl implements JavaStore
 		final CompilationUnit compilationUnit = JavaParser.parse(code);
 
 		return javaKindValidator.validateKind(compilationUnit, javaClause);
+	}
+
+	@Override
+	public void registerFilesInSql()
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		snapshot.recurse(rootJavaPath(snapshot))
+				.filter(snapshot::safeIsFile)
+				.filter(path -> path.lastSegment().endsWith(DOT_JAVA))
+				.forEach(path -> {
+					final JavaFileId id = fileIdFromPath(snapshot, path);
+					final String code = snapshot.readText(path);
+					javaSqlLogic.update(id, code);
+				});
 	}
 }

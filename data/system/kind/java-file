@@ -8,6 +8,21 @@
   "schema": {
     "java": {
     },
-    "subKindOf": []
+    "subKindOf": [],
+    "properties": [
+      {
+        "name":"qualifiedName",
+        "type":"string",
+        "isIdentifier":true
+      },
+      {
+        "name":"isInterface",
+        "type":"boolean"
+      },
+      {
+        "name":"isClass",
+        "type":"boolean"
+      }
+    ]
   }
 }

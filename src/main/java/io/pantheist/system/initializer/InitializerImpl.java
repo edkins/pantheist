@@ -11,6 +11,8 @@ import io.pantheist.common.util.Cleanup;
 import io.pantheist.handler.filesystem.backend.FilesystemSnapshot;
 import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.filesystem.backend.FsPath;
+import io.pantheist.handler.java.backend.JavaStore;
+import io.pantheist.handler.kind.backend.KindStore;
 import io.pantheist.handler.nginx.manage.NginxService;
 import io.pantheist.handler.sql.backend.SqlService;
 import io.pantheist.system.config.PantheistConfig;
@@ -24,19 +26,25 @@ final class InitializerImpl implements Initializer
 	private final PantheistServer server;
 	private final PantheistConfig config;
 	private final SqlService sqlService;
+	private final KindStore kindStore;
+	private final JavaStore javaStore;
 
 	@Inject
 	private InitializerImpl(final FilesystemStore filesystem,
 			final NginxService nginxService,
 			final PantheistServer server,
 			final PantheistConfig config,
-			final SqlService sqlService)
+			final SqlService sqlService,
+			final KindStore kindStore,
+			final JavaStore javaStore)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.nginxService = checkNotNull(nginxService);
 		this.server = checkNotNull(server);
 		this.config = checkNotNull(config);
 		this.sqlService = checkNotNull(sqlService);
+		this.kindStore = checkNotNull(kindStore);
+		this.javaStore = checkNotNull(javaStore);
 	}
 
 	@Override
@@ -49,15 +57,32 @@ final class InitializerImpl implements Initializer
 			filesystem.initialize();
 			anonymizeNginxConf();
 			server.start();
-			nginxService.startOrRestart();
 			sqlService.startOrRestart();
+			nginxService.startOrRestart();
+			regenerateDb();
 		}
 		catch (final RuntimeException ex)
 		{
+			LOGGER.catching(ex);
 			LOGGER.warn("Startup failed! Attempting to shut down all of the things.");
 			close();
 			throw ex;
 		}
+	}
+
+	@Override
+	public void reload()
+	{
+		nginxService.startOrRestart();
+		regenerateDb();
+	}
+
+	@Override
+	public void regenerateDb()
+	{
+		sqlService.deleteAllTables(); // all transient data anyway so we can trash it
+		kindStore.registerKindsInSql();
+		javaStore.registerFilesInSql();
 	}
 
 	@Override

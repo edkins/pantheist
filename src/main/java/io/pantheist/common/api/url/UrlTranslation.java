@@ -17,6 +17,8 @@ public interface UrlTranslation
 
 	String kindFromUrl(String url);
 
+	String entityToUrl(String kindId, String entityId);
+
 	String jsonSchemaToUrl(String jsonSchemaId);
 
 	String jsonSchemaFromUrl(String url);
@@ -29,28 +31,24 @@ public interface UrlTranslation
 
 	String locationToUrl(String serverId, String locationId);
 
-	String entityToUrl(String entityId);
-
-	String componentToUrl(String entityId, String componentId);
-
 	String flatDirFileToUrl(String dir, String file);
 
 	String flatDirToUrl(String dir);
 
-	String sqlTableToUrl(String tableName);
+	String sqlTableToUrl(String table);
+
+	String sqlTableColumnToUrl(String table, String column);
+
+	String sqlRowToUrl(String table, String column, String row);
 
 	// Listing classifiers
 	List<ListClassifierItem> listRootClassifiers();
-
-	List<ListClassifierItem> listEntityClassifiers(String entityId);
 
 	List<ListClassifierItem> listKindClassifiers(String kindId);
 
 	List<ListClassifierItem> listJavaPkgClassifiers(String pkg);
 
 	List<ListClassifierItem> listFlatDirClassifiers(String dir);
-
-	List<ListClassifierItem> listSqlTableClassifiers(String table);
 
 	// Obtaining actions
 	CreateAction javaPkgCreateAction();

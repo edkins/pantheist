@@ -24,4 +24,6 @@ public interface ManagementBackend
 	void reloadConfiguration();
 
 	void scheduleTerminate();
+
+	void regenerateDb();
 }

@@ -38,12 +38,13 @@ final class UriPatternSegmentVarImpl implements UriPatternSegment
 	}
 
 	@Override
-	public String generate(final Map<String, String> values)
+	public String generateAndDelete(final Map<String, String> values)
 	{
 		if (values.containsKey(name))
 		{
 			final String result = values.get(name);
 			OtherPreconditions.checkNotNullOrEmpty(result);
+			values.remove(name);
 			return result;
 		}
 		else

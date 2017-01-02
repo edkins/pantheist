@@ -12,4 +12,10 @@ public interface ApiSqlModelFactory
 			@Assisted("kindUrl") String kindUrl);
 
 	ListSqlTableResponse listSqlTableResponse(List<ListSqlTableItem> childResources);
+
+	ListRowItem listRowItem(
+			@Assisted("url") String url,
+			@Assisted("kindUrl") String kindUrl);
+
+	ListRowResponse listRowResponse(List<ListRowItem> childResources);
 }

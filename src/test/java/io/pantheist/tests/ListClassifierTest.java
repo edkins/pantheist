@@ -34,7 +34,6 @@ import io.pantheist.testclient.api.ManagementPathJavaPackage;
 import io.pantheist.testclient.api.ManagementPathKind;
 import io.pantheist.testclient.api.ManagementPathRoot;
 import io.pantheist.testclient.api.ManagementPathSchema;
-import io.pantheist.testclient.api.ManagementPathSqlTable;
 import io.pantheist.testclient.api.ResponseType;
 import io.pantheist.testhelpers.classrule.TestSessionImpl;
 import io.pantheist.testhelpers.rule.MainRule;
@@ -57,7 +56,6 @@ public class ListClassifierTest
 	private static final String KIND_SCHEMA_RES = "/kind-schema/kind-test-example";
 	private static final String JSON_SCHEMA_MIME = "application/schema+json";
 	private static final String JSON_SCHEMA_COFFEE_RES = "/json-schema/coffee";
-	private static final String JAVA_FILE = "java-file";
 
 	@Before
 	public void setup()
@@ -301,16 +299,5 @@ public class ListClassifierTest
 		assertThat(replaceAction, notNullValue());
 		assertThat(replaceAction.basicType(), is(BasicContentType.json));
 		assertThat(replaceAction.mimeType(), is(APPLICATION_JSON));
-	}
-
-	@Test
-	public void sqlTable_classifiers() throws Exception
-	{
-		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
-		final List<? extends ListClassifierItem> list = table.listClassifiers().childResources();
-
-		assertThat(list.size(), is(1));
-		assertThat(list.get(0).classifierSegment(), is("row"));
-		assertThat(list.get(0).url(), is(table.urlOfService("row")));
 	}
 }

@@ -1,5 +1,6 @@
 package io.pantheist.handler.java.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
@@ -11,4 +12,7 @@ public interface JavaFileId
 
 	@JsonProperty("file")
 	String file();
+
+	@JsonIgnore
+	String qualifiedName();
 }

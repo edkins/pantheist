@@ -11,4 +11,6 @@ public interface KindStore
 	Possible<Kind> getKind(String kindId);
 
 	AntiIterator<Kind> listAllKinds();
+
+	void registerKindsInSql();
 }

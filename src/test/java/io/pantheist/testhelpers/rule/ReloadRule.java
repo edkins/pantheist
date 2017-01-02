@@ -41,7 +41,8 @@ final class ReloadRule implements TestRule
 			{
 				if (session.ensureStarted())
 				{
-					session.client().reload();
+					waitForServer();
+					session.client().regenerateDb();
 				}
 				else
 				{

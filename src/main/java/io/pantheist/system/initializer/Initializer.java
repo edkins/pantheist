@@ -11,4 +11,8 @@ public interface Initializer extends AutoCloseable
 	 * Start another thread which will schedule shutdown.
 	 */
 	void stopAsync();
+
+	void reload();
+
+	void regenerateDb();
 }

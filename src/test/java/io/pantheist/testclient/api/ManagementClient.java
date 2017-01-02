@@ -18,6 +18,6 @@ public interface ManagementClient
 	/**
 	 * Tell the server to reload itself
 	 */
-	void reload();
+	void regenerateDb();
 
 }

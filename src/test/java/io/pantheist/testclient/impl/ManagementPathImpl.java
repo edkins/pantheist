@@ -19,6 +19,7 @@ import io.pantheist.api.management.model.ListConfigItem;
 import io.pantheist.api.management.model.ListConfigResponse;
 import io.pantheist.api.schema.model.ApiSchema;
 import io.pantheist.api.schema.model.ListSchemaResponse;
+import io.pantheist.api.sql.model.ListRowResponse;
 import io.pantheist.api.sql.model.ListSqlTableResponse;
 import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.testclient.api.ManagementData;
@@ -31,6 +32,7 @@ import io.pantheist.testclient.api.ManagementPathLocation;
 import io.pantheist.testclient.api.ManagementPathRoot;
 import io.pantheist.testclient.api.ManagementPathSchema;
 import io.pantheist.testclient.api.ManagementPathServer;
+import io.pantheist.testclient.api.ManagementPathSqlRow;
 import io.pantheist.testclient.api.ManagementPathSqlTable;
 import io.pantheist.testclient.api.ResponseType;
 
@@ -44,7 +46,8 @@ final class ManagementPathImpl implements
 		ManagementPathSchema,
 		ManagementPathJavaBinding,
 		ManagementFlatDirPath,
-		ManagementPathSqlTable
+		ManagementPathSqlTable,
+		ManagementPathSqlRow
 {
 	// Path segments
 	private static final String JAVA_PKG = "java-pkg";
@@ -308,5 +311,23 @@ final class ManagementPathImpl implements
 	public ListSqlTableResponse listSqlTables()
 	{
 		return target.withSegment(SQL_TABLE).getJson(ListSqlTableResponse.class);
+	}
+
+	@Override
+	public ListRowResponse listBy(final String indexColumn)
+	{
+		return target.withSegment(indexColumn).getJson(ListRowResponse.class);
+	}
+
+	@Override
+	public ResponseType listByResponseType(final String indexColumn)
+	{
+		return target.withSegment(indexColumn).getResponseType(APPLICATION_JSON);
+	}
+
+	@Override
+	public ManagementPathSqlRow row(final String indexColumn, final String indexValue)
+	{
+		return new ManagementPathImpl(target.withSegment(indexColumn).withSegment(indexValue));
 	}
 }

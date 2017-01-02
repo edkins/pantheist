@@ -24,7 +24,7 @@ final class UriPatternSegmentEmptyImpl implements UriPatternSegment
 	}
 
 	@Override
-	public String generate(final Map<String, String> values)
+	public String generateAndDelete(final Map<String, String> values)
 	{
 		return "";
 	}

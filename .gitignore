@@ -10,6 +10,7 @@
 /data/system/nginx.conf
 /data/system/java-binding
 /data/system/database
+/data/system/postgres.log
 /data/srv/third-party/
 /dump/
 /src/experiment

@@ -225,7 +225,7 @@ public final class ManagementResource implements ResourceTag
 	}
 
 	/**
-	 * Handles the system management function: reload configuration (POST)
+	 * Regenerates db and also reloads nginx configuration (POST)
 	 */
 	@POST
 	@Path("system/reload")
@@ -236,6 +236,27 @@ public final class ManagementResource implements ResourceTag
 		try
 		{
 			backend.reloadConfiguration();
+
+			return Response.noContent().build();
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles the system management function: reload configuration (POST)
+	 */
+	@POST
+	@Path("system/regenerate-db")
+	public Response regenerateDb()
+	{
+		LOGGER.info("POST system/regenerate-db");
+
+		try
+		{
+			backend.regenerateDb();
 
 			return Response.noContent().build();
 		}

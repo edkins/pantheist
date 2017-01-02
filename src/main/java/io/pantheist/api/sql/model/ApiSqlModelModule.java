@@ -13,6 +13,8 @@ public class ApiSqlModelModule extends PrivateModule
 		install(new FactoryModuleBuilder()
 				.implement(ListSqlTableItem.class, ListSqlTableItemImpl.class)
 				.implement(ListSqlTableResponse.class, ListSqlTableResponseImpl.class)
+				.implement(ListRowItem.class, ListRowItemImpl.class)
+				.implement(ListRowResponse.class, ListRowResponseImpl.class)
 				.build(ApiSqlModelFactory.class));
 	}
 

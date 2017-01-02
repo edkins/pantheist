@@ -23,6 +23,7 @@ import io.pantheist.api.sql.resource.ApiSqlResourceModule;
 import io.pantheist.common.api.model.CommonApiModelModule;
 import io.pantheist.common.api.url.CommonApiUrlModule;
 import io.pantheist.common.http.CommonHttpModule;
+import io.pantheist.common.shared.model.CommonSharedModelModule;
 import io.pantheist.handler.filesystem.backend.HandlerFilesystemBackendModule;
 import io.pantheist.handler.java.backend.HandlerJavaBackendModule;
 import io.pantheist.handler.java.model.HandlerJavaModelModule;
@@ -71,6 +72,7 @@ public class AllPantheistModule extends AbstractModule
 		install(new CommonApiModelModule());
 		install(new CommonApiUrlModule());
 		install(new CommonHttpModule());
+		install(new CommonSharedModelModule());
 		install(new HandlerFilesystemBackendModule());
 		install(new HandlerJavaBackendModule());
 		install(new HandlerJavaModelModule());

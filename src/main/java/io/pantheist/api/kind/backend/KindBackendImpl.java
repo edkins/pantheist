@@ -82,7 +82,7 @@ final class KindBackendImpl implements KindBackend
 	private ListEntityItem toListEntityItem(final Entity entity)
 	{
 		return modelFactory.listEntityItem(
-				urlTranslation.entityToUrl(entity.entityId()),
+				urlTranslation.entityToUrl(entity.kindId(), entity.entityId()),
 				entity.entityId(),
 				entity.discovered(),
 				kindUrlForEntity(entity));

@@ -1,0 +1,11 @@
+{
+  "kindId" : "sql-row",
+  "partOfSystem" : true,
+  "instancePresentation" : {
+    "iconUrl" : "/resources/images/sql-row.png",
+    "openIconUrl" : null
+  },
+  "schema" : {
+    "subKindOf" : [ ]
+  }
+}

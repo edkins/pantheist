@@ -11,6 +11,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -32,6 +35,7 @@ import io.pantheist.testhelpers.selenium.SeleniumInfo;
 
 public final class TestSessionImpl implements TestRule, TestSession
 {
+	private static final Logger LOGGER = LogManager.getLogger(TestSessionImpl.class);
 	private final PortFinder internalPort;
 
 	private final PortFinder mainPort;
@@ -150,6 +154,20 @@ public final class TestSessionImpl implements TestRule, TestSession
 		return new File(dataDir(), "pantheist.conf");
 	}
 
+	public Initializer start() throws IOException
+	{
+		FileUtils.deleteDirectory(dataDir());
+		dataDir().mkdir();
+		generateConfigFile();
+		this.initializer = createInjector().getInstance(Initializer.class);
+		return this.initializer;
+	}
+
+	public void stop()
+	{
+		this.initializer.close();
+	}
+
 	@Override
 	public Statement apply(final Statement base, final Description description)
 	{
@@ -158,11 +176,14 @@ public final class TestSessionImpl implements TestRule, TestSession
 			@Override
 			public void evaluate() throws Throwable
 			{
-				generateConfigFile();
-				try (Initializer initializer = createInjector().getInstance(Initializer.class))
+				try (Initializer initializer = start())
 				{
-					TestSessionImpl.this.initializer = initializer;
 					base.evaluate();
+				}
+				catch (final Throwable t)
+				{
+					LOGGER.catching(t);
+					throw t;
 				}
 			}
 		};

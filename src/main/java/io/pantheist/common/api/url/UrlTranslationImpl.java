@@ -23,7 +23,6 @@ import io.pantheist.common.api.model.DeleteAction;
 import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.common.util.AntiIt;
-import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.java.model.JavaModelFactory;
 import io.pantheist.system.config.PantheistConfig;
@@ -38,16 +37,17 @@ final class UrlTranslationImpl implements UrlTranslation
 
 	private final UriPattern managementRoot;
 	private final UriPattern kind;
+	private final UriPattern kindEntity;
 	private final UriPattern jsonSchema;
 	private final UriPattern javaBinding;
 	private final UriPattern javaPkg;
 	private final UriPattern javaFile;
 	private final UriPattern location;
-	private final UriPattern entity;
-	private final UriPattern component;
 	private final UriPattern flatDir;
 	private final UriPattern flatDirFile;
 	private final UriPattern sqlTable;
+	private final UriPattern sqlTableColumn;
+	private final UriPattern sqlTableColumnRow;
 
 	@Inject
 	private UrlTranslationImpl(
@@ -61,9 +61,8 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.managementRoot = root;
 		this.javaFactory = checkNotNull(javaFactory);
 		this.modelFactory = checkNotNull(modelFactory);
-		this.entity = root.segment("entity").var("entityId");
-		this.component = entity.segment("component").var("componentId");
 		this.kind = root.segment("kind").var("kindId");
+		this.kindEntity = kind.segment("entity").var("entityId");
 		this.jsonSchema = root.segment("json-schema").var("schemaId");
 		this.javaBinding = root.segment("java-binding");
 		this.javaPkg = root.segment("java-pkg").var("pkg");
@@ -72,6 +71,8 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.flatDir = root.segment("flat-dir").var("dir");
 		this.flatDirFile = flatDir.segment("file").var("file");
 		this.sqlTable = root.segment("sql-table").var("table");
+		this.sqlTableColumn = sqlTable.var("column");
+		this.sqlTableColumnRow = sqlTableColumn.var("row");
 	}
 
 	@Override
@@ -139,13 +140,6 @@ final class UrlTranslationImpl implements UrlTranslation
 	}
 
 	@Override
-	public List<ListClassifierItem> listEntityClassifiers(final String entityId)
-	{
-		return classifiers(entity, ImmutableMap.of("entityId", entityId), true,
-				"component");
-	}
-
-	@Override
 	public String javaPkgToUrl(final String pkg)
 	{
 		return javaPkg.generate(ImmutableMap.of("pkg", pkg));
@@ -161,18 +155,6 @@ final class UrlTranslationImpl implements UrlTranslation
 	public List<ListClassifierItem> listKindClassifiers(final String kindId)
 	{
 		return classifiers(kind, ImmutableMap.of("kindId", kindId), true, "entity");
-	}
-
-	@Override
-	public String entityToUrl(final String entityId)
-	{
-		return entity.generate(ImmutableMap.of("entityId", entityId));
-	}
-
-	@Override
-	public String componentToUrl(final String entityId, final String componentId)
-	{
-		return component.generate(ImmutableMap.of("entityId", entityId, "componentId", componentId));
 	}
 
 	@Override
@@ -266,10 +248,21 @@ final class UrlTranslationImpl implements UrlTranslation
 	}
 
 	@Override
-	public List<ListClassifierItem> listSqlTableClassifiers(final String table)
+	public String sqlTableColumnToUrl(final String table, final String column)
 	{
-		OtherPreconditions.checkNotNullOrEmpty(table);
-		return classifiers(sqlTable, ImmutableMap.of("table", table), true, "row");
+		return sqlTableColumn.generate(ImmutableMap.of("table", table, "column", column));
+	}
+
+	@Override
+	public String sqlRowToUrl(final String table, final String column, final String row)
+	{
+		return sqlTableColumnRow.generate(ImmutableMap.of("table", table, "column", column, "row", row));
+	}
+
+	@Override
+	public String entityToUrl(final String kindId, final String entityId)
+	{
+		return kindEntity.generate(ImmutableMap.of("kindId", kindId, "entityId", entityId));
 	}
 
 }

@@ -67,7 +67,7 @@ public class FlatDirTest
 	}
 
 	@Test
-	public void flatDir_mutliSegment_canList() throws Exception
+	public void flatDir_multiSegment_canList() throws Exception
 	{
 		manage.javaPackage(JAVA_PKG)
 				.file(JAVA_EMPTY_CLASS_NAME)
