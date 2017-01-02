@@ -1,4 +1,4 @@
-package io.pantheist.testhelpers.session;
+package io.pantheist.testhelpers.classrule;
 
 import java.io.File;
 import java.net.URL;
@@ -7,16 +7,11 @@ import org.openqa.selenium.WebDriver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.pantheist.testclient.api.ManagementClient;
 import io.pantheist.testhelpers.selenium.SeleniumInfo;
 
 public interface TestSession extends SeleniumInfo
 {
-	void clear();
-
-	void supplyDataDir(File dataDir);
-
-	void supplyConfigFile(File configFile);
-
 	@Override
 	WebDriver webDriver();
 
@@ -38,4 +33,7 @@ public interface TestSession extends SeleniumInfo
 
 	ObjectMapper objectMapper();
 
+	ManagementClient client();
+
+	boolean ensureStarted();
 }

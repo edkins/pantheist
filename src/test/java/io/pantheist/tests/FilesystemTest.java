@@ -12,15 +12,41 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import io.pantheist.api.management.model.ListConfigItem;
 import io.pantheist.testclient.api.ManagementPathLocation;
+import io.pantheist.testclient.api.ManagementPathRoot;
+import io.pantheist.testclient.api.ManagementPathServer;
 import io.pantheist.testclient.api.ResponseType;
+import io.pantheist.testclient.impl.TargetWrapper;
+import io.pantheist.testhelpers.classrule.TestSessionImpl;
+import io.pantheist.testhelpers.rule.MainRule;
 
-public class FilesystemTest extends BaseTest
+public class FilesystemTest
 {
+	@ClassRule
+	public static final TestSessionImpl outerRule = TestSessionImpl.forApi();
+
+	@Rule
+	public final MainRule mainRule = MainRule.forNewTest(outerRule);
+
+	private ManagementPathRoot manage;
+	private ManagementPathServer mmain;
+	private TargetWrapper mainApi;
+
 	private static final String TEXT_PLAIN = "text/plain";
+
+	@Before
+	public void setup()
+	{
+		manage = mainRule.actions().manage();
+		mmain = mainRule.actions().manageMainServer();
+		mainApi = mainRule.actions().main();
+	}
 
 	@Test
 	public void filesystemFile_canReadItBack_throughManagementApi() throws Exception

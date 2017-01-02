@@ -6,14 +6,28 @@ import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import io.pantheist.api.java.model.ListJavaFileItem;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
+import io.pantheist.testclient.api.ManagementPathRoot;
 import io.pantheist.testclient.api.ResponseType;
+import io.pantheist.testhelpers.classrule.TestSessionImpl;
+import io.pantheist.testhelpers.rule.MainRule;
 
-public class JavaTest extends BaseTest
+public class JavaTest
 {
+	@ClassRule
+	public static final TestSessionImpl outerRule = TestSessionImpl.forApi();
+
+	@Rule
+	public final MainRule mainRule = MainRule.forNewTest(outerRule);
+
+	private ManagementPathRoot manage;
+
 	private static final String JAVA_SYNTAXERROR_RES = "/java-example/java-syntax-error";
 	private static final String TEXT_PLAIN = "text/plain";
 	private static final String JAVA_JERSEY_NAME = "ExampleJerseyResource";
@@ -21,6 +35,12 @@ public class JavaTest extends BaseTest
 	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
+
+	@Before
+	public void setup()
+	{
+		manage = mainRule.actions().manage();
+	}
 
 	@Test
 	public void java_canPutSomewhere_andReadItBack() throws Exception
@@ -36,7 +56,7 @@ public class JavaTest extends BaseTest
 				.data()
 				.getString(TEXT_PLAIN);
 
-		assertThat(data, is(resource(JAVA_JERSEY_RES)));
+		assertThat(data, is(mainRule.resource(JAVA_JERSEY_RES)));
 	}
 
 	@Test

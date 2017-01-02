@@ -1,4 +1,4 @@
-package io.pantheist.testhelpers.app;
+package io.pantheist.testhelpers.rule;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -17,21 +17,21 @@ import org.junit.runners.model.Statement;
 import com.google.common.collect.ImmutableSet;
 
 import io.pantheist.handler.kind.model.Kind;
-import io.pantheist.testhelpers.session.TestSession;
+import io.pantheist.testhelpers.classrule.TestSession;
 
-public class DataFileImportRule implements TestRule
+final class DataDirSetupRule implements TestRule
 {
-	private static final Logger LOGGER = LogManager.getLogger(DataFileImportRule.class);
+	private static final Logger LOGGER = LogManager.getLogger(DataDirSetupRule.class);
 	private final TestSession session;
 
-	private DataFileImportRule(final TestSession session)
+	private DataDirSetupRule(final TestSession session)
 	{
 		this.session = checkNotNull(session);
 	}
 
-	public static DataFileImportRule forTest(final TestSession session)
+	public static DataDirSetupRule forTest(final TestSession session)
 	{
-		return new DataFileImportRule(session);
+		return new DataDirSetupRule(session);
 	}
 
 	@Override
@@ -80,8 +80,8 @@ public class DataFileImportRule implements TestRule
 
 		if (root.isDirectory())
 		{
-			cleanAllExcept(system, "database");
-			cleanAllExcept(root, "system");
+			cleanAllExcept(system, "database", "nginx.pid", "nginx.conf");
+			cleanAllExcept(root, "system", "pantheist.conf");
 		}
 		else
 		{

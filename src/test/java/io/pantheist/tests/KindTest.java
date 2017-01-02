@@ -7,19 +7,39 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import io.pantheist.api.kind.model.ApiKind;
 import io.pantheist.api.kind.model.ListKindItem;
 import io.pantheist.testclient.api.ManagementPathKind;
+import io.pantheist.testclient.api.ManagementPathRoot;
 import io.pantheist.testclient.api.ResponseType;
+import io.pantheist.testhelpers.classrule.TestSessionImpl;
+import io.pantheist.testhelpers.rule.MainRule;
 
-public class KindTest extends BaseTest
+public class KindTest
 {
+	@ClassRule
+	public static final TestSessionImpl outerRule = TestSessionImpl.forApi();
+
+	@Rule
+	public final MainRule mainRule = MainRule.forNewTest(outerRule);
+
+	private ManagementPathRoot manage;
+
 	private static final String KIND_SCHEMA_RES = "/kind-schema/kind-test-example";
 	private static final String KIND_SCHEMA_SYSTEM_RES = "/kind-schema/kind-test-example-system";
 	private static final String KIND_EXAMPLE_CORRECT_ID_RES = "/kind-schema/kind-test-example-correct-id";
 	private static final String KIND_EXAMPLE_GARBAGE_ID_RES = "/kind-schema/kind-test-example-garbage-id";
+
+	@Before
+	public void setup()
+	{
+		manage = mainRule.actions().manage();
+	}
 
 	@Test
 	public void kind_canReadBack() throws Exception

@@ -6,15 +6,37 @@ import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
 import io.pantheist.api.sql.model.ListSqlTableItem;
+import io.pantheist.testclient.api.ManagementPathRoot;
 import io.pantheist.testclient.api.ResponseType;
+import io.pantheist.testhelpers.classrule.TestSessionImpl;
+import io.pantheist.testhelpers.rule.MainRule;
 
-public class SqlTest extends BaseTest
+public class SqlTest
 {
+	@ClassRule
+	public static final TestSessionImpl outerRule = TestSessionImpl.forApi();
+
+	@Rule
+	public final MainRule mainRule = MainRule.forNewTest(outerRule);
+
+	private ManagementPathRoot manage;
+
+	private static final String JAVA_FILE = "java-file";
+
+	@Before
+	public void setup()
+	{
+		manage = mainRule.actions().manage();
+	}
+
 	@Test
 	public void javaFile_tableIsListed() throws Exception
 	{

@@ -1,4 +1,4 @@
-package io.pantheist.testhelpers.session;
+package io.pantheist.testhelpers.classrule;
 
 import java.io.IOException;
 import java.net.ServerSocket;

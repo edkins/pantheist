@@ -8,19 +8,39 @@ import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
 import io.pantheist.api.flatdir.model.ListFileItem;
 import io.pantheist.api.flatdir.model.ListFlatDirItem;
+import io.pantheist.testclient.api.ManagementPathRoot;
+import io.pantheist.testhelpers.classrule.TestSessionImpl;
+import io.pantheist.testhelpers.rule.MainRule;
 
-public class FlatDirTest extends BaseTest
+public class FlatDirTest
 {
+	@ClassRule
+	public static final TestSessionImpl outerRule = TestSessionImpl.forApi();
+
+	@Rule
+	public final MainRule mainRule = MainRule.forNewTest(outerRule);
+
+	private ManagementPathRoot manage;
+
 	private static final String TEXT_PLAIN = "text/plain";
 	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
+
+	@Before
+	public void setup()
+	{
+		manage = mainRule.actions().manage();
+	}
 
 	@Test
 	public void flatDir_singleSegment_canList() throws Exception

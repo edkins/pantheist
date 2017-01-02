@@ -1,4 +1,4 @@
-package io.pantheist.testhelpers.session;
+package io.pantheist.testhelpers.rule;
 
 import org.openqa.selenium.WebDriver;
 

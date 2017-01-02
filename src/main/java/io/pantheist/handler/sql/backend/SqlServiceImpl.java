@@ -14,6 +14,9 @@ import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.common.collect.ImmutableList;
 
 import io.pantheist.common.util.OtherPreconditions;
@@ -24,6 +27,7 @@ import io.pantheist.system.config.PantheistConfig;
 
 final class SqlServiceImpl implements SqlService
 {
+	private static final Logger LOGGER = LogManager.getLogger(SqlServiceImpl.class);
 	private final FilesystemStore filesystem;
 
 	private final PantheistConfig config;
@@ -49,8 +53,10 @@ final class SqlServiceImpl implements SqlService
 			final File logfile = map.get(logfilePath());
 			if (!dirExists)
 			{
+				LOGGER.info("Creating postgres directory {}", dbPath.getAbsolutePath());
 				initdb(dbPath);
 			}
+			LOGGER.info("Starting or restarting postgres");
 			restart(dbPath, logfile, config.postgresPort());
 			createTableIfNotExists("java-file");
 		});
@@ -68,6 +74,7 @@ final class SqlServiceImpl implements SqlService
 	@Override
 	public void stop()
 	{
+		LOGGER.info("Stopping postgres");
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
 		snapshot.isDir(dbPath());
 		snapshot.writeSingle(dbPath(), this::stop);

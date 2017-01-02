@@ -1,4 +1,4 @@
-package io.pantheist.testhelpers.session;
+package io.pantheist.testhelpers.rule;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -6,7 +6,7 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
-public class ErrorLoggingRule implements TestRule
+final class ErrorLoggingRule implements TestRule
 {
 	private static final Logger LOGGER = LogManager.getLogger(ErrorLoggingRule.class);
 

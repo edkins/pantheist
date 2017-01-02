@@ -1,11 +1,15 @@
-package io.pantheist.testhelpers.session;
+package io.pantheist.testhelpers.rule;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.rules.RuleChain;
@@ -13,15 +17,14 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import com.google.common.base.Throwables;
+
 import io.pantheist.testclient.api.ManagementClient;
-import io.pantheist.testclient.impl.ManagementClientImpl;
-import io.pantheist.testhelpers.app.AppRule;
-import io.pantheist.testhelpers.app.DataFileImportRule;
-import io.pantheist.testhelpers.app.GenerateConfigFileRule;
-import io.pantheist.testhelpers.app.WaitForServerRule;
+import io.pantheist.testclient.api.ManagementPathJavaFile;
+import io.pantheist.testclient.api.ManagementPathKind;
+import io.pantheist.testhelpers.classrule.TestSession;
 import io.pantheist.testhelpers.selenium.NavigateToHomeRule;
 import io.pantheist.testhelpers.selenium.ScreenshotRule;
-import io.pantheist.testhelpers.selenium.SeleniumInfo;
 
 public class MainRule implements TestRule
 {
@@ -36,12 +39,9 @@ public class MainRule implements TestRule
 	private RuleChain createRuleChain()
 	{
 		return RuleChain
-				.outerRule(SessionClearingRule.forTest(session))
-				.around(new ErrorLoggingRule())
-				.around(DataFileImportRule.forTest(session))
-				.around(GenerateConfigFileRule.forTest(session))
-				.around(AppRule.forTest(session))
-				.around(WaitForServerRule.forTest(session))
+				.outerRule(new ErrorLoggingRule())
+				.around(DataDirSetupRule.forTest(session))
+				.around(ReloadRule.forTest(session))
 				.around(navigateToHomeRule())
 				.around(screenshotRule());
 	}
@@ -71,24 +71,14 @@ public class MainRule implements TestRule
 
 	}
 
-	public static MainRule forNewTest(final SeleniumInfo seleniumInfo)
+	public static MainRule forNewTest(final TestSession session)
 	{
-		final TestSession session = TestSessionImpl.forNewTest(seleniumInfo);
 		return new MainRule(session);
 	}
 
 	public ManagementClient actions()
 	{
-		if (session.useSelenium())
-		{
-			throw new UnsupportedOperationException("Selenium-based actions not implemented yet");
-		}
-		else
-		{
-			// main url and management url are the same for now.
-			// "/" is a proxy pass to the management interface in nginx.conf
-			return ManagementClientImpl.from(session.mainUrl(), session.mainUrl(), session.objectMapper());
-		}
+		return session.client();
 	}
 
 	@Override
@@ -114,5 +104,35 @@ public class MainRule implements TestRule
 		assertTrue("Could not create dir", dir.mkdir());
 		LOGGER.info("Created a temp directory {}", dir.getAbsolutePath());
 		return dir;
+	}
+
+	public String resource(final String resourcePath)
+	{
+		try (InputStream input = MainRule.class.getResourceAsStream(resourcePath))
+		{
+			if (input == null)
+			{
+				throw new IllegalArgumentException("Resource does not exist: " + resourcePath);
+			}
+			return IOUtils.toString(input, StandardCharsets.UTF_8);
+		}
+		catch (final IOException e)
+		{
+			throw Throwables.propagate(e);
+		}
+	}
+
+	public ManagementPathJavaFile putJavaResource(final String name)
+	{
+		final ManagementPathJavaFile java = actions().manage().javaPackage("io.pantheist.examples").file(name);
+		java.data().putResource("/java-example/" + name, "text/plain");
+		return java;
+	}
+
+	public ManagementPathKind putKindResource(final String name)
+	{
+		final ManagementPathKind kind = actions().manage().kind(name);
+		kind.putJsonResource("/kind-schema/" + name);
+		return kind;
 	}
 }

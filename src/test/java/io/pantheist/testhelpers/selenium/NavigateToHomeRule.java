@@ -6,7 +6,7 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
-import io.pantheist.testhelpers.session.TestSession;
+import io.pantheist.testhelpers.classrule.TestSession;
 
 public class NavigateToHomeRule implements TestRule
 {

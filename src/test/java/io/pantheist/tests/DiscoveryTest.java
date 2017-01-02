@@ -6,6 +6,9 @@ import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import io.pantheist.api.java.model.ListJavaFileItem;
@@ -13,9 +16,20 @@ import io.pantheist.api.kind.model.ListEntityItem;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathJavaPackage;
 import io.pantheist.testclient.api.ManagementPathKind;
+import io.pantheist.testclient.api.ManagementPathRoot;
+import io.pantheist.testhelpers.classrule.TestSessionImpl;
+import io.pantheist.testhelpers.rule.MainRule;
 
-public class DiscoveryTest extends BaseTest
+public class DiscoveryTest
 {
+	@ClassRule
+	public static final TestSessionImpl outerRule = TestSessionImpl.forApi();
+
+	@Rule
+	public final MainRule mainRule = MainRule.forNewTest(outerRule);
+
+	private ManagementPathRoot manage;
+
 	private static final String JAVA_FILE = "java-file";
 	private static final String TEXT_PLAIN = "text/plain";
 	private static final String JAVA_PKG = "io.pantheist.examples";
@@ -29,6 +43,12 @@ public class DiscoveryTest extends BaseTest
 	private static final String JAVA_CONSTRUCTOR_BUTTER_NAME_RES = "/java-example/ConstructedFromButter";
 	private static final String JAVA_CONSTRUCTOR_NON_BUTTER_NAME = "ConstructedFromRegular";
 	private static final String JAVA_CONSTRUCTOR_NON_BUTTER_RES = "/java-example/ConstructedFromRegular";
+
+	@Before
+	public void setup()
+	{
+		manage = mainRule.actions().manage();
+	}
 
 	@Test
 	public void discoveredJavaEntity_isListed_underKind() throws Exception

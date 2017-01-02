@@ -13,8 +13,11 @@ public interface ManagementClient
 	 */
 	ManagementPathServer manageMainServer();
 
-	/**
-	 * @return the root path to the main api
-	 */
 	TargetWrapper main();
+
+	/**
+	 * Tell the server to reload itself
+	 */
+	void reload();
+
 }

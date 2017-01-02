@@ -8,6 +8,7 @@ import java.net.URL;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
@@ -15,6 +16,7 @@ import com.google.common.base.Throwables;
 import io.pantheist.testclient.api.ManagementClient;
 import io.pantheist.testclient.api.ManagementPathRoot;
 import io.pantheist.testclient.api.ManagementPathServer;
+import io.pantheist.testclient.api.ManagementUnexpectedResponseException;
 
 public class ManagementClientImpl implements ManagementClient
 {
@@ -66,5 +68,16 @@ public class ManagementClientImpl implements ManagementClient
 	public ManagementPathServer manageMainServer()
 	{
 		return manage().server(mainUri.getPort());
+	}
+
+	@Override
+	public void reload()
+	{
+		final Response response = client.target(mainUri.toString()).path("system/reload").request().post(null);
+		if (response.getStatus() != 204)
+		{
+			throw new ManagementUnexpectedResponseException(
+					"Unexpected status code " + response.getStatus() + " when reloading");
+		}
 	}
 }

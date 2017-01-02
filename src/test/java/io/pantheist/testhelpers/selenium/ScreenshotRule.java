@@ -13,7 +13,7 @@ import org.junit.runners.model.Statement;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 
-import io.pantheist.testhelpers.session.TestSession;
+import io.pantheist.testhelpers.classrule.TestSession;
 
 public final class ScreenshotRule implements TestRule
 {

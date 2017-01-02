@@ -215,7 +215,8 @@ public final class ManagementResource implements ResourceTag
 		{
 			backend.scheduleTerminate();
 
-			return Response.noContent().build();
+			// This is status 202 ACCEPTED. It means processing of the request has not completed.
+			return Response.accepted().build();
 		}
 		catch (final RuntimeException ex)
 		{
@@ -236,8 +237,7 @@ public final class ManagementResource implements ResourceTag
 		{
 			backend.reloadConfiguration();
 
-			// This is status 202 ACCEPTED. It means processing of the request has not completed.
-			return Response.accepted().build();
+			return Response.noContent().build();
 		}
 		catch (final RuntimeException ex)
 		{

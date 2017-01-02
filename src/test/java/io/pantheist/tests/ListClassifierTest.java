@@ -13,6 +13,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
@@ -29,12 +32,23 @@ import io.pantheist.testclient.api.ManagementFlatDirPath;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathJavaPackage;
 import io.pantheist.testclient.api.ManagementPathKind;
+import io.pantheist.testclient.api.ManagementPathRoot;
 import io.pantheist.testclient.api.ManagementPathSchema;
 import io.pantheist.testclient.api.ManagementPathSqlTable;
 import io.pantheist.testclient.api.ResponseType;
+import io.pantheist.testhelpers.classrule.TestSessionImpl;
+import io.pantheist.testhelpers.rule.MainRule;
 
-public class ListClassifierTest extends BaseTest
+public class ListClassifierTest
 {
+	@ClassRule
+	public static final TestSessionImpl outerRule = TestSessionImpl.forApi();
+
+	@Rule
+	public final MainRule mainRule = MainRule.forNewTest(outerRule);
+
+	private ManagementPathRoot manage;
+
 	private static final String APPLICATION_JSON = "application/json";
 	private static final String TEXT_PLAIN = "text/plain";
 	private static final String JAVA_PKG = "io.pantheist.examples";
@@ -43,6 +57,13 @@ public class ListClassifierTest extends BaseTest
 	private static final String KIND_SCHEMA_RES = "/kind-schema/kind-test-example";
 	private static final String JSON_SCHEMA_MIME = "application/schema+json";
 	private static final String JSON_SCHEMA_COFFEE_RES = "/json-schema/coffee";
+	private static final String JAVA_FILE = "java-file";
+
+	@Before
+	public void setup()
+	{
+		manage = mainRule.actions().manage();
+	}
 
 	@Test
 	public void root_classifiers() throws Exception
