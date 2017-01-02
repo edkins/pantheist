@@ -1,13 +1,13 @@
 {
   "schema": {
     "java": {
-      "javaKind": "interface",
       "anyAnnotation": {
         "name": "Butter"
       }
     },
     "identification": {
-      "parentKind": "java-file"
+      "parentKind": "java-file",
+      "isInterface": true
     }
   }
 }

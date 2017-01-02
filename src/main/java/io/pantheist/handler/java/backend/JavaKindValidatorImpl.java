@@ -3,16 +3,13 @@ package io.pantheist.handler.java.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-import java.util.Optional;
 
 import javax.inject.Inject;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.BodyDeclaration;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
-import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
@@ -21,40 +18,12 @@ import io.pantheist.handler.kind.model.AnnotationClause;
 import io.pantheist.handler.kind.model.ArgClause;
 import io.pantheist.handler.kind.model.ConstructorClause;
 import io.pantheist.handler.kind.model.JavaClause;
-import io.pantheist.handler.kind.model.JavaKind;
 
 final class JavaKindValidatorImpl implements JavaKindValidator
 {
 	@Inject
 	private JavaKindValidatorImpl()
 	{
-	}
-
-	/**
-	 * Return what we think this is, or empty if we have no idea.
-	 */
-	private Optional<JavaKind> classify(final TypeDeclaration<?> type)
-	{
-		if (type instanceof ClassOrInterfaceDeclaration)
-		{
-			if (((ClassOrInterfaceDeclaration) type).isInterface())
-			{
-				return Optional.of(JavaKind.INTERFACE);
-			}
-			else
-			{
-				return Optional.of(JavaKind.CLASS);
-			}
-		}
-		else if (type instanceof EnumDeclaration)
-		{
-			return Optional.of(JavaKind.ENUM);
-		}
-		else
-		{
-			// possibly annotation?
-			return Optional.empty();
-		}
 	}
 
 	@Override
@@ -70,17 +39,6 @@ final class JavaKindValidatorImpl implements JavaKindValidator
 		}
 
 		final TypeDeclaration<?> mainType = compilationUnit.getType(0);
-		if (javaClause.javaKind() != null)
-		{
-
-			// Work out the actual java kind and see if it agrees.
-			final TypeDeclaration<?> type = mainType;
-			final Optional<JavaKind> javaKind = classify(type);
-			if (!javaKind.isPresent() || !javaClause.javaKind().encompasses(javaKind))
-			{
-				return false;
-			}
-		}
 
 		if (javaClause.anyAnnotation() != null)
 		{

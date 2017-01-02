@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.util.OtherPreconditions;
@@ -42,6 +43,12 @@ final class GenericPropertyValueStringImpl implements GenericPropertyValue
 	public String stringValue()
 	{
 		return value;
+	}
+
+	@Override
+	public boolean matchesJsonNodeExactly(final JsonNode jsonNode)
+	{
+		return jsonNode.isTextual() && value.equals(jsonNode.textValue());
 	}
 
 }

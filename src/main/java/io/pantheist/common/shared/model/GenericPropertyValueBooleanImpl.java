@@ -2,6 +2,7 @@ package io.pantheist.common.shared.model;
 
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.util.OtherPreconditions;
@@ -42,6 +43,12 @@ final class GenericPropertyValueBooleanImpl implements GenericPropertyValue
 	public String stringValue()
 	{
 		throw new IllegalStateException("Is a boolean not a string");
+	}
+
+	@Override
+	public boolean matchesJsonNodeExactly(final JsonNode jsonNode)
+	{
+		return jsonNode.isBoolean() && jsonNode.booleanValue() == value;
 	}
 
 }

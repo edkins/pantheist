@@ -1,10 +1,13 @@
 package io.pantheist.handler.kind.model;
 
+import java.util.Map;
+
 import javax.annotation.Nullable;
 
 import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.api.model.Presentation;
+import io.pantheist.common.shared.model.GenericPropertyValue;
 import io.pantheist.handler.java.model.JavaFileId;
 
 public interface KindModelFactory
@@ -19,5 +22,7 @@ public interface KindModelFactory
 			@Assisted("entityId") String entityId,
 			@Assisted("kindId") String kindId,
 			@Nullable @Assisted("jsonSchemaId") String jsonSchemaId,
-			@Nullable JavaFileId javaFileId);
+			@Nullable JavaFileId javaFileId,
+			Map<String, GenericPropertyValue> propertyValues,
+			@Assisted("canDifferentiate") boolean canDifferentiate);
 }

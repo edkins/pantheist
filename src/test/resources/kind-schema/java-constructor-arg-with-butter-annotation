@@ -1,7 +1,6 @@
 {
   "schema": {
     "java": {
-      "javaKind": "class",
       "anyConstructor": {
         "anyArg": {
           "anyAnnotation": {
@@ -11,7 +10,8 @@
       }
     },
     "identification": {
-      "parentKind": "java-file"
+      "parentKind": "java-file",
+      "isClass": true
     }
   }
 }

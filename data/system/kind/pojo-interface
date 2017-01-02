@@ -7,11 +7,9 @@
   },
   "schema": {
     "java": {
-      "javaKind": "interface",
       "anyAnnotation": {
         "name": "JsonDeserialize"
-      },
-      "anyConstructor": null
+      }
     },
     "identification": {
       "parentKind": "java-interface-file"

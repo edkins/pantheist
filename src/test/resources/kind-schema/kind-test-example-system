@@ -1,11 +1,9 @@
 {
   "partOfSystem": true,
   "schema": {
-    "java": {
-      "javaKind": "interface"
-    },
     "identification": {
-      "parentKind": "java-file"
+      "parentKind": "java-file",
+      "isInterface": true
     }
   }
 }

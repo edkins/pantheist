@@ -4,11 +4,9 @@
     "openIconUrl": "http://example.com/icon2.png"
   },
   "schema": {
-    "java": {
-      "javaKind": "interface"
-    },
     "identification": {
-      "parentKind": "java-file"
+      "parentKind": "java-file",
+      "isInterface": true
     }
   }
 }

@@ -7,8 +7,6 @@
   },
   "schema": {
     "java": {
-      "javaKind": null,
-      "anyAnnotation": null,
       "anyConstructor": {
         "anyArg": {
           "anyAnnotation": {

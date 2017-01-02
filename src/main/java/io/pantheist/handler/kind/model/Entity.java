@@ -1,26 +1,34 @@
 package io.pantheist.handler.kind.model;
 
+import java.util.Map;
+
 import javax.annotation.Nullable;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
+import io.pantheist.common.shared.model.GenericPropertyValue;
 import io.pantheist.handler.java.model.JavaFileId;
 
-@JsonDeserialize(as = EntityImpl.class)
 public interface Entity
 {
-	@JsonProperty("entityId")
 	String entityId();
 
-	@JsonProperty("kindId")
 	String kindId();
 
 	@Nullable
-	@JsonProperty("jsonSchemaId")
 	String jsonSchemaId();
 
 	@Nullable
-	@JsonProperty("javaFileId")
 	JavaFileId javaFileId();
+
+	Map<String, GenericPropertyValue> propertyValues();
+
+	/**
+	 * Used internally to signify that the entity is a candidate for further
+	 * differentiation into a subkind.
+	 *
+	 * If false it usually means the entity is not fully valid.
+	 *
+	 * If true, all properties specified in the kind must have corresponding values in
+	 * this entity.
+	 */
+	boolean canDifferentiate();
 }

@@ -80,33 +80,11 @@ final class KindStoreImpl implements KindStore
 				.map(path -> snapshot.readJson(path, Kind.class));
 	}
 
-	/**
-	 * Has to meet fairly strict requirements, to avoid registering things in sql table accidentally.
-	 *
-	 * The partOfSystem is the important one; user-defined kinds shouldn't be setting this flag.
-	 */
-	private boolean shouldRegisterInSql(final Kind k)
-	{
-		if (!k.partOfSystem())
-		{
-			return false;
-		}
-		if (k.schema().properties() == null || k.schema().properties().isEmpty())
-		{
-			return false;
-		}
-		if (k.schema().identification() != null && k.schema().identification().has("parentKind"))
-		{
-			return false;
-		}
-		return true;
-	}
-
 	@Override
 	public void registerKindsInSql()
 	{
 		listAllKinds().forEach(k -> {
-			if (shouldRegisterInSql(k))
+			if (k.shouldRegisterInSql())
 			{
 				final List<SqlProperty> properties = k.schema()
 						.properties()

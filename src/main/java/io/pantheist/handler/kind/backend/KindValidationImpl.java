@@ -2,13 +2,26 @@ package io.pantheist.handler.kind.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+
+import io.pantheist.common.shared.model.CommonSharedModelFactory;
+import io.pantheist.common.shared.model.GenericPropertyValue;
+import io.pantheist.common.shared.model.PropertyType;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.OtherPreconditions;
@@ -17,50 +30,47 @@ import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.kind.model.Entity;
 import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.handler.kind.model.KindModelFactory;
+import io.pantheist.handler.kind.model.KindProperty;
+import io.pantheist.handler.sql.backend.SqlService;
 
 final class KindValidationImpl implements KindValidation
 {
+	private static final String PARENT_KIND = "parentKind";
+	private static final String QUALIFIED_NAME = "qualifiedName";
+	private static final String JAVA_FILE = "java-file";
 	private final JavaStore javaStore;
 	private final KindStore kindStore;
 	private final KindModelFactory modelFactory;
+	private final SqlService sqlService;
+	private final CommonSharedModelFactory sharedFactory;
 
 	@Inject
 	private KindValidationImpl(
 			final JavaStore javaStore,
 			final KindStore kindStore,
-			final KindModelFactory modelFactory)
+			final KindModelFactory modelFactory,
+			final SqlService sqlService,
+			final CommonSharedModelFactory sharedFactory)
 	{
 		this.javaStore = checkNotNull(javaStore);
 		this.kindStore = checkNotNull(kindStore);
 		this.modelFactory = checkNotNull(modelFactory);
-	}
-
-	/**
-	 * Validate without regards for superkinds.
-	 */
-	private boolean validateIndividual(final Entity entity, final Kind kind)
-	{
-		if (kind.schema().java() != null)
-		{
-			if (!javaStore.validateKind(entity.javaFileId(), kind.schema().java()))
-			{
-				// Java store says the details are invalid.
-				return false;
-			}
-		}
-
-		// Otherwise assume ok.
-		return true;
+		this.sqlService = checkNotNull(sqlService);
+		this.sharedFactory = checkNotNull(sharedFactory);
 	}
 
 	@Override
 	public Entity discoverJavaKind(final JavaFileId javaFileId)
 	{
-		checkNotNull(javaFileId);
-		final Entity entity = modelFactory.entity(javaFileId.file(), "java-file", null,
-				javaFileId);
+		return differentiate(javaEntity(javaFileId));
+	}
 
-		return differentiate(entity);
+	@Override
+	public AntiIterator<Entity> discoverEntitiesWithKind(final String kindId)
+	{
+		OtherPreconditions.checkNotNullOrEmpty(kindId);
+		return discoverEntitiesWithKindRecursive(kindId, new HashSet<>())
+				.map(this::differentiate); // may be a subkind of the one specified
 	}
 
 	/**
@@ -78,30 +88,14 @@ final class KindValidationImpl implements KindValidation
 
 		for (final Kind kind : kinds)
 		{
-			if (validateIndividual(entity, kind))
+			final Optional<Entity> newEntity = differentiationStep(entity, kind);
+			if (newEntity.isPresent())
 			{
-				return differentiate(supplyKind(entity, kind));
+				return differentiate(newEntity.get());
 			}
 		}
 
 		return entity;
-	}
-
-	private Entity supplyKind(final Entity entity, final Kind kind)
-	{
-		return modelFactory.entity(
-				entity.entityId(),
-				kind.kindId(),
-				entity.jsonSchemaId(),
-				entity.javaFileId());
-	}
-
-	@Override
-	public AntiIterator<Entity> discoverEntitiesWithKind(final String kindId)
-	{
-		OtherPreconditions.checkNotNullOrEmpty(kindId);
-		return discoverEntitiesWithKindRecursive(kindId, new HashSet<>())
-				.map(this::differentiate); // may be a subkind of the one specified
 	}
 
 	/**
@@ -134,13 +128,13 @@ final class KindValidationImpl implements KindValidation
 			return discoverEntitiesWithBuiltinKind(kind);
 		}
 
-		if (kind.schema().identification() == null || !kind.schema().identification().has("parentKind"))
+		if (kind.schema().identification() == null || !kind.schema().identification().has(PARENT_KIND))
 		{
 			// Not a valid user-defined kind: no parentKind specified
 			return AntiIt.empty();
 		}
 
-		final String parentId = kind.schema().identification().get("parentKind").textValue();
+		final String parentId = kind.schema().identification().get(PARENT_KIND).textValue();
 
 		if (alreadyVisited.contains(parentId))
 		{
@@ -149,26 +143,157 @@ final class KindValidationImpl implements KindValidation
 		}
 		alreadyVisited.add(parentId);
 
-		return discoverEntitiesWithKind(parentId)
-				.filter(entity -> validateIndividual(entity, kind))
-				.map(e -> supplyKind(e, kind));
+		return discoverEntitiesWithKindRecursive(parentId, alreadyVisited)
+				.optMap(entity -> differentiationStep(entity, kind));
+	}
+
+	/**
+	 * Attempt to differentiate the given entity into the given kind, which must be a child kind.
+	 *
+	 * Returns empty if the attempt failed.
+	 */
+	private Optional<Entity> differentiationStep(final Entity entity, final Kind kind)
+	{
+		if (!kind.hasParent(entity.kindId()))
+		{
+			throw new IllegalArgumentException("Should already have checked that kind is a child of entity's kind "
+					+ entity.kindId() + "," + kind.kindId());
+		}
+		if (!entity.canDifferentiate())
+		{
+			return Optional.empty();
+		}
+
+		if (kind.schema().identification() != null)
+		{
+			final Iterator<Entry<String, JsonNode>> iterator = kind.schema().identification().fields();
+			while (iterator.hasNext())
+			{
+				final Entry<String, JsonNode> entry = iterator.next();
+				final String name = entry.getKey();
+
+				if (name.equals(PARENT_KIND))
+				{
+					// This one is handled specially. Don't need to handle it here.
+				}
+				else if (entry.getValue() == null || entry.getValue().isNull())
+				{
+					// ignore null specifications
+				}
+				else
+				{
+					if (!entity.propertyValues().containsKey(name))
+					{
+						// A mistake? Entity should have all the relevant property values specified.
+						return Optional.empty();
+					}
+
+					final GenericPropertyValue value = entity.propertyValues().get(name);
+
+					// In the future there will be non-exact matches.
+					// But these need to be inherited from ancestor kinds, so it would be more complicated.
+					if (!value.matchesJsonNodeExactly(entry.getValue()))
+					{
+						return Optional.empty();
+					}
+				}
+			}
+		}
+
+		if (kind.schema().java() != null)
+		{
+			if (!javaStore.validateKind(entity.javaFileId(), kind.schema().java()))
+			{
+				// Java store says the details are invalid.
+				return Optional.empty();
+			}
+		}
+
+		// Otherwise assume ok.
+		return Optional.of(modelFactory.entity(
+				entity.entityId(),
+				kind.kindId(),
+				entity.jsonSchemaId(),
+				entity.javaFileId(),
+				entity.propertyValues(),
+				true));
 	}
 
 	private AntiIterator<Entity> discoverEntitiesWithBuiltinKind(final Kind kind)
 	{
-		if (!kind.partOfSystem()
-				|| (kind.schema().identification() != null && kind.schema().identification().has("parentKind")))
+		if (!kind.isBuiltinKind())
 		{
 			throw new IllegalStateException("Not a valid builtin kind");
 		}
 
 		switch (kind.kindId()) {
-		case "java-file":
-			return javaStore.allJavaFiles()
-					.map(jf -> modelFactory.entity(jf.file(), kind.kindId(), null, jf));
+		case JAVA_FILE:
+			return javaStore.allJavaFiles().map(this::javaEntity);
 		default:
 			// Not listing other things for now.
 			return AntiIt.empty();
+		}
+	}
+
+	private Entity javaEntity(final JavaFileId javaFileId)
+	{
+		checkNotNull(javaFileId);
+
+		final Kind javaKind = kindStore.getKind(JAVA_FILE).get();
+
+		// Impose an arbitrary order on properties
+		final List<Entry<String, KindProperty>> propertyList = ImmutableList
+				.copyOf(javaKind.schema().properties().entrySet());
+		final List<String> columnNames = Lists.transform(propertyList, Entry::getKey);
+
+		final GenericPropertyValue index = sharedFactory.stringValue(QUALIFIED_NAME, javaFileId.qualifiedName());
+
+		final Optional<Map<String, GenericPropertyValue>> propertyValues = sqlService
+				.selectIndividualRow(JAVA_FILE, index, columnNames)
+				.map(rs -> rsCollectProperties(rs, propertyList))
+				.failIfMultiple();
+
+		if (propertyValues.isPresent())
+		{
+			return modelFactory.entity(javaFileId.file(), JAVA_FILE, null,
+					javaFileId, propertyValues.get(), true);
+		}
+		else
+		{
+			// was not found in sql, so assume invalid. Set canDifferentiate to
+			// false to avoid confusing the subkinds.
+			return modelFactory.entity(javaFileId.file(), JAVA_FILE, null,
+					javaFileId, ImmutableMap.of(), false);
+		}
+
+	}
+
+	private Map<String, GenericPropertyValue> rsCollectProperties(final ResultSet rs,
+			final List<Entry<String, KindProperty>> propertyList)
+	{
+		try
+		{
+			final ImmutableMap.Builder<String, GenericPropertyValue> builder = ImmutableMap.builder();
+
+			for (int i = 0; i < propertyList.size(); i++)
+			{
+				final String name = propertyList.get(i).getKey();
+				final PropertyType type = propertyList.get(i).getValue().type();
+
+				switch (type) {
+				case STRING:
+					builder.put(name, sharedFactory.stringValue(name, rs.getString(i + 1)));
+					break;
+				case BOOLEAN:
+					builder.put(name, sharedFactory.booleanValue(name, rs.getBoolean(i + 1)));
+					break;
+				}
+			}
+			return builder.build();
+		}
+		catch (final SQLException e)
+		{
+			throw new KindValidationException(e);
 		}
 	}
 }
