@@ -12,7 +12,10 @@
       }
     },
     "identification": {
-      "parentKind": "java-interface-file"
+      "parentKind": "java-interface-file",
+      "annotations": {
+        "includes":"com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+      }
     }
   }
 }

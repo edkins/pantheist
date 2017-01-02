@@ -18,6 +18,12 @@
       },
       "isClass": {
         "type":"boolean"
+      },
+      "annotations": {
+        "type":"array",
+        "items": {
+          "type":"string"
+        }
       }
     }
   }

@@ -8,6 +8,8 @@ public interface GenericPropertyValue
 
 	PropertyType type();
 
+	PropertyType arrayItemType();
+
 	/**
 	 * @throws IllegalStateException if type is not boolean
 	 */
@@ -24,4 +26,6 @@ public interface GenericPropertyValue
 	 * Both the type and value must match.
 	 */
 	boolean matchesJsonNodeExactly(JsonNode jsonNode);
+
+	Object[] arrayValue();
 }

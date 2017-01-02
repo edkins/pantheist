@@ -3,11 +3,13 @@ package io.pantheist.handler.kind.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
@@ -16,6 +18,7 @@ import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.filesystem.backend.FsPath;
 import io.pantheist.handler.filesystem.backend.JsonSnapshot;
 import io.pantheist.handler.kind.model.Kind;
+import io.pantheist.handler.kind.model.KindProperty;
 import io.pantheist.handler.sql.backend.SqlService;
 import io.pantheist.handler.sql.model.SqlModelFactory;
 import io.pantheist.handler.sql.model.SqlProperty;
@@ -27,7 +30,9 @@ final class KindStoreImpl implements KindStore
 	private final SqlModelFactory sqlFactory;
 
 	@Inject
-	private KindStoreImpl(final FilesystemStore filesystem, final SqlService sqlService,
+	private KindStoreImpl(
+			final FilesystemStore filesystem,
+			final SqlService sqlService,
 			final SqlModelFactory sqlFactory)
 	{
 		this.filesystem = checkNotNull(filesystem);
@@ -80,6 +85,15 @@ final class KindStoreImpl implements KindStore
 				.map(path -> snapshot.readJson(path, Kind.class));
 	}
 
+	private SqlProperty toSqlProperty(final Entry<String, KindProperty> e)
+	{
+		return sqlFactory.property(
+				e.getKey(),
+				e.getValue().type(),
+				e.getValue().items(),
+				e.getValue().isIdentifier());
+	}
+
 	@Override
 	public void registerKindsInSql()
 	{
@@ -90,7 +104,7 @@ final class KindStoreImpl implements KindStore
 						.properties()
 						.entrySet()
 						.stream()
-						.map(e -> sqlFactory.property(e.getKey(), e.getValue().type(), e.getValue().isIdentifier()))
+						.map(this::toSqlProperty)
 						.collect(Collectors.toList());
 				sqlService.createTable(k.kindId(), properties);
 			}
@@ -111,5 +125,19 @@ final class KindStoreImpl implements KindStore
 	{
 		return listAllKinds()
 				.filter(k -> hasParent(k, parentId));
+	}
+
+	@Override
+	public AntiIterator<SqlProperty> listSqlPropertiesOfKind(final String kindId)
+	{
+		final Optional<Kind> kind = getKind(kindId);
+		if (!kind.isPresent() || !kind.get().shouldRegisterInSql())
+		{
+			return AntiIt.empty();
+		}
+		return AntiIt.from(kind.get().schema()
+				.properties()
+				.entrySet())
+				.map(this::toSqlProperty);
 	}
 }

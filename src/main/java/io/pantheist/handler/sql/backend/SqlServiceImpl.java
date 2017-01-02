@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -13,7 +14,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -23,12 +23,7 @@ import javax.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-
-import io.pantheist.common.shared.model.CommonSharedModelFactory;
-import io.pantheist.common.shared.model.GenericProperty;
 import io.pantheist.common.shared.model.GenericPropertyValue;
-import io.pantheist.common.shared.model.PropertyType;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.OtherPreconditions;
@@ -48,18 +43,15 @@ final class SqlServiceImpl implements SqlService
 	private final Pattern WORD = Pattern.compile("[a-z][a-z_]*");
 
 	private final Set<String> reservedWordsLowercase;
-	private final CommonSharedModelFactory sharedFactory;
 
 	@Inject
 	private SqlServiceImpl(
 			final FilesystemStore filesystem,
-			final PantheistConfig config,
-			final CommonSharedModelFactory sharedFactory)
+			final PantheistConfig config)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.config = checkNotNull(config);
 		this.reservedWordsLowercase = new HashSet<>();
-		this.sharedFactory = checkNotNull(sharedFactory);
 	}
 
 	@Override
@@ -149,11 +141,11 @@ final class SqlServiceImpl implements SqlService
 
 		if (property.isPrimaryKey())
 		{
-			return String.format("%s %s PRIMARY KEY", sqlName, property.type().sql());
+			return String.format("%s %s PRIMARY KEY NOT NULL", sqlName, property.toSqlType());
 		}
 		else
 		{
-			return String.format("%s %s", sqlName, property.type().sql());
+			return String.format("%s %s NOT NULL", sqlName, property.toSqlType());
 		}
 	}
 
@@ -189,50 +181,6 @@ final class SqlServiceImpl implements SqlService
 	}
 
 	@Override
-	public Optional<PropertyType> getColumnType(final String table, final String columnName)
-	{
-		final String sql = "SELECT data_type FROM information_schema.columns WHERE table_name = ? AND column_name = ?";
-		final String sqlTableName = toSqlTableName(table);
-		final String sqlColumnName = toSqlColumnName(columnName);
-
-		try (final Connection db = connect())
-		{
-			try (PreparedStatement statement = db.prepareStatement(sql))
-			{
-				statement.setString(1, sqlTableName);
-				statement.setString(2, sqlColumnName);
-				try (ResultSet resultSet = statement.executeQuery())
-				{
-					if (resultSet.next())
-					{
-						return Optional.of(sqlTypeNameToPropertyType(resultSet.getString(1)));
-					}
-					else
-					{
-						return Optional.empty();
-					}
-				}
-			}
-		}
-		catch (final SQLException e)
-		{
-			throw new SqlServiceException(e);
-		}
-	}
-
-	private PropertyType sqlTypeNameToPropertyType(final String string)
-	{
-		switch (string) {
-		case "boolean":
-			return PropertyType.BOOLEAN;
-		case "character varying":
-			return PropertyType.STRING;
-		default:
-			throw new IllegalStateException("Unknown column type: " + string);
-		}
-	}
-
-	@Override
 	public AntiIterator<ResultSet> selectIndividualRow(final String tableName, final GenericPropertyValue indexValue,
 			final List<String> columnNames)
 	{
@@ -251,7 +199,7 @@ final class SqlServiceImpl implements SqlService
 			{
 				try (PreparedStatement statement = db.prepareStatement(sql))
 				{
-					setStatementValue(statement, 1, indexValue);
+					setStatementValue(db, statement, 1, indexValue);
 					try (ResultSet resultSet = statement.executeQuery())
 					{
 						while (resultSet.next())
@@ -324,12 +272,11 @@ final class SqlServiceImpl implements SqlService
 				questionMarks,
 				toSqlColumnName(primaryKeyColumn),
 				doUpdateSql);
-		LOGGER.info("SQL = {}", sql);
 		try (final Connection db = connect())
 		{
 			try (PreparedStatement statement = db.prepareStatement(sql))
 			{
-				setUpStatement(statement, values);
+				setUpStatement(db, statement, values);
 				statement.execute();
 			}
 		}
@@ -339,17 +286,22 @@ final class SqlServiceImpl implements SqlService
 		}
 	}
 
-	private void setUpStatement(final PreparedStatement statement, final List<GenericPropertyValue> values)
+	private void setUpStatement(
+			final Connection connection,
+			final PreparedStatement statement,
+			final List<GenericPropertyValue> values)
 			throws SQLException
 	{
 		for (int i = 0; i < values.size(); i++)
 		{
 			final GenericPropertyValue v = values.get(i);
-			setStatementValue(statement, i + 1, v);
+			setStatementValue(connection, statement, i + 1, v);
 		}
 	}
 
-	private void setStatementValue(final PreparedStatement statement, final int parameterIndex,
+	private void setStatementValue(
+			final Connection connection,
+			final PreparedStatement statement, final int parameterIndex,
 			final GenericPropertyValue v)
 			throws SQLException
 	{
@@ -360,6 +312,12 @@ final class SqlServiceImpl implements SqlService
 		case STRING:
 			statement.setString(parameterIndex, v.stringValue());
 			break;
+		case ARRAY:
+		{
+			final Array array = connection.createArrayOf(v.arrayItemType().simpleTypeToSql(), v.arrayValue());
+			statement.setArray(parameterIndex, array);
+			break;
+		}
 		default:
 			throw new UnsupportedOperationException("Unrecognized property type: " + v.type());
 		}
@@ -396,63 +354,6 @@ final class SqlServiceImpl implements SqlService
 	{
 		OtherPreconditions.checkNotNullOrEmpty(sqlName);
 		return sqlName.replace('_', '-');
-	}
-
-	@Override
-	public List<String> listTableKeyColumnNames(final String tableName)
-	{
-		final String sqlTableName = toSqlTableName(tableName);
-		final String sql = "SELECT column_name FROM information_schema.key_column_usage where table_name=?";
-		final ImmutableList.Builder<String> builder = ImmutableList.builder();
-		try (final Connection db = connect())
-		{
-			try (PreparedStatement statement = db.prepareStatement(sql))
-			{
-				statement.setString(1, sqlTableName);
-				try (ResultSet resultSet = statement.executeQuery())
-				{
-					while (resultSet.next())
-					{
-						final String columnName = resultSet.getString(1);
-						builder.add(columnName);
-					}
-				}
-			}
-			return builder.build();
-		}
-		catch (final SQLException e)
-		{
-			throw new SqlServiceException(e);
-		}
-	}
-
-	@Override
-	public AntiIterator<GenericProperty> listAllColumns(final String tableName)
-	{
-		final String sqlTableName = toSqlTableName(tableName);
-		final String sql = "SELECT column_name, data_type FROM information_schema.columns where table_name=?";
-		return consumer -> {
-			try (final Connection db = connect())
-			{
-				try (PreparedStatement statement = db.prepareStatement(sql))
-				{
-					statement.setString(1, sqlTableName);
-					try (ResultSet resultSet = statement.executeQuery())
-					{
-						while (resultSet.next())
-						{
-							final String columnName = resultSet.getString(1);
-							final PropertyType type = sqlTypeNameToPropertyType(resultSet.getString(2));
-							consumer.accept(sharedFactory.property(columnName, type));
-						}
-					}
-				}
-			}
-			catch (final SQLException e)
-			{
-				throw new SqlServiceException(e);
-			}
-		};
 	}
 
 	@Override

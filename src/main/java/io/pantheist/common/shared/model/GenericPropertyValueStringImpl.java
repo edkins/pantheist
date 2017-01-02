@@ -51,4 +51,16 @@ final class GenericPropertyValueStringImpl implements GenericPropertyValue
 		return jsonNode.isTextual() && value.equals(jsonNode.textValue());
 	}
 
+	@Override
+	public PropertyType arrayItemType()
+	{
+		throw new IllegalStateException("Is a string, not an array so does not have itemType");
+	}
+
+	@Override
+	public Object[] arrayValue()
+	{
+		throw new IllegalStateException("Is a string, not an array");
+	}
+
 }

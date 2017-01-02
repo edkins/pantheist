@@ -42,13 +42,25 @@ final class GenericPropertyValueBooleanImpl implements GenericPropertyValue
 	@Override
 	public String stringValue()
 	{
-		throw new IllegalStateException("Is a boolean not a string");
+		throw new IllegalStateException("Is a boolean, not a string");
 	}
 
 	@Override
 	public boolean matchesJsonNodeExactly(final JsonNode jsonNode)
 	{
 		return jsonNode.isBoolean() && jsonNode.booleanValue() == value;
+	}
+
+	@Override
+	public PropertyType arrayItemType()
+	{
+		throw new IllegalStateException("Is a boolean, not an array so does not have itemType");
+	}
+
+	@Override
+	public Object[] arrayValue()
+	{
+		throw new IllegalStateException("Is a boolean, not an array");
 	}
 
 }

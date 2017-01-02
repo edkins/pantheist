@@ -4,16 +4,15 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum PropertyType
 {
-	BOOLEAN("boolean", "BOOLEAN"),
-	STRING("string", "VARCHAR");
+	BOOLEAN("boolean"),
+	STRING("string"),
+	ARRAY("array");
 
 	private final String name;
-	private final String sql;
 
-	private PropertyType(final String name, final String sql)
+	private PropertyType(final String name)
 	{
 		this.name = name;
-		this.sql = sql;
 	}
 
 	@Override
@@ -23,8 +22,15 @@ public enum PropertyType
 		return name;
 	}
 
-	public String sql()
+	public String simpleTypeToSql()
 	{
-		return sql;
+		switch (this) {
+		case STRING:
+			return "varchar";
+		case BOOLEAN:
+			return "boolean";
+		default:
+			throw new IllegalArgumentException("Not a simple type, or not recognized: " + this);
+		}
 	}
 }

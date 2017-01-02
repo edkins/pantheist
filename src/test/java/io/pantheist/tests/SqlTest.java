@@ -45,7 +45,9 @@ public class SqlTest
 	private static final String QNAME = "io.pantheist.examples.EmptyClass";
 	private static final String JAVATHING_SNAME = "JavaThing";
 	private static final String JAVATHING_QNAME = "io.pantheist.examples.JavaThing";
-	private static final String QUALIFIEDNAME = "qualifiedname";
+	private static final String QUALIFIED_NAME = "qualifiedName";
+	private static final String IS_INTERFACE = "isInterface";
+	private static final String IS_CLASS = "isClass";
 
 	@Before
 	public void setup()
@@ -77,8 +79,8 @@ public class SqlTest
 		final List<? extends ListClassifierItem> list = table.listClassifiers().childResources();
 
 		assertThat(list.size(), is(1));
-		assertThat(list.get(0).classifierSegment(), is(QUALIFIEDNAME));
-		assertThat(list.get(0).url(), is(table.urlOfService(QUALIFIEDNAME)));
+		assertThat(list.get(0).classifierSegment(), is(QUALIFIED_NAME));
+		assertThat(list.get(0).url(), is(table.urlOfService(QUALIFIED_NAME)));
 	}
 
 	@Test
@@ -87,9 +89,9 @@ public class SqlTest
 		mainRule.putJavaResource(SIMPLE_NAME);
 
 		final ManagementPathSqlTable table1 = manage.sqlTable(JAVA_FILE);
-		final ResponseType response1 = table1.listByResponseType(QUALIFIEDNAME);
+		final ResponseType response1 = table1.listByResponseType(QUALIFIED_NAME);
 		final ManagementPathSqlTable table2 = manage.sqlTable("badtable");
-		final ResponseType response2 = table2.listByResponseType(QUALIFIEDNAME);
+		final ResponseType response2 = table2.listByResponseType(QUALIFIED_NAME);
 
 		assertThat(response1, is(ResponseType.OK));
 		assertThat(response2, is(ResponseType.NOT_FOUND));
@@ -101,7 +103,7 @@ public class SqlTest
 		mainRule.putJavaResource(SIMPLE_NAME);
 
 		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
-		final ResponseType response1 = table.listByResponseType(QUALIFIEDNAME);
+		final ResponseType response1 = table.listByResponseType(QUALIFIED_NAME);
 		final ResponseType response2 = table.listByResponseType("sjgkrjgahrklga");
 
 		assertThat(response1, is(ResponseType.OK));
@@ -114,10 +116,10 @@ public class SqlTest
 		mainRule.putJavaResource(SIMPLE_NAME);
 
 		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
-		final List<ListRowItem> list = table.listBy(QUALIFIEDNAME).childResources();
+		final List<ListRowItem> list = table.listBy(QUALIFIED_NAME).childResources();
 
 		assertThat(list.size(), is(1));
-		assertThat(list.get(0).url(), is(table.row(QUALIFIEDNAME, QNAME).url()));
+		assertThat(list.get(0).url(), is(table.row(QUALIFIED_NAME, QNAME).url()));
 		assertThat(list.get(0).kindUrl(), is(manage.kind("sql-row").url()));
 	}
 
@@ -129,10 +131,10 @@ public class SqlTest
 		mainRule.actions().regenerateDb();
 
 		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
-		final List<ListRowItem> list = table.listBy(QUALIFIEDNAME).childResources();
+		final List<ListRowItem> list = table.listBy(QUALIFIED_NAME).childResources();
 
 		assertThat(list.size(), is(1));
-		assertThat(list.get(0).url(), is(table.row(QUALIFIEDNAME, QNAME).url()));
+		assertThat(list.get(0).url(), is(table.row(QUALIFIED_NAME, QNAME).url()));
 	}
 
 	@Test
@@ -141,9 +143,9 @@ public class SqlTest
 		mainRule.putJavaResource(SIMPLE_NAME);
 
 		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
-		final ResponseType response1 = table.row(QUALIFIEDNAME, QNAME)
+		final ResponseType response1 = table.row(QUALIFIED_NAME, QNAME)
 				.getSqlRowResponseType();
-		final ResponseType response2 = table.row(QUALIFIEDNAME, "io.pantheist.examples.BadClass")
+		final ResponseType response2 = table.row(QUALIFIED_NAME, "io.pantheist.examples.BadClass")
 				.getSqlRowResponseType();
 		final ResponseType response3 = table.row("badcolumn", QNAME)
 				.getSqlRowResponseType();
@@ -152,7 +154,7 @@ public class SqlTest
 		assertThat(response2, is(ResponseType.NOT_FOUND));
 		assertThat(response3, is(ResponseType.NOT_FOUND));
 
-		final DataAction dataAction = table.row(QUALIFIEDNAME, QNAME).getSqlRow()
+		final DataAction dataAction = table.row(QUALIFIED_NAME, QNAME).getSqlRow()
 				.dataAction();
 		assertThat(dataAction.basicType(), is(BasicContentType.json));
 		assertThat(dataAction.mimeType(), is(APPLICATION_JSON));
@@ -165,12 +167,12 @@ public class SqlTest
 		mainRule.putJavaResource(SIMPLE_NAME);
 
 		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
-		final String json = table.row(QUALIFIEDNAME, QNAME).data().getString(APPLICATION_JSON);
+		final String json = table.row(QUALIFIED_NAME, QNAME).data().getString(APPLICATION_JSON);
 
 		final Map<?, ?> map = objectMapper.readValue(json, Map.class);
-		assertThat(map.get("qualifiedname"), is(QNAME));
-		assertThat(map.get("isclass"), is(true));
-		assertThat(map.get("isinterface"), is(false));
+		assertThat(map.get(QUALIFIED_NAME), is(QNAME));
+		assertThat(map.get(IS_CLASS), is(true));
+		assertThat(map.get(IS_INTERFACE), is(false));
 	}
 
 	@Test
@@ -179,11 +181,11 @@ public class SqlTest
 		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
 		mainRule.putJavaResource(JAVATHING_SNAME, "JavaThing-interface");
 
-		final String json1 = table.row(QUALIFIEDNAME, JAVATHING_QNAME).data().getString(APPLICATION_JSON);
-		assertThat(objectMapper.readValue(json1, Map.class).get("isinterface"), is(true));
+		final String json1 = table.row(QUALIFIED_NAME, JAVATHING_QNAME).data().getString(APPLICATION_JSON);
+		assertThat(objectMapper.readValue(json1, Map.class).get(IS_INTERFACE), is(true));
 
 		mainRule.putJavaResource(JAVATHING_SNAME, "JavaThing-class");
-		final String json2 = table.row(QUALIFIEDNAME, JAVATHING_QNAME).data().getString(APPLICATION_JSON);
-		assertThat(objectMapper.readValue(json2, Map.class).get("isinterface"), is(false));
+		final String json2 = table.row(QUALIFIED_NAME, JAVATHING_QNAME).data().getString(APPLICATION_JSON);
+		assertThat(objectMapper.readValue(json2, Map.class).get(IS_INTERFACE), is(false));
 	}
 }

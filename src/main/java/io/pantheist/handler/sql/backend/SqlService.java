@@ -2,11 +2,8 @@ package io.pantheist.handler.sql.backend;
 
 import java.sql.ResultSet;
 import java.util.List;
-import java.util.Optional;
 
-import io.pantheist.common.shared.model.GenericProperty;
 import io.pantheist.common.shared.model.GenericPropertyValue;
-import io.pantheist.common.shared.model.PropertyType;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.handler.sql.model.SqlProperty;
 
@@ -17,13 +14,6 @@ public interface SqlService
 	void stop();
 
 	List<String> listTableNames();
-
-	List<String> listTableKeyColumnNames(String tableName);
-
-	/**
-	 * Returns an empty sequence if the table doesn't exist.
-	 */
-	AntiIterator<GenericProperty> listAllColumns(String tableName);
 
 	void deleteAllTables();
 
@@ -44,15 +34,12 @@ public interface SqlService
 	 * already in use.
 	 *
 	 * The list of values must be nonempty.
+	 *
+	 * Generally, if one of the columns in the original table is missing here, we'll get a
+	 * not-null constraint exception from SQL because the tables are created with NOT NULL on
+	 * all columns.
 	 */
 	void updateOrInsert(String tableName, String primaryKeyColumn, List<GenericPropertyValue> values);
-
-	/**
-	 * Returns empty if either the table or the column doesn't exist
-	 *
-	 * Throws an exception if it's a type we don't support.
-	 */
-	Optional<PropertyType> getColumnType(String tableName, String columnName);
 
 	AntiIterator<ResultSet> selectIndividualRow(
 			String tableName,

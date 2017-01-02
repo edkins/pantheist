@@ -5,6 +5,7 @@ import java.util.Optional;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.Possible;
 import io.pantheist.handler.kind.model.Kind;
+import io.pantheist.handler.sql.model.SqlProperty;
 
 public interface KindStore
 {
@@ -20,4 +21,12 @@ public interface KindStore
 	AntiIterator<Kind> listChildKinds(String parentId);
 
 	void registerKindsInSql();
+
+	/**
+	 * Lists sql properties belonging to this kind.
+	 *
+	 * Returns an empty sequence if kindId does not exist, or is not one of
+	 * the base kinds defining sql properties. (Subkinds are no good here).
+	 */
+	AntiIterator<SqlProperty> listSqlPropertiesOfKind(String kindId);
 }
