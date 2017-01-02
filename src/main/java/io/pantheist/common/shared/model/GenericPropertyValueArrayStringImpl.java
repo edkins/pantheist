@@ -67,4 +67,20 @@ final class GenericPropertyValueArrayStringImpl implements GenericPropertyValue
 		return value.toArray(new Object[value.size()]);
 	}
 
+	@Override
+	public boolean isArrayContainingJsonNode(final JsonNode jsonNode)
+	{
+		if (!jsonNode.isTextual())
+		{
+			return false;
+		}
+		for (final String item : value)
+		{
+			if (item.equals(jsonNode.textValue()))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 }

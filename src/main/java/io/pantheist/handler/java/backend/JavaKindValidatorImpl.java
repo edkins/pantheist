@@ -40,14 +40,6 @@ final class JavaKindValidatorImpl implements JavaKindValidator
 
 		final TypeDeclaration<?> mainType = compilationUnit.getType(0);
 
-		if (javaClause.anyAnnotation() != null)
-		{
-			if (!validateAnyAnnotation(mainType.getAnnotations(), javaClause.anyAnnotation()))
-			{
-				return false;
-			}
-		}
-
 		if (javaClause.anyConstructor() != null)
 		{
 			if (!validateAnyConstructor(mainType, javaClause.anyConstructor()))

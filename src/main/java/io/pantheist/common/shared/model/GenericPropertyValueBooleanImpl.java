@@ -63,4 +63,10 @@ final class GenericPropertyValueBooleanImpl implements GenericPropertyValue
 		throw new IllegalStateException("Is a boolean, not an array");
 	}
 
+	@Override
+	public boolean isArrayContainingJsonNode(final JsonNode jsonNode)
+	{
+		return false;
+	}
+
 }

@@ -6,15 +6,10 @@
     "openIconUrl": null
   },
   "schema": {
-    "java": {
-      "anyAnnotation": {
-        "name": "JsonDeserialize"
-      }
-    },
     "identification": {
       "parentKind": "java-interface-file",
       "annotations": {
-        "includes":"com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+        "includes":"JsonDeserialize"
       }
     }
   }

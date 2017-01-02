@@ -14,6 +14,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import io.pantheist.api.sql.model.ListRowItem;
@@ -45,6 +46,10 @@ public class SqlTest
 	private static final String QNAME = "io.pantheist.examples.EmptyClass";
 	private static final String JAVATHING_SNAME = "JavaThing";
 	private static final String JAVATHING_QNAME = "io.pantheist.examples.JavaThing";
+	private static final String JAVA_SUGAR_SNAME = "WithSugar";
+	private static final String JAVA_SUGAR_QNAME = "io.pantheist.examples.WithSugar";
+	private static final String JAVA_BUTTERSUGAR_SNAME = "WithButterSugar";
+	private static final String JAVA_BUTTERSUGAR_QNAME = "io.pantheist.examples.WithButterSugar";
 	private static final String QUALIFIED_NAME = "qualifiedName";
 	private static final String IS_INTERFACE = "isInterface";
 	private static final String IS_CLASS = "isClass";
@@ -187,5 +192,24 @@ public class SqlTest
 		mainRule.putJavaResource(JAVATHING_SNAME, "JavaThing-class");
 		final String json2 = table.row(QUALIFIED_NAME, JAVATHING_QNAME).data().getString(APPLICATION_JSON);
 		assertThat(objectMapper.readValue(json2, Map.class).get(IS_INTERFACE), is(false));
+	}
+
+	@Test
+	public void oneAnnotation_canSeeInData() throws Exception
+	{
+		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
+		mainRule.putJavaResource(JAVA_SUGAR_SNAME);
+		final String json = table.row(QUALIFIED_NAME, JAVA_SUGAR_QNAME).data().getString(APPLICATION_JSON);
+		assertThat(objectMapper.readValue(json, Map.class).get("annotations"), is(ImmutableList.of("Sugar")));
+
+	}
+
+	@Test
+	public void twoAnnotations_canSeeInData() throws Exception
+	{
+		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
+		mainRule.putJavaResource(JAVA_BUTTERSUGAR_SNAME);
+		final String json = table.row(QUALIFIED_NAME, JAVA_BUTTERSUGAR_QNAME).data().getString(APPLICATION_JSON);
+		assertThat(objectMapper.readValue(json, Map.class).get("annotations"), is(ImmutableList.of("Butter", "Sugar")));
 	}
 }

@@ -2,7 +2,6 @@ package io.pantheist.api.sql.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -11,9 +10,6 @@ import java.util.Optional;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
@@ -29,7 +25,6 @@ import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.shared.model.CommonSharedModelFactory;
 import io.pantheist.common.shared.model.GenericPropertyValue;
-import io.pantheist.common.shared.model.TypeInfo;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.Possible;
@@ -45,7 +40,6 @@ final class SqlBackendImpl implements SqlBackend
 	private final UrlTranslation urlTranslation;
 	private final CommonApiModelFactory commonFactory;
 	private final CommonSharedModelFactory sharedFactory;
-	private final ObjectMapper objectMapper;
 	private final KindStore kindStore;
 
 	@Inject
@@ -55,7 +49,6 @@ final class SqlBackendImpl implements SqlBackend
 			final UrlTranslation urlTranslation,
 			final CommonApiModelFactory commonFactory,
 			final CommonSharedModelFactory sharedFactory,
-			final ObjectMapper objectMapper,
 			final KindStore kindStore)
 	{
 		this.sqlService = checkNotNull(sqlStore);
@@ -63,7 +56,6 @@ final class SqlBackendImpl implements SqlBackend
 		this.urlTranslation = checkNotNull(urlTranslation);
 		this.commonFactory = checkNotNull(commonFactory);
 		this.sharedFactory = checkNotNull(sharedFactory);
-		this.objectMapper = checkNotNull(objectMapper);
 		this.kindStore = checkNotNull(kindStore);
 	}
 
@@ -186,67 +178,6 @@ final class SqlBackendImpl implements SqlBackend
 		}
 	}
 
-	private ArrayNode arrayToJsonNode(final Array array, final TypeInfo itemType) throws SQLException
-	{
-		checkNotNull(array);
-		checkNotNull(itemType);
-		final ArrayNode node = new ArrayNode(objectMapper.getNodeFactory());
-
-		/*
-		 * The result set contains one row for each array element, with two columns in each row.
-		 * The second column stores the element value.
-		 */
-		final ResultSet rs = array.getResultSet();
-
-		while (rs.next())
-		{
-			switch (itemType.type()) {
-			case BOOLEAN:
-				node.add(rs.getBoolean(2));
-				break;
-			case STRING:
-				node.add(rs.getString(2));
-				break;
-			default:
-				throw new UnsupportedOperationException(
-						"Cannot convert array element type to json: " + itemType.type());
-			}
-		}
-
-		return node;
-	}
-
-	private JsonNode rsToJsonNode(final ResultSet resultSet, final List<SqlProperty> columns)
-	{
-		try
-		{
-			final ObjectNode result = new ObjectNode(objectMapper.getNodeFactory());
-			for (int i = 0; i < columns.size(); i++)
-			{
-				final SqlProperty column = columns.get(i);
-				final String fieldName = column.name();
-				switch (column.type()) {
-				case BOOLEAN:
-					result.put(fieldName, resultSet.getBoolean(i + 1));
-					break;
-				case STRING:
-					result.put(fieldName, resultSet.getString(i + 1));
-					break;
-				case ARRAY:
-					result.replace(fieldName, arrayToJsonNode(resultSet.getArray(i + 1), column.items()));
-					break;
-				default:
-					throw new UnsupportedOperationException("Cannot convert type to json: " + column.type());
-				}
-			}
-			return result;
-		}
-		catch (final SQLException e)
-		{
-			throw new SqlBackendException(e);
-		}
-	}
-
 	@Override
 	public Possible<JsonNode> getRowData(final String table, final String column, final String row)
 	{
@@ -266,7 +197,7 @@ final class SqlBackendImpl implements SqlBackend
 		final GenericPropertyValue index = parseValue(column, columnType.get(), row);
 
 		return sqlService.selectIndividualRow(table, index, columnNames)
-				.map(rs -> rsToJsonNode(rs, columns))
+				.map(rs -> sqlService.rsToJsonNode(rs, columns))
 				.failIfMultiple()
 				.map(View::ok)
 				.orElse(FailureReason.DOES_NOT_EXIST.happened());

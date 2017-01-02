@@ -2,6 +2,9 @@ package io.pantheist.handler.sql.backend;
 
 import java.sql.ResultSet;
 import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import io.pantheist.common.shared.model.GenericPropertyValue;
 import io.pantheist.common.util.AntiIterator;
@@ -45,4 +48,8 @@ public interface SqlService
 			String tableName,
 			GenericPropertyValue indexValue,
 			List<String> columnNames);
+
+	JsonNode rsToJsonNode(ResultSet resultSet, List<SqlProperty> columns);
+
+	Map<String, GenericPropertyValue> rsToGenericValues(ResultSet resultSet, List<SqlProperty> columns);
 }

@@ -63,4 +63,9 @@ final class GenericPropertyValueStringImpl implements GenericPropertyValue
 		throw new IllegalStateException("Is a string, not an array");
 	}
 
+	@Override
+	public boolean isArrayContainingJsonNode(final JsonNode jsonNode)
+	{
+		return false;
+	}
 }

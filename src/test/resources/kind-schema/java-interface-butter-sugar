@@ -1,12 +1,10 @@
 {
   "schema": {
-    "java": {
-      "anyAnnotation": {
-        "name": "Sugar"
-      }
-    },
     "identification": {
-      "parentKind": "java-interface-with-butter-annotation"
+      "parentKind": "java-interface-with-butter-annotation",
+      "annotations": {
+        "includes":"Sugar"
+      }
     }
   }
 }

@@ -1,12 +1,10 @@
 {
   "schema": {
-    "java": {
-      "anyAnnotation": {
-        "name": "Sugar"
-      }
-    },
     "identification": {
-      "parentKind": "java-file"
+      "parentKind": "java-file",
+      "annotations": {
+        "includes":"Sugar"
+      }
     }
   }
 }

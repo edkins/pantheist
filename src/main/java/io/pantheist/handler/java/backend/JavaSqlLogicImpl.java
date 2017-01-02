@@ -37,6 +37,7 @@ final class JavaSqlLogicImpl implements JavaSqlLogic
 
 		final CompilationUnit compilationUnit = javaParse.parse(code);
 
+		final ImmutableList.Builder<String> annotationList = ImmutableList.builder();
 		boolean isClass = false;
 		boolean isInterface = false;
 		if (compilationUnit.getTypes().size() == 1)
@@ -48,12 +49,14 @@ final class JavaSqlLogicImpl implements JavaSqlLogic
 				isClass = !mainClass.isInterface();
 				isInterface = mainClass.isInterface();
 			}
+
+			mainType.getAnnotations().forEach(a -> annotationList.add(a.getNameAsString()));
 		}
 
 		sqlService.updateOrInsert("java-file", "qualifiedName", ImmutableList.of(
 				sharedFactory.stringValue("qualifiedName", qualifiedName),
 				sharedFactory.booleanValue("isClass", isClass),
 				sharedFactory.booleanValue("isInterface", isInterface),
-				sharedFactory.arrayStringValue("annotations", ImmutableList.of())));
+				sharedFactory.arrayStringValue("annotations", annotationList.build())));
 	}
 }

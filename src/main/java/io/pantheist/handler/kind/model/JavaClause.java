@@ -12,10 +12,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 public interface JavaClause
 {
 	@Nullable
-	@JsonProperty("anyAnnotation")
-	AnnotationClause anyAnnotation();
-
-	@Nullable
 	@JsonProperty("anyConstructor")
 	ConstructorClause anyConstructor();
 }

@@ -2,8 +2,6 @@ package io.pantheist.handler.kind.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -15,13 +13,11 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 import io.pantheist.common.shared.model.CommonSharedModelFactory;
 import io.pantheist.common.shared.model.GenericPropertyValue;
-import io.pantheist.common.shared.model.PropertyType;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.OtherPreconditions;
@@ -30,8 +26,8 @@ import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.kind.model.Entity;
 import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.handler.kind.model.KindModelFactory;
-import io.pantheist.handler.kind.model.KindProperty;
 import io.pantheist.handler.sql.backend.SqlService;
+import io.pantheist.handler.sql.model.SqlProperty;
 
 final class KindValidationImpl implements KindValidation
 {
@@ -190,9 +186,7 @@ final class KindValidationImpl implements KindValidation
 
 					final GenericPropertyValue value = entity.propertyValues().get(name);
 
-					// In the future there will be non-exact matches.
-					// But these need to be inherited from ancestor kinds, so it would be more complicated.
-					if (!value.matchesJsonNodeExactly(entry.getValue()))
+					if (!matchValueAgainstSchema(value, entry.getValue()))
 					{
 						return Optional.empty();
 					}
@@ -219,6 +213,38 @@ final class KindValidationImpl implements KindValidation
 				true));
 	}
 
+	private boolean matchValueAgainstSchema(final GenericPropertyValue value, final JsonNode schema)
+	{
+		checkNotNull(schema);
+		if (schema.isBoolean() || schema.isNumber() || schema.isTextual())
+		{
+			// These things just match themselves.
+			return value.matchesJsonNodeExactly(schema);
+		}
+		if (!schema.isObject())
+		{
+			throw new IllegalArgumentException("Not sure how to handle this schema: " + schema);
+		}
+
+		final Iterator<Entry<String, JsonNode>> iterator = schema.fields();
+		while (iterator.hasNext())
+		{
+			final Entry<String, JsonNode> entry = iterator.next();
+
+			switch (entry.getKey()) {
+			case "includes":
+				if (!value.isArrayContainingJsonNode(entry.getValue()))
+				{
+					return false;
+				}
+				break;
+			default:
+				throw new IllegalArgumentException("Not sure how to handle schema attribute " + entry.getKey());
+			}
+		}
+		return true;
+	}
+
 	private AntiIterator<Entity> discoverEntitiesWithBuiltinKind(final Kind kind)
 	{
 		if (!kind.isBuiltinKind())
@@ -239,18 +265,15 @@ final class KindValidationImpl implements KindValidation
 	{
 		checkNotNull(javaFileId);
 
-		final Kind javaKind = kindStore.getKind(JAVA_FILE).get();
-
 		// Impose an arbitrary order on properties
-		final List<Entry<String, KindProperty>> propertyList = ImmutableList
-				.copyOf(javaKind.schema().properties().entrySet());
-		final List<String> columnNames = Lists.transform(propertyList, Entry::getKey);
+		final List<SqlProperty> propertyList = kindStore.listSqlPropertiesOfKind(JAVA_FILE).toList();
+		final List<String> columnNames = Lists.transform(propertyList, SqlProperty::name);
 
 		final GenericPropertyValue index = sharedFactory.stringValue(QUALIFIED_NAME, javaFileId.qualifiedName());
 
 		final Optional<Map<String, GenericPropertyValue>> propertyValues = sqlService
 				.selectIndividualRow(JAVA_FILE, index, columnNames)
-				.map(rs -> rsCollectProperties(rs, propertyList))
+				.map(rs -> sqlService.rsToGenericValues(rs, propertyList))
 				.failIfMultiple();
 
 		if (propertyValues.isPresent())
@@ -266,34 +289,5 @@ final class KindValidationImpl implements KindValidation
 					javaFileId, ImmutableMap.of(), false);
 		}
 
-	}
-
-	private Map<String, GenericPropertyValue> rsCollectProperties(final ResultSet rs,
-			final List<Entry<String, KindProperty>> propertyList)
-	{
-		try
-		{
-			final ImmutableMap.Builder<String, GenericPropertyValue> builder = ImmutableMap.builder();
-
-			for (int i = 0; i < propertyList.size(); i++)
-			{
-				final String name = propertyList.get(i).getKey();
-				final PropertyType type = propertyList.get(i).getValue().type();
-
-				switch (type) {
-				case STRING:
-					builder.put(name, sharedFactory.stringValue(name, rs.getString(i + 1)));
-					break;
-				case BOOLEAN:
-					builder.put(name, sharedFactory.booleanValue(name, rs.getBoolean(i + 1)));
-					break;
-				}
-			}
-			return builder.build();
-		}
-		catch (final SQLException e)
-		{
-			throw new KindValidationException(e);
-		}
 	}
 }

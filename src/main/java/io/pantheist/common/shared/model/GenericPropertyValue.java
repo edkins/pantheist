@@ -28,4 +28,6 @@ public interface GenericPropertyValue
 	boolean matchesJsonNodeExactly(JsonNode jsonNode);
 
 	Object[] arrayValue();
+
+	boolean isArrayContainingJsonNode(JsonNode jsonNode);
 }

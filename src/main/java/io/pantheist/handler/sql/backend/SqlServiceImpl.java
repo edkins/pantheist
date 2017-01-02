@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -23,7 +24,17 @@ import javax.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
+import io.pantheist.api.sql.backend.SqlBackendException;
+import io.pantheist.common.shared.model.CommonSharedModelFactory;
 import io.pantheist.common.shared.model.GenericPropertyValue;
+import io.pantheist.common.shared.model.TypeInfo;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.OtherPreconditions;
@@ -43,15 +54,21 @@ final class SqlServiceImpl implements SqlService
 	private final Pattern WORD = Pattern.compile("[a-z][a-z_]*");
 
 	private final Set<String> reservedWordsLowercase;
+	private final ObjectMapper objectMapper;
+	private final CommonSharedModelFactory sharedFactory;
 
 	@Inject
 	private SqlServiceImpl(
 			final FilesystemStore filesystem,
-			final PantheistConfig config)
+			final PantheistConfig config,
+			final ObjectMapper objectMapper,
+			final CommonSharedModelFactory sharedFactory)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.config = checkNotNull(config);
 		this.reservedWordsLowercase = new HashSet<>();
+		this.objectMapper = checkNotNull(objectMapper);
+		this.sharedFactory = checkNotNull(sharedFactory);
 	}
 
 	@Override
@@ -444,6 +461,134 @@ final class SqlServiceImpl implements SqlService
 		catch (IOException | InterruptedException e)
 		{
 			throw new SqlServiceException(e);
+		}
+	}
+
+	@Override
+	public JsonNode rsToJsonNode(final ResultSet resultSet, final List<SqlProperty> columns)
+	{
+		try
+		{
+			final ObjectNode result = new ObjectNode(objectMapper.getNodeFactory());
+			for (int i = 0; i < columns.size(); i++)
+			{
+				final SqlProperty column = columns.get(i);
+				final String fieldName = column.name();
+				switch (column.type()) {
+				case BOOLEAN:
+					result.put(fieldName, resultSet.getBoolean(i + 1));
+					break;
+				case STRING:
+					result.put(fieldName, resultSet.getString(i + 1));
+					break;
+				case ARRAY:
+					result.replace(fieldName, arrayToJsonNode(resultSet.getArray(i + 1), column.items()));
+					break;
+				default:
+					throw new UnsupportedOperationException("Cannot convert type to json: " + column.type());
+				}
+			}
+			return result;
+		}
+		catch (final SQLException e)
+		{
+			throw new SqlBackendException(e);
+		}
+	}
+
+	private ArrayNode arrayToJsonNode(final Array array, final TypeInfo itemType) throws SQLException
+	{
+		checkNotNull(array);
+		checkNotNull(itemType);
+		final ArrayNode node = new ArrayNode(objectMapper.getNodeFactory());
+
+		/*
+		 * The result set contains one row for each array element, with two columns in each row.
+		 * The second column stores the element value.
+		 */
+		final ResultSet rs = array.getResultSet();
+
+		while (rs.next())
+		{
+			switch (itemType.type()) {
+			case BOOLEAN:
+				node.add(rs.getBoolean(2));
+				break;
+			case STRING:
+				node.add(rs.getString(2));
+				break;
+			default:
+				throw new UnsupportedOperationException(
+						"Cannot convert array element type to json: " + itemType.type());
+			}
+		}
+
+		return node;
+	}
+
+	@Override
+	public Map<String, GenericPropertyValue> rsToGenericValues(
+			final ResultSet rs,
+			final List<SqlProperty> columns)
+	{
+		try
+		{
+			final ImmutableMap.Builder<String, GenericPropertyValue> builder = ImmutableMap.builder();
+
+			for (int i = 0; i < columns.size(); i++)
+			{
+				final SqlProperty column = columns.get(i);
+				final String name = column.name();
+
+				switch (column.type()) {
+				case STRING:
+					builder.put(name, sharedFactory.stringValue(name, rs.getString(i + 1)));
+					break;
+				case BOOLEAN:
+					builder.put(name, sharedFactory.booleanValue(name, rs.getBoolean(i + 1)));
+					break;
+				case ARRAY:
+					builder.put(name, arrayToGenericProperty(name, rs.getArray(i + 1), column.items()));
+					break;
+				default:
+					throw new UnsupportedOperationException("Cannot convert type from sql: " + column.type());
+				}
+			}
+			return builder.build();
+		}
+		catch (final SQLException e)
+		{
+			throw new SqlServiceException(e);
+		}
+	}
+
+	private GenericPropertyValue arrayToGenericProperty(final String name, final Array array, final TypeInfo itemType)
+			throws SQLException
+	{
+		OtherPreconditions.checkNotNullOrEmpty(name);
+		checkNotNull(array);
+		checkNotNull(itemType);
+
+		/*
+		 * The result set contains one row for each array element, with two columns in each row.
+		 * The second column stores the element value.
+		 */
+		final ResultSet rs = array.getResultSet();
+
+		switch (itemType.type()) {
+		case STRING:
+		{
+			final ImmutableList.Builder<String> builder = ImmutableList.builder();
+			while (rs.next())
+			{
+				builder.add(rs.getString(2));
+			}
+			return sharedFactory.arrayStringValue(name, builder.build());
+		}
+		case BOOLEAN:
+		default:
+			throw new UnsupportedOperationException(
+					"Cannot convert array element type from sql: " + itemType.type());
 		}
 	}
 }
