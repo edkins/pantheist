@@ -25,4 +25,6 @@ public interface NginxBlock
 	boolean isEmpty();
 
 	void padTo(String nlIndent);
+
+	String nlIndent();
 }

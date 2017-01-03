@@ -26,6 +26,8 @@ public interface FilesystemStore
 
 	FsPath srvBucket();
 
+	FsPath projectBucket();
+
 	Possible<Void> putSrvData(String path, String data);
 
 	Possible<String> getSrvData(String path);

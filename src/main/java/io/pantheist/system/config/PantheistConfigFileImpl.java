@@ -10,6 +10,7 @@ final class PantheistConfigFileImpl implements PantheistConfigFile
 	private final String dataDir;
 	private final String systemDir;
 	private final String srvDir;
+	private final String projectDir;
 	private final String nginxExecutable;
 
 	private PantheistConfigFileImpl(
@@ -19,6 +20,7 @@ final class PantheistConfigFileImpl implements PantheistConfigFile
 			@JsonProperty("dataDir") final String dataDir,
 			@JsonProperty("systemDir") final String systemDir,
 			@JsonProperty("srvDir") final String srvDir,
+			@JsonProperty("projectDir") final String projectDir,
 			@JsonProperty("nginxExecutable") final String nginxExecutable)
 	{
 		this.internalPort = internalPort;
@@ -27,6 +29,7 @@ final class PantheistConfigFileImpl implements PantheistConfigFile
 		this.dataDir = dataDir;
 		this.systemDir = systemDir;
 		this.srvDir = srvDir;
+		this.projectDir = projectDir;
 		this.nginxExecutable = nginxExecutable;
 	}
 
@@ -58,6 +61,12 @@ final class PantheistConfigFileImpl implements PantheistConfigFile
 	public String srvDir()
 	{
 		return srvDir;
+	}
+
+	@Override
+	public String projectDir()
+	{
+		return projectDir;
 	}
 
 	@Override

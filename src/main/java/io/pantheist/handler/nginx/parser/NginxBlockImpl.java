@@ -53,6 +53,8 @@ final class NginxBlockImpl implements NginxBlock
 			nlIndentInner = StringHelpers.nlIndent(delim1);
 			nlIndent = Make.last(contents).nlIndent();
 		}
+		checkNotNull(nlIndentInner);
+		checkNotNull(nlIndent);
 		this.contents = new ArrayList<>(contents);
 		this.delim2 = checkNotNull(delim2);
 	}
@@ -60,6 +62,8 @@ final class NginxBlockImpl implements NginxBlock
 	@Override
 	public StringBuilder toStringBuilder(final StringBuilder sb)
 	{
+		checkNotNull(delim1);
+		checkNotNull(delim2);
 		sb.append(delim1);
 		contents.forEach(d -> d.toStringBuilder(sb));
 		return sb.append(delim2);
@@ -198,5 +202,11 @@ final class NginxBlockImpl implements NginxBlock
 	public void padTo(final String nlIndent)
 	{
 		delim2 = StringHelpers.padTo(delim2, nlIndent);
+	}
+
+	@Override
+	public String nlIndent()
+	{
+		return StringHelpers.nlIndent(delim2);
 	}
 }

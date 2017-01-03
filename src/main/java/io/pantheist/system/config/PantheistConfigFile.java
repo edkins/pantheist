@@ -48,6 +48,13 @@ interface PantheistConfigFile
 	@JsonProperty("srvDir")
 	String srvDir();
 
+	/**
+	 * Must be inside dataDir.
+	 */
+	@Nullable
+	@JsonProperty("projectDir")
+	String projectDir();
+
 	String nginxExecutable();
 
 }

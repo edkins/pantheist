@@ -61,7 +61,7 @@ final class KindStoreImpl implements KindStore
 
 	private FsPath kindDir()
 	{
-		return filesystem.systemBucket().segment("kind");
+		return filesystem.projectBucket().segment("kind");
 	}
 
 	@Override

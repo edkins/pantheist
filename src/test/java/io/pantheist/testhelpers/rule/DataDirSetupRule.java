@@ -116,10 +116,10 @@ final class DataDirSetupRule implements TestRule
 		final File target = session.dataDir();
 		final File srv = new File(target, "srv");
 		final File system = new File(target, "system");
-		final File kind = new File(target, "system/kind");
+		final File kind = new File(target, "project/kind");
 		srv.mkdir();
 		system.mkdir();
-		kind.mkdir();
+		kind.mkdirs();
 
 		final File source = session.originalDataDir();
 		LOGGER.info("Copying stuff from {} to {}", source.getAbsolutePath(), target.getAbsolutePath());
@@ -134,7 +134,7 @@ final class DataDirSetupRule implements TestRule
 				"127.0.0.1:" + session.nginxPort(),
 				"127.0.0.1:" + session.internalPort());
 
-		copyBuiltInKinds(new File(source, "system/kind"), kind);
+		copyBuiltInKinds(new File(source, "project/kind"), kind);
 	}
 
 	private void deanonymizeNginxConf(

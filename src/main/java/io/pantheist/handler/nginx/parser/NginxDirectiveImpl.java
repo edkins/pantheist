@@ -62,7 +62,7 @@ final class NginxDirectiveImpl implements NginxDirective
 	@Override
 	public String nlIndent()
 	{
-		return null;
+		return block.nlIndent();
 	}
 
 	@Override

@@ -96,4 +96,10 @@ final class FilesystemStoreImpl implements FilesystemStore
 		snapshot.writeSingleText(path, data);
 		return View.noContent();
 	}
+
+	@Override
+	public FsPath projectBucket()
+	{
+		return rootPath().slashSeparatedSegments(config.relativeProjectPath());
+	}
 }

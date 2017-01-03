@@ -1,5 +1,7 @@
 package io.pantheist.handler.nginx.parser;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Optional;
 
 final class StringHelpers
@@ -60,6 +62,8 @@ final class StringHelpers
 
 	public static String padTo(String str, final String nlIndent)
 	{
+		checkNotNull(str);
+		checkNotNull(nlIndent);
 		if (str.endsWith(nlIndent))
 		{
 			return str;

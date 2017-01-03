@@ -79,4 +79,10 @@ final class NginxBlockEmptyImpl implements NginxBlock
 	{
 		delim = StringHelpers.padTo(delim, nlIndent);
 	}
+
+	@Override
+	public String nlIndent()
+	{
+		return StringHelpers.nlIndent(delim);
+	}
 }

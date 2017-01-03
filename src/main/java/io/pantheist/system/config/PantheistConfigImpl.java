@@ -135,4 +135,12 @@ final class PantheistConfigImpl implements PantheistConfig
 				.orElse("srv");
 	}
 
+	@Override
+	public String relativeProjectPath()
+	{
+		return property(PantheistConfigFile::projectDir)
+				.map(this::relativeToDataDir)
+				.orElse("project");
+	}
+
 }

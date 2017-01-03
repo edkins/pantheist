@@ -38,5 +38,12 @@ public interface PantheistConfig
 	 */
 	String relativeSrvPath();
 
+	/**
+	 * Default is "project".
+	 *
+	 * @return relative path to store project-specific information such as kinds.
+	 */
+	String relativeProjectPath();
+
 	String nginxExecutable();
 }
