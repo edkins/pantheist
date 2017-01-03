@@ -41,6 +41,8 @@ public interface UrlTranslation
 
 	String sqlRowToUrl(String table, String column, String row);
 
+	String clientConfigUrl();
+
 	// Listing classifiers
 	List<ListClassifierItem> listRootClassifiers();
 
@@ -71,6 +73,6 @@ public interface UrlTranslation
 
 	DataAction sqlRowDataAction(String table, String column, String row);
 
-	String clientConfigUrl();
+	DataAction flatDirFileDataAction(String dir, String file);
 
 }

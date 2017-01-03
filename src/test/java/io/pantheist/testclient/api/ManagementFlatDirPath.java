@@ -12,4 +12,6 @@ public interface ManagementFlatDirPath
 	String urlOfService(String classifierSegment);
 
 	ResponseType listClassifierResponseType();
+
+	ManagementFlatDirFilePath flatDirFile(String filename);
 }

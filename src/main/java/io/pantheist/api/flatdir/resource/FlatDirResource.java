@@ -3,7 +3,9 @@ package io.pantheist.api.flatdir.resource;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -87,4 +89,61 @@ public class FlatDirResource implements ResourceTag
 		}
 	}
 
+	/**
+	 * Get file information (GET)
+	 */
+	@GET
+	@Path("flat-dir/{dir}/file/{file}")
+	@Produces("application/json")
+	public Response getFileInfo(@PathParam("dir") final String dir, @PathParam("file") final String file)
+	{
+		LOGGER.info("GET flat-dir/{}/file/{file}", dir, file);
+		try
+		{
+			return resp.possibleToJson(backend.getFileInfo(dir, file));
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Get file data (GET)
+	 */
+	@GET
+	@Path("flat-dir/{dir}/file/{file}/data")
+	@Produces("text/plain")
+	public Response getFileData(@PathParam("dir") final String dir, @PathParam("file") final String file)
+	{
+		LOGGER.info("GET flat-dir/{}/file/{file}/data", dir, file);
+		try
+		{
+			return resp.possibleData(backend.getFileData(dir, file));
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Put file data (PUT)
+	 */
+	@PUT
+	@Path("flat-dir/{dir}/file/{file}/data")
+	@Consumes("text/plain")
+	public Response getFileData(@PathParam("dir") final String dir, @PathParam("file") final String file,
+			final String data)
+	{
+		LOGGER.info("GET flat-dir/{}/file/{file}/data", dir, file);
+		try
+		{
+			return resp.possibleEmpty(backend.putFileDataString(dir, file, data, false));
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
 }

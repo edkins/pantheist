@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.google.inject.assistedinject.Assisted;
 
+import io.pantheist.common.api.model.DataAction;
+
 public interface ApiFlatDirModelFactory
 {
 	ListFileItem listFileItem(
@@ -19,4 +21,8 @@ public interface ApiFlatDirModelFactory
 			@Assisted("kindUrl") String kindUrl);
 
 	ListFlatDirResponse listFlatDirResponse(List<ListFlatDirItem> childResources);
+
+	ApiFlatDirFile file(
+			@Assisted DataAction dataAction,
+			@Assisted("kindUrl") String kindUrl);
 }

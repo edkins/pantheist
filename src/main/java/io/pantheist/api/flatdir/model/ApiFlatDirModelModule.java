@@ -15,6 +15,7 @@ public class ApiFlatDirModelModule extends PrivateModule
 				.implement(ListFileResponse.class, ListFileResponseImpl.class)
 				.implement(ListFlatDirItem.class, ListFlatDirItemImpl.class)
 				.implement(ListFlatDirResponse.class, ListFlatDirResponseImpl.class)
+				.implement(ApiFlatDirFile.class, ApiFlatDirFileImpl.class)
 				.build(ApiFlatDirModelFactory.class));
 	}
 

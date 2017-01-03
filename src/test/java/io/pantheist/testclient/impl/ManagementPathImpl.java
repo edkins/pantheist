@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.pantheist.api.flatdir.model.ApiFlatDirFile;
 import io.pantheist.api.flatdir.model.ListFileResponse;
 import io.pantheist.api.flatdir.model.ListFlatDirResponse;
 import io.pantheist.api.java.model.ApiJavaBinding;
@@ -24,6 +25,7 @@ import io.pantheist.api.sql.model.ListRowResponse;
 import io.pantheist.api.sql.model.ListSqlTableResponse;
 import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.testclient.api.ManagementData;
+import io.pantheist.testclient.api.ManagementFlatDirFilePath;
 import io.pantheist.testclient.api.ManagementFlatDirPath;
 import io.pantheist.testclient.api.ManagementPathJavaBinding;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
@@ -48,7 +50,8 @@ final class ManagementPathImpl implements
 		ManagementPathJavaBinding,
 		ManagementFlatDirPath,
 		ManagementPathSqlTable,
-		ManagementPathSqlRow
+		ManagementPathSqlRow,
+		ManagementFlatDirFilePath
 {
 	// Path segments
 	private static final String JAVA_PKG = "java-pkg";
@@ -342,5 +345,23 @@ final class ManagementPathImpl implements
 	public ApiSqlRow getSqlRow()
 	{
 		return target.getJson(ApiSqlRow.class);
+	}
+
+	@Override
+	public ManagementFlatDirFilePath flatDirFile(final String filename)
+	{
+		return new ManagementPathImpl(target.withSegment(FILE).withSegment(filename));
+	}
+
+	@Override
+	public ApiFlatDirFile describeFlatDirFile()
+	{
+		return target.getJson(ApiFlatDirFile.class);
+	}
+
+	@Override
+	public ResponseType getFlatDirFileResponseType()
+	{
+		return target.getResponseType(APPLICATION_JSON);
 	}
 }

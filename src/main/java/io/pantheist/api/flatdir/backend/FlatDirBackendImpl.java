@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.inject.Inject;
 
+import io.pantheist.api.flatdir.model.ApiFlatDirFile;
 import io.pantheist.api.flatdir.model.ApiFlatDirModelFactory;
 import io.pantheist.api.flatdir.model.ListFileItem;
 import io.pantheist.api.flatdir.model.ListFileResponse;
@@ -22,6 +23,8 @@ import io.pantheist.handler.filesystem.backend.FsPath;
 
 final class FlatDirBackendImpl implements FlatDirBackend
 {
+	private static final String SLASH = "/";
+	private static final String FILE = "file";
 	private final FilesystemStore filesystem;
 	private final ApiFlatDirModelFactory modelFactory;
 	private final UrlTranslation urlTranslation;
@@ -47,14 +50,14 @@ final class FlatDirBackendImpl implements FlatDirBackend
 		return modelFactory.listFileItem(
 				urlTranslation.flatDirFileToUrl(dir, file),
 				file,
-				urlTranslation.kindToUrl("file"));
+				urlTranslation.kindToUrl(FILE));
 	}
 
 	private String fsPathToDir(final FsPath fsPath)
 	{
 		if (fsPath.isEmpty())
 		{
-			return "/";
+			return SLASH;
 		}
 		else
 		{
@@ -65,7 +68,7 @@ final class FlatDirBackendImpl implements FlatDirBackend
 	private FsPath dirToFsPath(final String dir)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(dir);
-		if (dir.equals("/"))
+		if (dir.equals(SLASH))
 		{
 			// Special representation for root
 			// It's only the FlatDirResource which wants this represented as a slash,
@@ -133,4 +136,56 @@ final class FlatDirBackendImpl implements FlatDirBackend
 				.wrap(modelFactory::listFlatDirResponse);
 	}
 
+	private FsPath fileToFsPath(final String dir, final String file)
+	{
+		return dirToFsPath(dir).segment(file);
+	}
+
+	@Override
+	public Possible<ApiFlatDirFile> getFileInfo(final String dir, final String file)
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final FsPath path = fileToFsPath(dir, file);
+		if (snapshot.safeIsFile(path))
+		{
+			return View.ok(
+					modelFactory.file(urlTranslation.flatDirFileDataAction(dir, file), urlTranslation.kindToUrl(FILE)));
+		}
+		else
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
+	}
+
+	@Override
+	public Possible<String> getFileData(final String dir, final String file)
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final FsPath path = fileToFsPath(dir, file);
+		if (snapshot.safeIsFile(path))
+		{
+			return View.ok(snapshot.readText(path));
+		}
+		else
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
+	}
+
+	@Override
+	public Possible<Void> putFileDataString(final String dir, final String file, final String data,
+			final boolean failIfExists)
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final FsPath path = fileToFsPath(dir, file);
+		if (snapshot.safeIsFile(path) && failIfExists)
+		{
+			return FailureReason.ALREADY_EXISTS.happened();
+		}
+		else
+		{
+			snapshot.writeSingleText(path, data);
+			return View.noContent();
+		}
+	}
 }

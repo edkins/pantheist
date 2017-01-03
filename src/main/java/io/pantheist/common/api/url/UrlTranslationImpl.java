@@ -270,4 +270,10 @@ final class UrlTranslationImpl implements UrlTranslation
 		return clientConfig.generate(ImmutableMap.of());
 	}
 
+	@Override
+	public DataAction flatDirFileDataAction(final String dir, final String file)
+	{
+		return modelFactory.dataAction(BasicContentType.text, "text/plain", true);
+	}
+
 }
