@@ -2,34 +2,26 @@ package io.pantheist.handler.sql.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.postgresql.util.PGobject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import io.pantheist.api.sql.backend.SqlBackendException;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.OtherPreconditions;
@@ -46,38 +38,28 @@ final class SqlServiceImpl implements SqlService
 
 	private final PantheistConfig config;
 
-	private final Pattern WORD = Pattern.compile("[a-z][a-z_]*");
-
-	private final Set<String> reservedWordsLowercase;
 	private final ObjectMapper objectMapper;
+	private final SqlCoreService coreService;
 
 	@Inject
 	private SqlServiceImpl(
 			final FilesystemStore filesystem,
 			final PantheistConfig config,
-			final ObjectMapper objectMapper)
+			final ObjectMapper objectMapper,
+			final SqlCoreService coreService)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.config = checkNotNull(config);
-		this.reservedWordsLowercase = new HashSet<>();
 		this.objectMapper = checkNotNull(objectMapper);
+		this.coreService = checkNotNull(coreService);
 	}
 
 	@Override
 	public void startOrRestart()
 	{
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-				SqlServiceImpl.class.getResourceAsStream("/postgres-reserved-words.txt"), "utf-8")))
+		try
 		{
-			reservedWordsLowercase.clear();
-			while (reader.ready())
-			{
-				final String line = reader.readLine();
-				if (line != null && !line.isEmpty())
-				{
-					reservedWordsLowercase.add(line.trim().toLowerCase());
-				}
-			}
+			coreService.startOrRestart();
 
 			final FilesystemSnapshot snapshot = filesystem.snapshot();
 			final boolean dirExists = snapshot.isDir(dbPath());
@@ -103,16 +85,6 @@ final class SqlServiceImpl implements SqlService
 		}
 	}
 
-	private boolean validSqlTableName(final String tableName)
-	{
-		return WORD.matcher(tableName).matches() && !reservedWordsLowercase.contains(tableName.toLowerCase());
-	}
-
-	private boolean validSqlColumnName(final String columnName)
-	{
-		return WORD.matcher(columnName).matches() && !reservedWordsLowercase.contains(columnName.toLowerCase());
-	}
-
 	@Override
 	public void stop()
 	{
@@ -126,15 +98,16 @@ final class SqlServiceImpl implements SqlService
 	public void deleteAllTables()
 	{
 		final List<String> sqlTableNames = listRawTableNames().toList();
-		try (final Connection db = connect())
+		try (final Connection db = coreService.connect())
 		{
 			for (final String sqlTableName : sqlTableNames)
 			{
-				if (!validSqlTableName(sqlTableName))
+				if (!coreService.validSqlTableName(sqlTableName))
 				{
 					throw new IllegalStateException("Weird table name discovered: " + sqlTableName);
 				}
 				final String sql = String.format("DROP TABLE %s", sqlTableName);
+				LOGGER.info("sql = {}", sql);
 				try (PreparedStatement statement = db.prepareStatement(sql))
 				{
 					statement.execute();
@@ -154,7 +127,7 @@ final class SqlServiceImpl implements SqlService
 
 	private String toSqlCreateTableArg(final SqlProperty property)
 	{
-		final String sqlName = toSqlColumnName(property.name());
+		final String sqlName = coreService.toSqlColumnName(property.name());
 
 		if (property.isPrimaryKey())
 		{
@@ -166,16 +139,6 @@ final class SqlServiceImpl implements SqlService
 		}
 	}
 
-	private String toSqlColumnName(final String name)
-	{
-		final String sqlName = name.toLowerCase();
-		if (!validSqlColumnName(sqlName))
-		{
-			throw new IllegalArgumentException("Bad column name: " + name);
-		}
-		return sqlName;
-	}
-
 	@Override
 	public void createTable(final String tableName, final List<SqlProperty> columns)
 	{
@@ -185,9 +148,10 @@ final class SqlServiceImpl implements SqlService
 		}
 
 		final String columnSql = AntiIt.from(columns).map(this::toSqlCreateTableArg).join(",").orElse("");
-		final String sql = String.format("CREATE TABLE %s (%s)", toSqlTableName(tableName), columnSql);
+		final String sql = String.format("CREATE TABLE %s (%s)", coreService.toSqlTableName(tableName), columnSql);
 
-		try (final Connection db = connect())
+		LOGGER.info("sql = {}", sql);
+		try (final Connection db = coreService.connect())
 		{
 			db.prepareStatement(sql).execute();
 		}
@@ -195,79 +159,6 @@ final class SqlServiceImpl implements SqlService
 		{
 			throw new SqlServiceException(e);
 		}
-	}
-
-	@Override
-	public AntiIterator<ResultSet> selectIndividualRow(
-			final String tableName,
-			final String indexColumn,
-			final JsonNode indexValue,
-			final List<String> columnNames)
-	{
-		OtherPreconditions.checkNotNullOrEmpty(tableName);
-		OtherPreconditions.checkNotNullOrEmpty(indexColumn);
-		checkNotNull(indexValue);
-		if (!columnNames.contains(indexColumn))
-		{
-			throw new IllegalArgumentException("List of column names must contain indexColumn");
-		}
-		final String columnSql = AntiIt.from(columnNames).map(this::toSqlColumnName).join(",").get();
-		final String sql = String.format("SELECT %s FROM %s WHERE %s=?",
-				columnSql,
-				toSqlTableName(tableName),
-				toSqlColumnName(indexColumn));
-
-		return consumer -> {
-			try (final Connection db = connect())
-			{
-				try (PreparedStatement statement = db.prepareStatement(sql))
-				{
-					setStatementValue(db, statement, 1, indexValue);
-					try (ResultSet resultSet = statement.executeQuery())
-					{
-						while (resultSet.next())
-						{
-							consumer.accept(resultSet);
-						}
-					}
-				}
-			}
-			catch (final SQLException | JsonProcessingException e)
-			{
-				throw new SqlServiceException(e);
-			}
-		};
-	}
-
-	@Override
-	public AntiIterator<ResultSet> selectAllRows(final String tableName, final List<String> columnNames)
-	{
-		if (columnNames.isEmpty())
-		{
-			throw new IllegalArgumentException("List of column names must be nonempty");
-		}
-		final String columnSql = AntiIt.from(columnNames).map(this::toSqlColumnName).join(",").get();
-		final String sql = String.format("SELECT %s FROM %s", columnSql, toSqlTableName(tableName));
-
-		return consumer -> {
-			try (final Connection db = connect())
-			{
-				try (PreparedStatement statement = db.prepareStatement(sql))
-				{
-					try (ResultSet resultSet = statement.executeQuery())
-					{
-						while (resultSet.next())
-						{
-							consumer.accept(resultSet);
-						}
-					}
-				}
-			}
-			catch (final SQLException e)
-			{
-				throw new SqlServiceException(e);
-			}
-		};
 	}
 
 	@Override
@@ -284,29 +175,31 @@ final class SqlServiceImpl implements SqlService
 		// Impose an ordering on columns
 		final List<Entry<String, JsonNode>> fields = AntiIt.fromIterator(valueObj.fields()).toList();
 		final String columnSql = AntiIt.from(fields)
-				.map(e -> toSqlColumnName(e.getKey())).join(",").get();
+				.map(e -> coreService.toSqlColumnName(e.getKey())).join(",").get();
 		final String questionMarks = AntiIt.from(fields).map(e -> "?").join(",").get();
 
 		final String doUpdateSql = AntiIt.from(fields)
 				.filter(e -> !e.getKey().equals(primaryKeyColumn))
-				.map(e -> toSqlColumnName(e.getKey()) + " = EXCLUDED." + toSqlColumnName(e.getKey()))
+				.map(e -> coreService.toSqlColumnName(e.getKey()) + " = EXCLUDED."
+						+ coreService.toSqlColumnName(e.getKey()))
 				.join(",")
 				.get();
 
 		final String sql = String.format("INSERT INTO %s (%s) VALUES (%s) ON CONFLICT (%s) DO UPDATE SET %s",
-				toSqlTableName(tableName),
+				coreService.toSqlTableName(tableName),
 				columnSql,
 				questionMarks,
-				toSqlColumnName(primaryKeyColumn),
+				coreService.toSqlColumnName(primaryKeyColumn),
 				doUpdateSql);
-		try (final Connection db = connect())
+		try (final Connection db = coreService.connect())
 		{
+			LOGGER.info("sql = {}", sql);
 			try (PreparedStatement statement = db.prepareStatement(sql))
 			{
 				for (int i = 0; i < fields.size(); i++)
 				{
 					final JsonNode v = fields.get(i).getValue();
-					setStatementValue(db, statement, i + 1, v);
+					coreService.setStatementValue(db, statement, i + 1, v);
 				}
 				statement.execute();
 			}
@@ -315,34 +208,6 @@ final class SqlServiceImpl implements SqlService
 		{
 			throw new SqlServiceException(e);
 		}
-	}
-
-	private void setStatementValue(
-			final Connection connection,
-			final PreparedStatement statement, final int parameterIndex,
-			final JsonNode v)
-			throws SQLException, JsonProcessingException
-	{
-		if (v.isBoolean())
-		{
-			statement.setBoolean(parameterIndex, v.booleanValue());
-		}
-		else if (v.isTextual())
-		{
-			statement.setString(parameterIndex, v.textValue());
-		}
-		else if (v.isArray() || v.isObject())
-		{
-			final PGobject jsonObject = new PGobject();
-			jsonObject.setType("json");
-			jsonObject.setValue(objectMapper.writeValueAsString(v));
-			statement.setObject(parameterIndex, jsonObject);
-		}
-		else
-		{
-			throw new UnsupportedOperationException("Unrecognized property type: " + v.getNodeType());
-		}
-
 	}
 
 	private FsPath dbPath()
@@ -355,42 +220,11 @@ final class SqlServiceImpl implements SqlService
 		return filesystem.systemBucket().segment("postgres.log");
 	}
 
-	private Connection connect() throws SQLException
-	{
-		final String path = String.format("jdbc:postgresql://localhost:%d/postgres", config.postgresPort());
-		return DriverManager.getConnection(path, "giles", null);
-	}
-
-	private String toSqlTableName(final String tableName)
-	{
-		OtherPreconditions.checkNotNullOrEmpty(tableName);
-		final String sqlName = tableName.replace('-', '_');
-		if (!validSqlTableName(sqlName))
-		{
-			throw new IllegalArgumentException("Invalid table name: " + tableName);
-		}
-		return sqlName;
-	}
-
-	private String fromSqlTableName(final String sqlName)
-	{
-		OtherPreconditions.checkNotNullOrEmpty(sqlName);
-		return sqlName.replace('_', '-');
-	}
-
-	@Override
-	public List<String> listTableNames()
-	{
-		return listRawTableNames()
-				.map(this::fromSqlTableName)
-				.toList();
-	}
-
 	private AntiIterator<String> listRawTableNames()
 	{
 		final String sql = "SELECT table_name FROM information_schema.tables WHERE table_schema='public'";
 		return consumer -> {
-			try (final Connection db = connect())
+			try (final Connection db = coreService.connect())
 			{
 				try (PreparedStatement statement = db.prepareStatement(sql))
 				{
@@ -470,35 +304,10 @@ final class SqlServiceImpl implements SqlService
 	}
 
 	@Override
-	public ObjectNode rsToJsonNode(final ResultSet resultSet, final List<SqlProperty> columns)
+	public SelectBuilder select(final String table, final List<SqlProperty> columns)
 	{
-		try
-		{
-			final ObjectNode result = new ObjectNode(objectMapper.getNodeFactory());
-			for (int i = 0; i < columns.size(); i++)
-			{
-				final SqlProperty column = columns.get(i);
-				final String fieldName = column.name();
-				switch (column.typeInfo().type()) {
-				case BOOLEAN:
-					result.put(fieldName, resultSet.getBoolean(i + 1));
-					break;
-				case STRING:
-					result.put(fieldName, resultSet.getString(i + 1));
-					break;
-				case ARRAY:
-				case OBJECT:
-					result.replace(fieldName, objectMapper.readValue(resultSet.getString(i + 1), JsonNode.class));
-					break;
-				default:
-					throw new UnsupportedOperationException("Cannot convert type to json: " + column.typeInfo());
-				}
-			}
-			return result;
-		}
-		catch (final SQLException | IOException e)
-		{
-			throw new SqlBackendException(e);
-		}
+		OtherPreconditions.checkNotNullOrEmpty(table);
+		checkNotNull(columns);
+		return new SelectBuilderImpl(coreService, objectMapper, table, columns);
 	}
 }

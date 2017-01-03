@@ -14,13 +14,12 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.OtherPreconditions;
-import io.pantheist.handler.java.backend.JavaStore;
 import io.pantheist.handler.java.model.JavaFileId;
+import io.pantheist.handler.java.model.JavaModelFactory;
 import io.pantheist.handler.kind.model.Entity;
 import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.handler.kind.model.KindModelFactory;
@@ -32,25 +31,25 @@ final class KindValidationImpl implements KindValidation
 	private static final String PARENT_KIND = "parentKind";
 	private static final String QUALIFIED_NAME = "qualifiedName";
 	private static final String JAVA_FILE = "java-file";
-	private final JavaStore javaStore;
 	private final KindStore kindStore;
 	private final KindModelFactory modelFactory;
 	private final SqlService sqlService;
-	ObjectMapper objectMapper;
+	private final ObjectMapper objectMapper;
+	private final JavaModelFactory javaFactory;
 
 	@Inject
 	private KindValidationImpl(
-			final JavaStore javaStore,
 			final KindStore kindStore,
 			final KindModelFactory modelFactory,
 			final SqlService sqlService,
-			final ObjectMapper objectMapper)
+			final ObjectMapper objectMapper,
+			final JavaModelFactory javaFactory)
 	{
-		this.javaStore = checkNotNull(javaStore);
 		this.kindStore = checkNotNull(kindStore);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.sqlService = checkNotNull(sqlService);
 		this.objectMapper = checkNotNull(objectMapper);
+		this.javaFactory = checkNotNull(javaFactory);
 	}
 
 	@Override
@@ -60,7 +59,7 @@ final class KindValidationImpl implements KindValidation
 	}
 
 	@Override
-	public AntiIterator<Entity> discoverEntitiesWithKind(final String kindId)
+	public AntiIterator<Entity> listAllEntitiesWithKind(final String kindId)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
 		return discoverEntitiesWithKindRecursive(kindId, new HashSet<>())
@@ -308,26 +307,40 @@ final class KindValidationImpl implements KindValidation
 
 		switch (kind.kindId()) {
 		case JAVA_FILE:
-			return javaStore.allJavaFiles().map(this::javaEntity);
+			final List<SqlProperty> propertyList = kindStore.listSqlPropertiesOfKind(JAVA_FILE).toList();
+			return sqlService.select(JAVA_FILE, propertyList)
+					.execute()
+					.map(this::jsonNodeToEntity);
 		default:
 			// Not listing other things for now.
 			return AntiIt.empty();
 		}
 	}
 
+	private Entity jsonNodeToEntity(final ObjectNode obj)
+	{
+		return modelFactory.entity(
+				obj.get(QUALIFIED_NAME).textValue(),
+				JAVA_FILE,
+				null,
+				javaFactory.fileId(obj.get("package").textValue(), obj.get("fileName").textValue()),
+				obj,
+				true);
+	}
+
+	@Deprecated
 	private Entity javaEntity(final JavaFileId javaFileId)
 	{
 		checkNotNull(javaFileId);
 
 		// Impose an arbitrary order on properties
 		final List<SqlProperty> propertyList = kindStore.listSqlPropertiesOfKind(JAVA_FILE).toList();
-		final List<String> columnNames = Lists.transform(propertyList, SqlProperty::name);
 
 		final JsonNode index = objectMapper.getNodeFactory().textNode(javaFileId.qualifiedName());
 
-		final Optional<ObjectNode> propertyValues = sqlService
-				.selectIndividualRow(JAVA_FILE, QUALIFIED_NAME, index, columnNames)
-				.map(rs -> sqlService.rsToJsonNode(rs, propertyList))
+		final Optional<ObjectNode> propertyValues = sqlService.select(JAVA_FILE, propertyList)
+				.whereEqual(QUALIFIED_NAME, index)
+				.execute()
 				.failIfMultiple();
 
 		if (propertyValues.isPresent())

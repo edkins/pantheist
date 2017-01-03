@@ -69,6 +69,8 @@ final class JavaSqlLogicImpl implements JavaSqlLogic
 		final ObjectNode obj = nf.objectNode();
 
 		obj.put("qualifiedName", qualifiedName);
+		obj.put("package", id.pkg());
+		obj.put("fileName", id.file());
 		obj.put("isClass", isClass);
 		obj.put("isInterface", isInterface);
 		obj.replace("annotations", annotationList);

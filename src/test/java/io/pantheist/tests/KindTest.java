@@ -123,7 +123,7 @@ public class KindTest
 
 		assertThat(list.size(), is(1));
 
-		assertThat(list.get(0).entityId(), is(JAVA_INTLIST_NAME));
+		assertThat(list.get(0).entityId(), is("io.pantheist.examples." + JAVA_INTLIST_NAME));
 		assertThat(list.get(0).kindUrl(), is(kind.url()));
 	}
 

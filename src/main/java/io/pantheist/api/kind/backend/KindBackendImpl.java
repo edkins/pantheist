@@ -104,7 +104,7 @@ final class KindBackendImpl implements KindBackend
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
 		}
-		return View.ok(kindValidation.discoverEntitiesWithKind(kindId)
+		return View.ok(kindValidation.listAllEntitiesWithKind(kindId)
 				.map(this::toListEntityItem)
 				.wrap(modelFactory::listEntityResponse));
 	}

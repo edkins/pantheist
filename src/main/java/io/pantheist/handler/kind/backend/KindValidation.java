@@ -8,5 +8,5 @@ public interface KindValidation
 {
 	Entity discoverJavaKind(JavaFileId javaFileId);
 
-	AntiIterator<Entity> discoverEntitiesWithKind(String kindId);
+	AntiIterator<Entity> listAllEntitiesWithKind(String kindId);
 }

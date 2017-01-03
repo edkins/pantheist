@@ -2,8 +2,6 @@ package io.pantheist.api.sql.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,7 +12,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 import io.pantheist.api.sql.model.ApiSqlModelFactory;
 import io.pantheist.api.sql.model.ApiSqlRow;
@@ -27,11 +24,11 @@ import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.shared.model.TypeInfo;
-import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
 import io.pantheist.handler.kind.backend.KindStore;
+import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.handler.sql.backend.SqlService;
 import io.pantheist.handler.sql.model.SqlProperty;
 
@@ -61,18 +58,19 @@ final class SqlBackendImpl implements SqlBackend
 		this.objectMapper = checkNotNull(objectMapper);
 	}
 
-	private ListSqlTableItem toListSqlTableItem(final String tableName)
+	private ListSqlTableItem toListSqlTableItem(final Kind kind)
 	{
 		return modelFactory.listSqlTableItem(
-				urlTranslation.sqlTableToUrl(tableName),
-				tableName,
+				urlTranslation.sqlTableToUrl(kind.kindId()),
+				kind.kindId(),
 				urlTranslation.kindToUrl("sql-table"));
 	}
 
 	@Override
 	public ListSqlTableResponse listSqlTables()
 	{
-		return AntiIt.from(sqlService.listTableNames())
+		return kindStore.listAllKinds()
+				.filter(Kind::shouldRegisterInSql)
 				.map(this::toListSqlTableItem)
 				.wrap(modelFactory::listSqlTableResponse);
 	}
@@ -87,32 +85,25 @@ final class SqlBackendImpl implements SqlBackend
 	@Override
 	public Possible<ListClassifierResponse> listSqlTableClassifiers(final String table)
 	{
-		if (sqlService.listTableNames().contains(table))
-		{
-			return View.ok(kindStore.listSqlPropertiesOfKind(table)
-					.filter(p -> p.isKey())
-					.map(p -> toListClassifierItem(table, p.name()))
-					.wrap(commonFactory::listClassifierResponse));
-		}
-		else
+		final List<ListClassifierItem> list = kindStore.listSqlPropertiesOfKind(table)
+				.filter(p -> p.isKey())
+				.map(p -> toListClassifierItem(table, p.name()))
+				.toList();
+		if (list.isEmpty())
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
 		}
+		else
+		{
+			return View.ok(commonFactory.listClassifierResponse(list));
+		}
 	}
 
-	private ListRowItem rsToListRowItem(final String table, final String column, final ResultSet resultSet)
+	private ListRowItem rsToListRowItem(final String table, final String column, final JsonNode value)
 	{
-		try
-		{
-			final String value = resultSet.getString(1);
-			return modelFactory.listRowItem(
-					urlTranslation.sqlRowToUrl(table, column, value),
-					urlTranslation.kindToUrl("sql-row"));
-		}
-		catch (final SQLException e)
-		{
-			throw new SqlBackendException(e);
-		}
+		return modelFactory.listRowItem(
+				urlTranslation.sqlRowToUrl(table, column, value.textValue()),
+				urlTranslation.kindToUrl("sql-row"));
 	}
 
 	private Optional<TypeInfo> lookupColumn(final String table, final String column)
@@ -129,8 +120,11 @@ final class SqlBackendImpl implements SqlBackend
 	{
 		if (lookupColumn(table, column).isPresent())
 		{
-			return View.ok(sqlService.selectAllRows(table, ImmutableList.of(column))
-					.map(rs -> rsToListRowItem(table, column, rs))
+			final List<SqlProperty> columns = kindStore.listSqlPropertiesOfKind(table).toList();
+			return View.ok(sqlService.select(table, columns)
+					.columns(ImmutableList.of(column))
+					.execute()
+					.map(obj -> rsToListRowItem(table, column, obj.get(column)))
 					.wrap(modelFactory::listRowResponse));
 		}
 		else
@@ -161,9 +155,13 @@ final class SqlBackendImpl implements SqlBackend
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
 		}
+
+		final List<SqlProperty> columns = kindStore.listSqlPropertiesOfKind(table).toList();
 		final JsonNode index = parseValue(columnType.get(), row);
 		final Optional<ApiSqlRow> result = sqlService
-				.selectIndividualRow(table, column, index, ImmutableList.of(column))
+				.select(table, columns)
+				.whereEqual(column, index)
+				.execute()
 				.failIfMultiple()
 				.map(x -> modelFactory.sqlRow(urlTranslation.sqlRowDataAction(table, column, row)));
 
@@ -187,16 +185,11 @@ final class SqlBackendImpl implements SqlBackend
 		}
 
 		final List<SqlProperty> columns = kindStore.listSqlPropertiesOfKind(table).toList();
-		if (columns.isEmpty())
-		{
-			return FailureReason.DOES_NOT_EXIST.happened();
-		}
-
-		final List<String> columnNames = Lists.transform(columns, SqlProperty::name);
 		final JsonNode index = parseValue(columnType.get(), row);
 
-		return sqlService.selectIndividualRow(table, column, index, columnNames)
-				.map(rs -> sqlService.rsToJsonNode(rs, columns))
+		return sqlService.select(table, columns)
+				.whereEqual(column, index)
+				.execute()
 				.failIfMultiple()
 				.map(View::ok)
 				.orElse(FailureReason.DOES_NOT_EXIST.happened());

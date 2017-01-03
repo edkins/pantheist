@@ -11,6 +11,12 @@
         "type":"string",
         "isIdentifier":true
       },
+      "package": {
+        "type":"string"
+      },
+      "fileName": {
+        "type":"string"
+      },
       "isInterface": {
         "type":"boolean"
       },
