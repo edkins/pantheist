@@ -25,6 +25,7 @@ import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.shared.model.CommonSharedModelFactory;
 import io.pantheist.common.shared.model.GenericPropertyValue;
+import io.pantheist.common.shared.model.TypeInfo;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.Possible;
@@ -113,12 +114,13 @@ final class SqlBackendImpl implements SqlBackend
 		}
 	}
 
-	private Optional<SqlProperty> lookupColumn(final String table, final String column)
+	private Optional<TypeInfo> lookupColumn(final String table, final String column)
 	{
 		return kindStore.listSqlPropertiesOfKind(table)
 				.filter(p -> p.name().equals(column))
 				.failIfMultiple()
-				.filter(p -> p.isKey());
+				.filter(p -> p.isKey())
+				.map(p -> p.typeInfo());
 	}
 
 	@Override
@@ -136,7 +138,7 @@ final class SqlBackendImpl implements SqlBackend
 		}
 	}
 
-	private GenericPropertyValue parseValue(final String name, final SqlProperty type, final String valueString)
+	private GenericPropertyValue parseValue(final String name, final TypeInfo type, final String valueString)
 	{
 		switch (type.type()) {
 		case BOOLEAN:
@@ -158,7 +160,7 @@ final class SqlBackendImpl implements SqlBackend
 	@Override
 	public Possible<ApiSqlRow> getRowInfo(final String table, final String column, final String row)
 	{
-		final Optional<SqlProperty> columnType = lookupColumn(table, column);
+		final Optional<TypeInfo> columnType = lookupColumn(table, column);
 		if (!columnType.isPresent())
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
@@ -181,7 +183,7 @@ final class SqlBackendImpl implements SqlBackend
 	@Override
 	public Possible<JsonNode> getRowData(final String table, final String column, final String row)
 	{
-		final Optional<SqlProperty> columnType = lookupColumn(table, column);
+		final Optional<TypeInfo> columnType = lookupColumn(table, column);
 		if (!columnType.isPresent())
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();

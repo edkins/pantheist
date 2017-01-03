@@ -1,17 +1,19 @@
 {
   "schema": {
-    "java": {
-      "anyConstructor": {
-        "anyArg": {
-          "anyAnnotation": {
-            "name": "Butter"
+    "identification": {
+      "parentKind": "java-file",
+      "isClass": true,
+      "constructors": {
+        "includes": {
+          "parameters": {
+            "includes": {
+              "annotations": {
+                "includes": "Butter"
+              }
+            }
           }
         }
       }
-    },
-    "identification": {
-      "parentKind": "java-file",
-      "isClass": true
     }
   }
 }

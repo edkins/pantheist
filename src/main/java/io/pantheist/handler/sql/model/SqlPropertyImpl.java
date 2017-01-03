@@ -2,32 +2,27 @@ package io.pantheist.handler.sql.model;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.google.inject.assistedinject.Assisted;
 
-import io.pantheist.common.shared.model.PropertyType;
 import io.pantheist.common.shared.model.TypeInfo;
 import io.pantheist.common.util.OtherPreconditions;
 
 final class SqlPropertyImpl implements SqlProperty
 {
 	private final String name;
-	private final PropertyType type;
+	private final TypeInfo typeInfo;
 	private final boolean isPrimaryKey;
-	private final TypeInfo items;
 
 	@Inject
 	private SqlPropertyImpl(
 			@Assisted("name") final String name,
-			@Assisted("type") final PropertyType type,
-			@Nullable @Assisted("items") final TypeInfo items,
+			@Assisted final TypeInfo typeInfo,
 			@Assisted("isPrimaryKey") final boolean isPrimaryKey)
 	{
 		this.name = OtherPreconditions.checkNotNullOrEmpty(name);
-		this.type = checkNotNull(type);
-		this.items = items;
+		this.typeInfo = checkNotNull(typeInfo);
 		this.isPrimaryKey = isPrimaryKey;
 	}
 
@@ -38,9 +33,9 @@ final class SqlPropertyImpl implements SqlProperty
 	}
 
 	@Override
-	public PropertyType type()
+	public TypeInfo typeInfo()
 	{
-		return type;
+		return typeInfo;
 	}
 
 	@Override
@@ -50,19 +45,18 @@ final class SqlPropertyImpl implements SqlProperty
 	}
 
 	@Override
-	public TypeInfo items()
-	{
-		return items;
-	}
-
-	@Override
 	public String toSqlType()
 	{
-		switch (type) {
-		case ARRAY:
-			return items.type().simpleTypeToSql() + "[]";
+		switch (typeInfo.type()) {
+		case BOOLEAN:
+			return "boolean";
+		case STRING:
+			return "varchar";
+		case STRING_ARRAY:
+		case OBJECT_ARRAY:
+			return "jsonb";
 		default:
-			return type.simpleTypeToSql();
+			throw new UnsupportedOperationException("Unknown type to convert to sql: " + typeInfo.type());
 		}
 	}
 

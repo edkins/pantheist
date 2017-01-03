@@ -13,6 +13,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -50,6 +51,8 @@ public class SqlTest
 	private static final String JAVA_SUGAR_QNAME = "io.pantheist.examples.WithSugar";
 	private static final String JAVA_BUTTERSUGAR_SNAME = "WithButterSugar";
 	private static final String JAVA_BUTTERSUGAR_QNAME = "io.pantheist.examples.WithButterSugar";
+	private static final String JAVA_CONSTRUCTORBUTTER_SNAME = "ConstructedFromButter";
+	private static final String JAVA_CONSTRUCTORBUTTER_QNAME = "io.pantheist.examples.ConstructedFromButter";
 	private static final String QUALIFIED_NAME = "qualifiedName";
 	private static final String IS_INTERFACE = "isInterface";
 	private static final String IS_CLASS = "isClass";
@@ -211,5 +214,18 @@ public class SqlTest
 		mainRule.putJavaResource(JAVA_BUTTERSUGAR_SNAME);
 		final String json = table.row(QUALIFIED_NAME, JAVA_BUTTERSUGAR_QNAME).data().getString(APPLICATION_JSON);
 		assertThat(objectMapper.readValue(json, Map.class).get("annotations"), is(ImmutableList.of("Butter", "Sugar")));
+	}
+
+	@Test
+	public void constructorParamAnnotated_canSeeInData() throws Exception
+	{
+		final ManagementPathSqlTable table = manage.sqlTable(JAVA_FILE);
+		mainRule.putJavaResource(JAVA_CONSTRUCTORBUTTER_SNAME);
+		final String json = table.row(QUALIFIED_NAME, JAVA_CONSTRUCTORBUTTER_QNAME).data().getString(APPLICATION_JSON);
+		assertThat(objectMapper.readValue(json, JsonNode.class)
+				.get("constructors").get(0)
+				.get("parameters").get(1)
+				.get("annotations").get(0).textValue(), is("Butter"));
+
 	}
 }

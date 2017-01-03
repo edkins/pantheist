@@ -1,14 +1,15 @@
 package io.pantheist.common.shared.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 public interface GenericPropertyValue
 {
 	String name();
 
-	PropertyType type();
-
-	PropertyType arrayItemType();
+	TypeInfo typeInfo();
 
 	/**
 	 * @throws IllegalStateException if type is not boolean
@@ -27,7 +28,9 @@ public interface GenericPropertyValue
 	 */
 	boolean matchesJsonNodeExactly(JsonNode jsonNode);
 
-	Object[] arrayValue();
-
 	boolean isArrayContainingJsonNode(JsonNode jsonNode);
+
+	String jsonValue(ObjectMapper objectMapper) throws JsonProcessingException;
+
+	JsonNode toJsonNode(JsonNodeFactory nodeFactory);
 }

@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import io.pantheist.common.shared.model.CommonSharedModelFactory;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.Possible;
@@ -28,16 +29,19 @@ final class KindStoreImpl implements KindStore
 	private final FilesystemStore filesystem;
 	private final SqlService sqlService;
 	private final SqlModelFactory sqlFactory;
+	private final CommonSharedModelFactory sharedFactory;
 
 	@Inject
 	private KindStoreImpl(
 			final FilesystemStore filesystem,
 			final SqlService sqlService,
-			final SqlModelFactory sqlFactory)
+			final SqlModelFactory sqlFactory,
+			final CommonSharedModelFactory sharedFactory)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.sqlService = checkNotNull(sqlService);
 		this.sqlFactory = checkNotNull(sqlFactory);
+		this.sharedFactory = checkNotNull(sharedFactory);
 	}
 
 	@Override
@@ -89,8 +93,7 @@ final class KindStoreImpl implements KindStore
 	{
 		return sqlFactory.property(
 				e.getKey(),
-				e.getValue().type(),
-				e.getValue().items(),
+				e.getValue().typeInfo(sharedFactory),
 				e.getValue().isIdentifier());
 	}
 

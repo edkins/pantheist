@@ -6,7 +6,8 @@ public enum PropertyType
 {
 	BOOLEAN("boolean"),
 	STRING("string"),
-	ARRAY("array");
+	STRING_ARRAY("string-array"),
+	OBJECT_ARRAY("object-array");
 
 	private final String name;
 
@@ -20,17 +21,5 @@ public enum PropertyType
 	public String toString()
 	{
 		return name;
-	}
-
-	public String simpleTypeToSql()
-	{
-		switch (this) {
-		case STRING:
-			return "varchar";
-		case BOOLEAN:
-			return "boolean";
-		default:
-			throw new IllegalArgumentException("Not a simple type, or not recognized: " + this);
-		}
 	}
 }

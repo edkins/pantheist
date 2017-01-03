@@ -7,7 +7,6 @@ import io.pantheist.common.util.Possible;
 import io.pantheist.handler.java.model.JavaBinding;
 import io.pantheist.handler.java.model.JavaComponent;
 import io.pantheist.handler.java.model.JavaFileId;
-import io.pantheist.handler.kind.model.JavaClause;
 
 public interface JavaStore
 {
@@ -31,8 +30,6 @@ public interface JavaStore
 	boolean fileExists(JavaFileId fileId);
 
 	Optional<JavaComponent> getJavaComponent(JavaFileId fileId, String componentId);
-
-	boolean validateKind(JavaFileId fileId, JavaClause javaClause);
 
 	Optional<JavaFileId> findFileByName(String fileName);
 

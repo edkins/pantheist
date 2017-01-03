@@ -5,19 +5,23 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.util.OtherPreconditions;
 
-final class GenericPropertyValueArrayStringImpl implements GenericPropertyValue
+final class GenericPropertyValueStringArrayImpl implements GenericPropertyValue
 {
 	private final String name;
 	private final List<String> value;
 
 	@Inject
-	private GenericPropertyValueArrayStringImpl(
+	private GenericPropertyValueStringArrayImpl(
 			@Assisted("name") @JsonProperty("name") final String name,
 			@Assisted("value") @JsonProperty("value") final List<String> value)
 	{
@@ -32,9 +36,9 @@ final class GenericPropertyValueArrayStringImpl implements GenericPropertyValue
 	}
 
 	@Override
-	public PropertyType type()
+	public TypeInfo typeInfo()
 	{
-		return PropertyType.ARRAY;
+		return TypeInfoImpl.STRING_ARRAY;
 	}
 
 	@Override
@@ -56,18 +60,6 @@ final class GenericPropertyValueArrayStringImpl implements GenericPropertyValue
 	}
 
 	@Override
-	public PropertyType arrayItemType()
-	{
-		return PropertyType.STRING;
-	}
-
-	@Override
-	public Object[] arrayValue()
-	{
-		return value.toArray(new Object[value.size()]);
-	}
-
-	@Override
 	public boolean isArrayContainingJsonNode(final JsonNode jsonNode)
 	{
 		if (!jsonNode.isTextual())
@@ -82,5 +74,25 @@ final class GenericPropertyValueArrayStringImpl implements GenericPropertyValue
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public String toString()
+	{
+		return value.toString();
+	}
+
+	@Override
+	public String jsonValue(final ObjectMapper objectMapper) throws JsonProcessingException
+	{
+		return objectMapper.writeValueAsString(value);
+	}
+
+	@Override
+	public JsonNode toJsonNode(final JsonNodeFactory nodeFactory)
+	{
+		final ArrayNode arrayNode = nodeFactory.arrayNode();
+		value.forEach(arrayNode::add);
+		return arrayNode;
 	}
 }

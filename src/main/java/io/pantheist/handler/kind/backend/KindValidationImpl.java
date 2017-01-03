@@ -13,6 +13,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
@@ -39,6 +40,7 @@ final class KindValidationImpl implements KindValidation
 	private final KindModelFactory modelFactory;
 	private final SqlService sqlService;
 	private final CommonSharedModelFactory sharedFactory;
+	ObjectMapper objectMapper;
 
 	@Inject
 	private KindValidationImpl(
@@ -46,13 +48,15 @@ final class KindValidationImpl implements KindValidation
 			final KindStore kindStore,
 			final KindModelFactory modelFactory,
 			final SqlService sqlService,
-			final CommonSharedModelFactory sharedFactory)
+			final CommonSharedModelFactory sharedFactory,
+			final ObjectMapper objectMapper)
 	{
 		this.javaStore = checkNotNull(javaStore);
 		this.kindStore = checkNotNull(kindStore);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.sqlService = checkNotNull(sqlService);
 		this.sharedFactory = checkNotNull(sharedFactory);
+		this.objectMapper = checkNotNull(objectMapper);
 	}
 
 	@Override
@@ -194,15 +198,6 @@ final class KindValidationImpl implements KindValidation
 			}
 		}
 
-		if (kind.schema().java() != null)
-		{
-			if (!javaStore.validateKind(entity.javaFileId(), kind.schema().java()))
-			{
-				// Java store says the details are invalid.
-				return Optional.empty();
-			}
-		}
-
 		// Otherwise assume ok.
 		return Optional.of(modelFactory.entity(
 				entity.entityId(),
@@ -215,34 +210,85 @@ final class KindValidationImpl implements KindValidation
 
 	private boolean matchValueAgainstSchema(final GenericPropertyValue value, final JsonNode schema)
 	{
+		final JsonNode jsonNode = value.toJsonNode(objectMapper.getNodeFactory());
+		return matchJsonNodeAgainstSchema(jsonNode, schema);
+	}
+
+	private boolean matchJsonNodeAgainstSchema(final JsonNode jsonNode, final JsonNode schema)
+	{
+		checkNotNull(jsonNode);
 		checkNotNull(schema);
-		if (schema.isBoolean() || schema.isNumber() || schema.isTextual())
+		if (jsonNode.isBoolean() || jsonNode.isNumber() || jsonNode.isTextual())
 		{
-			// These things just match themselves.
-			return value.matchesJsonNodeExactly(schema);
+			// These are matched by their value, and currently no other schema.
+			return jsonNode.equals(schema);
 		}
-		if (!schema.isObject())
+		else if (jsonNode.isArray())
 		{
-			throw new IllegalArgumentException("Not sure how to handle this schema: " + schema);
+			if (!schema.isObject())
+			{
+				return false;
+			}
+			final Iterator<Entry<String, JsonNode>> iterator = schema.fields();
+			while (iterator.hasNext())
+			{
+				final Entry<String, JsonNode> entry = iterator.next();
+
+				switch (entry.getKey()) {
+				case "includes":
+					if (!jsonNode.isArray())
+					{
+						return false;
+					}
+
+					boolean found = false;
+					for (int i = 0; i < jsonNode.size(); i++)
+					{
+						if (matchJsonNodeAgainstSchema(jsonNode.get(i), entry.getValue()))
+						{
+							found = true;
+							break;
+						}
+					}
+					if (!found)
+					{
+						return false;
+					}
+					break;
+				default:
+					throw new IllegalArgumentException("Not sure how to handle schema attribute " + entry.getKey());
+				}
+			}
+			return true;
 		}
-
-		final Iterator<Entry<String, JsonNode>> iterator = schema.fields();
-		while (iterator.hasNext())
+		else if (jsonNode.isObject())
 		{
-			final Entry<String, JsonNode> entry = iterator.next();
-
-			switch (entry.getKey()) {
-			case "includes":
-				if (!value.isArrayContainingJsonNode(entry.getValue()))
+			if (!schema.isObject())
+			{
+				return false;
+			}
+			final Iterator<Entry<String, JsonNode>> iterator = schema.fields();
+			while (iterator.hasNext())
+			{
+				final Entry<String, JsonNode> entry = iterator.next();
+				final String fieldName = entry.getKey();
+				final JsonNode fieldSchema = entry.getValue();
+				if (!jsonNode.has(fieldName))
 				{
 					return false;
 				}
-				break;
-			default:
-				throw new IllegalArgumentException("Not sure how to handle schema attribute " + entry.getKey());
+				if (!matchJsonNodeAgainstSchema(jsonNode.get(fieldName), fieldSchema))
+				{
+					return false;
+				}
 			}
+			return true;
 		}
-		return true;
+		else
+		{
+			// Probably null?
+			return false;
+		}
 	}
 
 	private AntiIterator<Entity> discoverEntitiesWithBuiltinKind(final Kind kind)

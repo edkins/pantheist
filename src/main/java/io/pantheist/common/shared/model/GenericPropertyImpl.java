@@ -1,8 +1,5 @@
 package io.pantheist.common.shared.model;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.google.inject.assistedinject.Assisted;
@@ -12,18 +9,15 @@ import io.pantheist.common.util.OtherPreconditions;
 final class GenericPropertyImpl implements GenericProperty
 {
 	private final String name;
-	private final PropertyType type;
-	private final TypeInfo items;
+	private final TypeInfo typeInfo;
 
 	@Inject
 	private GenericPropertyImpl(
 			@Assisted("name") final String name,
-			@Assisted final PropertyType type,
-			@Nullable @Assisted("items") final TypeInfo items)
+			@Assisted final TypeInfo typeInfo)
 	{
 		this.name = OtherPreconditions.checkNotNullOrEmpty(name);
-		this.type = checkNotNull(type);
-		this.items = items;
+		this.typeInfo = typeInfo;
 	}
 
 	@Override
@@ -33,15 +27,14 @@ final class GenericPropertyImpl implements GenericProperty
 	}
 
 	@Override
-	public PropertyType type()
+	public TypeInfo typeInfo()
 	{
-		return type;
+		return typeInfo;
 	}
 
 	@Override
-	public TypeInfo items()
+	public String toString()
 	{
-		return items;
+		return name + ":" + typeInfo;
 	}
-
 }

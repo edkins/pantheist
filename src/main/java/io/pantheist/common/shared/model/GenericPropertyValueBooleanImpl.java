@@ -2,7 +2,10 @@ package io.pantheist.common.shared.model;
 
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.util.OtherPreconditions;
@@ -28,9 +31,9 @@ final class GenericPropertyValueBooleanImpl implements GenericPropertyValue
 	}
 
 	@Override
-	public PropertyType type()
+	public TypeInfo typeInfo()
 	{
-		return PropertyType.BOOLEAN;
+		return TypeInfoImpl.BOOLEAN;
 	}
 
 	@Override
@@ -52,21 +55,33 @@ final class GenericPropertyValueBooleanImpl implements GenericPropertyValue
 	}
 
 	@Override
-	public PropertyType arrayItemType()
-	{
-		throw new IllegalStateException("Is a boolean, not an array so does not have itemType");
-	}
-
-	@Override
-	public Object[] arrayValue()
-	{
-		throw new IllegalStateException("Is a boolean, not an array");
-	}
-
-	@Override
 	public boolean isArrayContainingJsonNode(final JsonNode jsonNode)
 	{
 		return false;
 	}
 
+	@Override
+	public String toString()
+	{
+		return String.valueOf(value);
+	}
+
+	@Override
+	public String jsonValue(final ObjectMapper objectMapper) throws JsonProcessingException
+	{
+		if (value)
+		{
+			return "true";
+		}
+		else
+		{
+			return "false";
+		}
+	}
+
+	@Override
+	public JsonNode toJsonNode(final JsonNodeFactory nodeFactory)
+	{
+		return nodeFactory.booleanNode(value);
+	}
 }

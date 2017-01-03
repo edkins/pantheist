@@ -6,17 +6,19 @@
     "openIconUrl": null
   },
   "schema": {
-    "java": {
-      "anyConstructor": {
-        "anyArg": {
-          "anyAnnotation": {
-            "name": "JsonProperty"
+    "identification": {
+      "parentKind": "java-class-file",
+      "constructors": {
+        "includes": {
+          "parameters": {
+            "includes": {
+              "annotations": {
+                "includes": "JsonProperty"
+              }
+            }
           }
         }
       }
-    },
-    "identification": {
-      "parentKind": "java-class-file"
     }
   }
 }

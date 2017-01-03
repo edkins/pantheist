@@ -1,33 +1,42 @@
 package io.pantheist.common.shared.model;
 
 import java.util.List;
+import java.util.Map;
 
-import javax.annotation.Nullable;
 import javax.inject.Named;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.inject.assistedinject.Assisted;
 
 public interface CommonSharedModelFactory
 {
 	GenericProperty property(
 			@Assisted("name") String name,
-			PropertyType type,
-			@Nullable @Assisted("items") TypeInfo items);
+			TypeInfo typeInfo,
+			Map<String, TypeInfo> elementProperties);
 
 	@Named("boolean")
 	GenericPropertyValue booleanValue(
-			@Assisted("name") final String name,
-			@Assisted("value") final boolean value);
+			@Assisted("name") String name,
+			@Assisted("value") boolean value);
 
 	@Named("string")
 	GenericPropertyValue stringValue(
-			@Assisted("name") final String name,
-			@Assisted("value") final String value);
+			@Assisted("name") String name,
+			@Assisted("value") String value);
 
-	@Named("arrayString")
-	GenericPropertyValue arrayStringValue(
-			@Assisted("name") final String name,
-			@Assisted("value") final List<String> value);
+	@Named("stringArray")
+	GenericPropertyValue stringArrayValue(
+			@Assisted("name") String name,
+			@Assisted("value") List<String> value);
 
-	TypeInfo typeInfo(PropertyType type);
+	@Named("objectArray")
+	GenericPropertyValue objectArrayValue(
+			@Assisted("name") String name,
+			TypeInfo typeInfo,
+			ArrayNode value);
+
+	TypeInfo typeInfo(
+			PropertyType type,
+			Map<String, TypeInfo> itemProperties);
 }

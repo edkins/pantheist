@@ -6,8 +6,6 @@
     "openIconUrl": null
   },
   "schema": {
-    "java": {
-    },
     "properties": {
       "qualifiedName": {
         "type":"string",
@@ -20,9 +18,19 @@
         "type":"boolean"
       },
       "annotations": {
-        "type":"array",
-        "items": {
-          "type":"string"
+        "type":"string-array"
+      },
+      "constructors": {
+        "type":"object-array",
+        "itemProperties": {
+          "parameters": {
+            "type": "object-array",
+            "itemProperties": {
+              "annotations": {
+                "type":"string-array"
+              }
+            }
+          }
         }
       }
     }

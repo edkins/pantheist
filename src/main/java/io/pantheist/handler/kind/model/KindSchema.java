@@ -15,10 +15,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public interface KindSchema
 {
 	@Nullable
-	@JsonProperty("java")
-	JavaClause java();
-
-	@Nullable
 	@JsonProperty("properties")
 	Map<String, KindProperty> properties();
 

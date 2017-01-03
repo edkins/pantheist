@@ -6,7 +6,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -23,18 +22,19 @@ import javax.inject.Inject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.postgresql.util.PGobject;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import io.pantheist.api.sql.backend.SqlBackendException;
 import io.pantheist.common.shared.model.CommonSharedModelFactory;
 import io.pantheist.common.shared.model.GenericPropertyValue;
-import io.pantheist.common.shared.model.TypeInfo;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.OtherPreconditions;
@@ -143,7 +143,15 @@ final class SqlServiceImpl implements SqlService
 					throw new IllegalStateException("Weird table name discovered: " + sqlTableName);
 				}
 				final String sql = String.format("DROP TABLE %s", sqlTableName);
-				db.prepareStatement(sql).execute();
+				try (PreparedStatement statement = db.prepareStatement(sql))
+				{
+					statement.execute();
+				}
+				catch (final SQLException e)
+				{
+					LOGGER.catching(e);
+					// couldn't delete? oh well, carry on.
+				}
 			}
 		}
 		catch (final SQLException e)
@@ -226,7 +234,7 @@ final class SqlServiceImpl implements SqlService
 					}
 				}
 			}
-			catch (final SQLException e)
+			catch (final SQLException | JsonProcessingException e)
 			{
 				throw new SqlServiceException(e);
 			}
@@ -297,7 +305,7 @@ final class SqlServiceImpl implements SqlService
 				statement.execute();
 			}
 		}
-		catch (final SQLException e)
+		catch (final SQLException | JsonProcessingException e)
 		{
 			throw new SqlServiceException(e);
 		}
@@ -307,7 +315,7 @@ final class SqlServiceImpl implements SqlService
 			final Connection connection,
 			final PreparedStatement statement,
 			final List<GenericPropertyValue> values)
-			throws SQLException
+			throws SQLException, JsonProcessingException
 	{
 		for (int i = 0; i < values.size(); i++)
 		{
@@ -320,24 +328,28 @@ final class SqlServiceImpl implements SqlService
 			final Connection connection,
 			final PreparedStatement statement, final int parameterIndex,
 			final GenericPropertyValue v)
-			throws SQLException
+			throws SQLException, JsonProcessingException
 	{
-		switch (v.type()) {
+		switch (v.typeInfo().type()) {
 		case BOOLEAN:
 			statement.setBoolean(parameterIndex, v.booleanValue());
 			break;
 		case STRING:
 			statement.setString(parameterIndex, v.stringValue());
 			break;
-		case ARRAY:
+		case STRING_ARRAY:
+		case OBJECT_ARRAY:
 		{
-			final Array array = connection.createArrayOf(v.arrayItemType().simpleTypeToSql(), v.arrayValue());
-			statement.setArray(parameterIndex, array);
+			final PGobject jsonObject = new PGobject();
+			jsonObject.setType("json");
+			jsonObject.setValue(v.jsonValue(objectMapper));
+			statement.setObject(parameterIndex, jsonObject);
 			break;
 		}
 		default:
-			throw new UnsupportedOperationException("Unrecognized property type: " + v.type());
+			throw new UnsupportedOperationException("Unrecognized property type: " + v.typeInfo());
 		}
+
 	}
 
 	private FsPath dbPath()
@@ -474,56 +486,27 @@ final class SqlServiceImpl implements SqlService
 			{
 				final SqlProperty column = columns.get(i);
 				final String fieldName = column.name();
-				switch (column.type()) {
+				switch (column.typeInfo().type()) {
 				case BOOLEAN:
 					result.put(fieldName, resultSet.getBoolean(i + 1));
 					break;
 				case STRING:
 					result.put(fieldName, resultSet.getString(i + 1));
 					break;
-				case ARRAY:
-					result.replace(fieldName, arrayToJsonNode(resultSet.getArray(i + 1), column.items()));
+				case STRING_ARRAY:
+				case OBJECT_ARRAY:
+					result.replace(fieldName, objectMapper.readValue(resultSet.getString(i + 1), ArrayNode.class));
 					break;
 				default:
-					throw new UnsupportedOperationException("Cannot convert type to json: " + column.type());
+					throw new UnsupportedOperationException("Cannot convert type to json: " + column.typeInfo());
 				}
 			}
 			return result;
 		}
-		catch (final SQLException e)
+		catch (final SQLException | IOException e)
 		{
 			throw new SqlBackendException(e);
 		}
-	}
-
-	private ArrayNode arrayToJsonNode(final Array array, final TypeInfo itemType) throws SQLException
-	{
-		checkNotNull(array);
-		checkNotNull(itemType);
-		final ArrayNode node = new ArrayNode(objectMapper.getNodeFactory());
-
-		/*
-		 * The result set contains one row for each array element, with two columns in each row.
-		 * The second column stores the element value.
-		 */
-		final ResultSet rs = array.getResultSet();
-
-		while (rs.next())
-		{
-			switch (itemType.type()) {
-			case BOOLEAN:
-				node.add(rs.getBoolean(2));
-				break;
-			case STRING:
-				node.add(rs.getString(2));
-				break;
-			default:
-				throw new UnsupportedOperationException(
-						"Cannot convert array element type to json: " + itemType.type());
-			}
-		}
-
-		return node;
 	}
 
 	@Override
@@ -540,55 +523,36 @@ final class SqlServiceImpl implements SqlService
 				final SqlProperty column = columns.get(i);
 				final String name = column.name();
 
-				switch (column.type()) {
+				switch (column.typeInfo().type()) {
 				case STRING:
 					builder.put(name, sharedFactory.stringValue(name, rs.getString(i + 1)));
 					break;
 				case BOOLEAN:
 					builder.put(name, sharedFactory.booleanValue(name, rs.getBoolean(i + 1)));
 					break;
-				case ARRAY:
-					builder.put(name, arrayToGenericProperty(name, rs.getArray(i + 1), column.items()));
+				case STRING_ARRAY:
+				{
+					final List<String> value = objectMapper.readValue(rs.getString(i + 1),
+							new TypeReference<List<String>>() {
+							});
+					builder.put(name, sharedFactory.stringArrayValue(name, value));
 					break;
+				}
+				case OBJECT_ARRAY:
+				{
+					final ArrayNode jsonNode = objectMapper.readValue(rs.getString(i + 1), ArrayNode.class);
+					builder.put(name, sharedFactory.objectArrayValue(name, column.typeInfo(), jsonNode));
+					break;
+				}
 				default:
-					throw new UnsupportedOperationException("Cannot convert type from sql: " + column.type());
+					throw new UnsupportedOperationException("Cannot convert type from sql: " + column.typeInfo());
 				}
 			}
 			return builder.build();
 		}
-		catch (final SQLException e)
+		catch (final SQLException | IOException e)
 		{
 			throw new SqlServiceException(e);
-		}
-	}
-
-	private GenericPropertyValue arrayToGenericProperty(final String name, final Array array, final TypeInfo itemType)
-			throws SQLException
-	{
-		OtherPreconditions.checkNotNullOrEmpty(name);
-		checkNotNull(array);
-		checkNotNull(itemType);
-
-		/*
-		 * The result set contains one row for each array element, with two columns in each row.
-		 * The second column stores the element value.
-		 */
-		final ResultSet rs = array.getResultSet();
-
-		switch (itemType.type()) {
-		case STRING:
-		{
-			final ImmutableList.Builder<String> builder = ImmutableList.builder();
-			while (rs.next())
-			{
-				builder.add(rs.getString(2));
-			}
-			return sharedFactory.arrayStringValue(name, builder.build());
-		}
-		case BOOLEAN:
-		default:
-			throw new UnsupportedOperationException(
-					"Cannot convert array element type from sql: " + itemType.type());
 		}
 	}
 }

@@ -31,7 +31,6 @@ import io.pantheist.handler.java.model.JavaBinding;
 import io.pantheist.handler.java.model.JavaComponent;
 import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.java.model.JavaModelFactory;
-import io.pantheist.handler.kind.model.JavaClause;
 
 final class JavaStoreImpl implements JavaStore
 {
@@ -40,7 +39,6 @@ final class JavaStoreImpl implements JavaStore
 	private static final String ROOT = ".";
 	private final FilesystemStore filesystem;
 	private final JavaModelFactory modelFactory;
-	private final JavaKindValidator javaKindValidator;
 	private final JavaSqlLogic javaSqlLogic;
 	private final JavaParse javaParse;
 
@@ -48,13 +46,11 @@ final class JavaStoreImpl implements JavaStore
 	private JavaStoreImpl(
 			final FilesystemStore filesystem,
 			final JavaModelFactory modelFactory,
-			final JavaKindValidator javaKindValidator,
 			final JavaSqlLogic javaSqlLogic,
 			final JavaParse javaParse)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.modelFactory = checkNotNull(modelFactory);
-		this.javaKindValidator = checkNotNull(javaKindValidator);
 		this.javaSqlLogic = checkNotNull(javaSqlLogic);
 		this.javaParse = checkNotNull(javaParse);
 	}
@@ -345,17 +341,6 @@ final class JavaStoreImpl implements JavaStore
 	private JavaBinding defaultBinding()
 	{
 		return modelFactory.javaBinding("system/java");
-	}
-
-	@Override
-	public boolean validateKind(final JavaFileId javaFileId, final JavaClause javaClause)
-	{
-		checkNotNull(javaFileId);
-		checkNotNull(javaClause);
-		final String code = getJava(javaFileId).get();
-		final CompilationUnit compilationUnit = javaParse.parse(code);
-
-		return javaKindValidator.validateKind(compilationUnit, javaClause);
 	}
 
 	@Override
