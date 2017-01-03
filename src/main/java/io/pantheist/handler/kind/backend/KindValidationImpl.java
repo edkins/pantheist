@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
@@ -14,11 +13,9 @@ import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 
-import io.pantheist.common.shared.model.CommonSharedModelFactory;
-import io.pantheist.common.shared.model.GenericPropertyValue;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.OtherPreconditions;
@@ -39,7 +36,6 @@ final class KindValidationImpl implements KindValidation
 	private final KindStore kindStore;
 	private final KindModelFactory modelFactory;
 	private final SqlService sqlService;
-	private final CommonSharedModelFactory sharedFactory;
 	ObjectMapper objectMapper;
 
 	@Inject
@@ -48,14 +44,12 @@ final class KindValidationImpl implements KindValidation
 			final KindStore kindStore,
 			final KindModelFactory modelFactory,
 			final SqlService sqlService,
-			final CommonSharedModelFactory sharedFactory,
 			final ObjectMapper objectMapper)
 	{
 		this.javaStore = checkNotNull(javaStore);
 		this.kindStore = checkNotNull(kindStore);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.sqlService = checkNotNull(sqlService);
-		this.sharedFactory = checkNotNull(sharedFactory);
 		this.objectMapper = checkNotNull(objectMapper);
 	}
 
@@ -182,13 +176,13 @@ final class KindValidationImpl implements KindValidation
 				}
 				else
 				{
-					if (!entity.propertyValues().containsKey(name))
+					if (!entity.propertyValues().has(name))
 					{
 						// A mistake? Entity should have all the relevant property values specified.
 						return Optional.empty();
 					}
 
-					final GenericPropertyValue value = entity.propertyValues().get(name);
+					final JsonNode value = entity.propertyValues().get(name);
 
 					if (!matchValueAgainstSchema(value, entry.getValue()))
 					{
@@ -208,27 +202,22 @@ final class KindValidationImpl implements KindValidation
 				true));
 	}
 
-	private boolean matchValueAgainstSchema(final GenericPropertyValue value, final JsonNode schema)
-	{
-		final JsonNode jsonNode = value.toJsonNode(objectMapper.getNodeFactory());
-		return matchJsonNodeAgainstSchema(jsonNode, schema);
-	}
-
-	private boolean matchJsonNodeAgainstSchema(final JsonNode jsonNode, final JsonNode schema)
+	private boolean matchValueAgainstSchema(final JsonNode jsonNode, final JsonNode schema)
 	{
 		checkNotNull(jsonNode);
 		checkNotNull(schema);
-		if (jsonNode.isBoolean() || jsonNode.isNumber() || jsonNode.isTextual())
+		if (schema.isBoolean() || schema.isNumber() || schema.isTextual())
 		{
-			// These are matched by their value, and currently no other schema.
+			// These match only themselves.
 			return jsonNode.equals(schema);
 		}
-		else if (jsonNode.isArray())
+		else if (schema.isNull())
 		{
-			if (!schema.isObject())
-			{
-				return false;
-			}
+			// Null schema matches anything
+			return true;
+		}
+		else if (schema.isObject())
+		{
 			final Iterator<Entry<String, JsonNode>> iterator = schema.fields();
 			while (iterator.hasNext())
 			{
@@ -236,21 +225,13 @@ final class KindValidationImpl implements KindValidation
 
 				switch (entry.getKey()) {
 				case "includes":
-					if (!jsonNode.isArray())
+					if (!validateIncludes(jsonNode, entry.getValue()))
 					{
 						return false;
 					}
-
-					boolean found = false;
-					for (int i = 0; i < jsonNode.size(); i++)
-					{
-						if (matchJsonNodeAgainstSchema(jsonNode.get(i), entry.getValue()))
-						{
-							found = true;
-							break;
-						}
-					}
-					if (!found)
+					break;
+				case "properties":
+					if (!validateProperties(jsonNode, entry.getValue()))
 					{
 						return false;
 					}
@@ -261,34 +242,61 @@ final class KindValidationImpl implements KindValidation
 			}
 			return true;
 		}
-		else if (jsonNode.isObject())
+		else
 		{
-			if (!schema.isObject())
+			// If schema is an array or then it's invalid.
+			return false;
+		}
+	}
+
+	/**
+	 * Check that the json value is an object that has all the fields specified here,
+	 * and each value matches the corresponding schema.
+	 */
+	private boolean validateProperties(final JsonNode jsonNode, final JsonNode fieldSchemas)
+	{
+		if (!fieldSchemas.isObject())
+		{
+			// This really needs to be an object, otherwise the schema itself is invalid.
+			return false;
+		}
+		final Iterator<Entry<String, JsonNode>> iterator = fieldSchemas.fields();
+		while (iterator.hasNext())
+		{
+			final Entry<String, JsonNode> entry = iterator.next();
+			final String fieldName = entry.getKey();
+			final JsonNode fieldSchema = entry.getValue();
+			if (!jsonNode.has(fieldName))
 			{
 				return false;
 			}
-			final Iterator<Entry<String, JsonNode>> iterator = schema.fields();
-			while (iterator.hasNext())
+			if (!matchValueAgainstSchema(jsonNode.get(fieldName), fieldSchema))
 			{
-				final Entry<String, JsonNode> entry = iterator.next();
-				final String fieldName = entry.getKey();
-				final JsonNode fieldSchema = entry.getValue();
-				if (!jsonNode.has(fieldName))
-				{
-					return false;
-				}
-				if (!matchJsonNodeAgainstSchema(jsonNode.get(fieldName), fieldSchema))
-				{
-					return false;
-				}
+				return false;
 			}
-			return true;
 		}
-		else
+		return true;
+	}
+
+	/**
+	 * Check that the json value is an array which has at least one entry
+	 * matching the given schema.
+	 */
+	private boolean validateIncludes(final JsonNode jsonNode, final JsonNode schema)
+	{
+		if (!jsonNode.isArray())
 		{
-			// Probably null?
 			return false;
 		}
+
+		for (int i = 0; i < jsonNode.size(); i++)
+		{
+			if (matchValueAgainstSchema(jsonNode.get(i), schema))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private AntiIterator<Entity> discoverEntitiesWithBuiltinKind(final Kind kind)
@@ -315,11 +323,11 @@ final class KindValidationImpl implements KindValidation
 		final List<SqlProperty> propertyList = kindStore.listSqlPropertiesOfKind(JAVA_FILE).toList();
 		final List<String> columnNames = Lists.transform(propertyList, SqlProperty::name);
 
-		final GenericPropertyValue index = sharedFactory.stringValue(QUALIFIED_NAME, javaFileId.qualifiedName());
+		final JsonNode index = objectMapper.getNodeFactory().textNode(javaFileId.qualifiedName());
 
-		final Optional<Map<String, GenericPropertyValue>> propertyValues = sqlService
-				.selectIndividualRow(JAVA_FILE, index, columnNames)
-				.map(rs -> sqlService.rsToGenericValues(rs, propertyList))
+		final Optional<ObjectNode> propertyValues = sqlService
+				.selectIndividualRow(JAVA_FILE, QUALIFIED_NAME, index, columnNames)
+				.map(rs -> sqlService.rsToJsonNode(rs, propertyList))
 				.failIfMultiple();
 
 		if (propertyValues.isPresent())
@@ -332,7 +340,7 @@ final class KindValidationImpl implements KindValidation
 			// was not found in sql, so assume invalid. Set canDifferentiate to
 			// false to avoid confusing the subkinds.
 			return modelFactory.entity(javaFileId.file(), JAVA_FILE, null,
-					javaFileId, ImmutableMap.of(), false);
+					javaFileId, objectMapper.getNodeFactory().objectNode(), false);
 		}
 
 	}

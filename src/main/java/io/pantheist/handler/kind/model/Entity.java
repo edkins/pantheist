@@ -1,10 +1,9 @@
 package io.pantheist.handler.kind.model;
 
-import java.util.Map;
-
 import javax.annotation.Nullable;
 
-import io.pantheist.common.shared.model.GenericPropertyValue;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import io.pantheist.handler.java.model.JavaFileId;
 
 public interface Entity
@@ -19,7 +18,7 @@ public interface Entity
 	@Nullable
 	JavaFileId javaFileId();
 
-	Map<String, GenericPropertyValue> propertyValues();
+	ObjectNode propertyValues();
 
 	/**
 	 * Used internally to signify that the entity is a candidate for further

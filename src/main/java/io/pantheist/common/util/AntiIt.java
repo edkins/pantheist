@@ -2,6 +2,7 @@ package io.pantheist.common.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -18,6 +19,16 @@ public final class AntiIt
 			for (final T x : iterable)
 			{
 				consumer.accept(x);
+			}
+		};
+	}
+
+	public static <T> AntiIterator<T> fromIterator(final Iterator<T> iterator)
+	{
+		return consumer -> {
+			while (iterator.hasNext())
+			{
+				consumer.accept(iterator.next());
 			}
 		};
 	}

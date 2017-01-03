@@ -52,8 +52,8 @@ final class SqlPropertyImpl implements SqlProperty
 			return "boolean";
 		case STRING:
 			return "varchar";
-		case STRING_ARRAY:
-		case OBJECT_ARRAY:
+		case ARRAY:
+		case OBJECT:
 			return "jsonb";
 		default:
 			throw new UnsupportedOperationException("Unknown type to convert to sql: " + typeInfo.type());

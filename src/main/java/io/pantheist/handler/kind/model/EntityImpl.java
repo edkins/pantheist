@@ -1,14 +1,13 @@
 package io.pantheist.handler.kind.model;
 
-import java.util.Map;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableMap;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.assistedinject.Assisted;
 
-import io.pantheist.common.shared.model.GenericPropertyValue;
 import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.handler.java.model.JavaFileId;
 
@@ -18,7 +17,7 @@ final class EntityImpl implements Entity
 	private final String kindId;
 	private final String jsonSchemaId;
 	private final JavaFileId javaFileId;
-	private final Map<String, GenericPropertyValue> propertyValues;
+	private final ObjectNode propertyValues;
 	private final boolean canDifferentiate;
 
 	@Inject
@@ -27,14 +26,14 @@ final class EntityImpl implements Entity
 			@Assisted("kindId") final String kindId,
 			@Nullable @Assisted("jsonSchemaId") final String jsonSchemaId,
 			@Nullable @Assisted final JavaFileId javaFileId,
-			@Assisted final Map<String, GenericPropertyValue> propertyValues,
+			@Assisted final ObjectNode propertyValues,
 			@Assisted("canDifferentiate") final boolean canDifferentiate)
 	{
 		this.entityId = OtherPreconditions.checkNotNullOrEmpty(entityId);
 		this.kindId = OtherPreconditions.checkNotNullOrEmpty(kindId);
 		this.jsonSchemaId = jsonSchemaId;
 		this.javaFileId = javaFileId;
-		this.propertyValues = ImmutableMap.copyOf(propertyValues);
+		this.propertyValues = checkNotNull(propertyValues);
 		this.canDifferentiate = canDifferentiate;
 	}
 
@@ -63,7 +62,7 @@ final class EntityImpl implements Entity
 	}
 
 	@Override
-	public Map<String, GenericPropertyValue> propertyValues()
+	public ObjectNode propertyValues()
 	{
 		return propertyValues;
 	}

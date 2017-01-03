@@ -14,6 +14,7 @@ import io.pantheist.common.shared.model.CommonSharedModelFactory;
 import io.pantheist.common.shared.model.PropertyType;
 import io.pantheist.common.shared.model.TypeInfo;
 
+@JsonInclude(Include.NON_NULL)
 @JsonDeserialize(as = KindPropertyImpl.class)
 public interface KindProperty
 {
@@ -25,12 +26,20 @@ public interface KindProperty
 	boolean isIdentifier();
 
 	/**
-	 * For object-array types only. Specifies the properties supported
-	 * by each element of the array.
+	 * For array types only. Specifies the schema for
+	 * each element in the array.
 	 */
 	@Nullable
-	@JsonProperty("itemProperties")
-	Map<String, TypeInfo> itemProperties();
+	@JsonProperty("items")
+	TypeInfo items();
+
+	/**
+	 * For array types only. Specifies the schema for
+	 * each particular property of the object.
+	 */
+	@Nullable
+	@JsonProperty("properties")
+	Map<String, TypeInfo> properties();
 
 	@JsonIgnore
 	TypeInfo typeInfo(CommonSharedModelFactory modelFactory);

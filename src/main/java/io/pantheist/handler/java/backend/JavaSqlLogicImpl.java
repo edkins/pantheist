@@ -8,35 +8,28 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
-import io.pantheist.common.shared.model.CommonSharedModelFactory;
-import io.pantheist.common.shared.model.PropertyType;
-import io.pantheist.common.shared.model.TypeInfo;
 import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.sql.backend.SqlService;
 
 final class JavaSqlLogicImpl implements JavaSqlLogic
 {
 	private final SqlService sqlService;
-	private final CommonSharedModelFactory sharedFactory;
 	private final JavaParse javaParse;
 	private final ObjectMapper objectMapper;
 
 	@Inject
 	private JavaSqlLogicImpl(
 			final SqlService sqlService,
-			final CommonSharedModelFactory sharedFactory,
 			final JavaParse javaParse,
 			final ObjectMapper objectMapper)
 	{
 		this.sqlService = checkNotNull(sqlService);
-		this.sharedFactory = checkNotNull(sharedFactory);
 		this.javaParse = checkNotNull(javaParse);
 		this.objectMapper = checkNotNull(objectMapper);
 	}
@@ -47,11 +40,12 @@ final class JavaSqlLogicImpl implements JavaSqlLogic
 		final String qualifiedName = id.qualifiedName();
 
 		final CompilationUnit compilationUnit = javaParse.parse(code);
+		final JsonNodeFactory nf = objectMapper.getNodeFactory();
 
-		final ImmutableList.Builder<String> annotationList = ImmutableList.builder();
+		final ArrayNode annotationList = nf.arrayNode();
 		boolean isClass = false;
 		boolean isInterface = false;
-		final ArrayNode constructors = objectMapper.getNodeFactory().arrayNode();
+		final ArrayNode constructors = nf.arrayNode();
 		if (compilationUnit.getTypes().size() == 1)
 		{
 			final TypeDeclaration<?> mainType = compilationUnit.getType(0);
@@ -72,14 +66,15 @@ final class JavaSqlLogicImpl implements JavaSqlLogic
 			});
 		}
 
-		final TypeInfo constructorsType = sharedFactory.typeInfo(PropertyType.OBJECT_ARRAY, ImmutableMap.of());
+		final ObjectNode obj = nf.objectNode();
 
-		sqlService.updateOrInsert("java-file", "qualifiedName", ImmutableList.of(
-				sharedFactory.stringValue("qualifiedName", qualifiedName),
-				sharedFactory.booleanValue("isClass", isClass),
-				sharedFactory.booleanValue("isInterface", isInterface),
-				sharedFactory.stringArrayValue("annotations", annotationList.build()),
-				sharedFactory.objectArrayValue("constructors", constructorsType, constructors)));
+		obj.put("qualifiedName", qualifiedName);
+		obj.put("isClass", isClass);
+		obj.put("isInterface", isInterface);
+		obj.replace("annotations", annotationList);
+		obj.replace("constructors", constructors);
+
+		sqlService.updateOrInsert("java-file", "qualifiedName", obj);
 	}
 
 	private JsonNode constructorNode(final ConstructorDeclaration c)

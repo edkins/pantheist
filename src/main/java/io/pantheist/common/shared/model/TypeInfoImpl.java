@@ -14,19 +14,21 @@ import com.google.inject.assistedinject.Assisted;
 public final class TypeInfoImpl implements TypeInfo
 {
 	private final PropertyType type;
-	private final Map<String, TypeInfo> itemProperties;
+	private final Map<String, TypeInfo> properties;
+	private final TypeInfo items;
 
-	public static final TypeInfo STRING = new TypeInfoImpl(PropertyType.STRING, null);
-	public static final TypeInfo BOOLEAN = new TypeInfoImpl(PropertyType.BOOLEAN, null);
-	public static final TypeInfo STRING_ARRAY = new TypeInfoImpl(PropertyType.STRING_ARRAY, null);
+	public static final TypeInfo STRING = new TypeInfoImpl(PropertyType.STRING, null, null);
+	public static final TypeInfo BOOLEAN = new TypeInfoImpl(PropertyType.BOOLEAN, null, null);
 
 	@Inject
 	private TypeInfoImpl(
 			@Assisted @JsonProperty("type") final PropertyType type,
-			@Nullable @Assisted @JsonProperty("itemProperties") final Map<String, TypeInfo> itemProperties)
+			@Nullable @Assisted("items") @JsonProperty("items") final TypeInfo items,
+			@Nullable @Assisted @JsonProperty("properties") final Map<String, TypeInfo> properties)
 	{
 		this.type = checkNotNull(type);
-		this.itemProperties = itemProperties;
+		this.items = items;
+		this.properties = properties;
 	}
 
 	@Override
@@ -36,21 +38,32 @@ public final class TypeInfoImpl implements TypeInfo
 	}
 
 	@Override
-	public Map<String, TypeInfo> itemProperties()
+	public Map<String, TypeInfo> properties()
 	{
-		return itemProperties;
+		return properties;
+	}
+
+	@Override
+	public TypeInfo items()
+	{
+		return items;
 	}
 
 	@Override
 	public String toString()
 	{
 		final StringBuilder sb = new StringBuilder();
-		sb.append(type.toString());
-		if (itemProperties != null)
+		if (items != null)
+		{
+			sb.append('[');
+			sb.append(items);
+			sb.append(']');
+		}
+		else if (properties != null)
 		{
 			sb.append('{');
 			boolean first = true;
-			for (final Entry<String, TypeInfo> entry : itemProperties.entrySet())
+			for (final Entry<String, TypeInfo> entry : properties.entrySet())
 			{
 				if (!first)
 				{
@@ -60,6 +73,10 @@ public final class TypeInfoImpl implements TypeInfo
 				sb.append(entry.getKey()).append(':').append(entry.getValue());
 			}
 			sb.append('}');
+		}
+		else
+		{
+			sb.append(type.toString());
 		}
 		return sb.toString();
 	}

@@ -6,8 +6,8 @@ public enum PropertyType
 {
 	BOOLEAN("boolean"),
 	STRING("string"),
-	STRING_ARRAY("string-array"),
-	OBJECT_ARRAY("object-array");
+	ARRAY("array"),
+	OBJECT("object");
 
 	private final String name;
 

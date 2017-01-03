@@ -13,7 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -25,16 +25,11 @@ import org.apache.logging.log4j.Logger;
 import org.postgresql.util.PGobject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableMap;
 
 import io.pantheist.api.sql.backend.SqlBackendException;
-import io.pantheist.common.shared.model.CommonSharedModelFactory;
-import io.pantheist.common.shared.model.GenericPropertyValue;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.OtherPreconditions;
@@ -55,20 +50,17 @@ final class SqlServiceImpl implements SqlService
 
 	private final Set<String> reservedWordsLowercase;
 	private final ObjectMapper objectMapper;
-	private final CommonSharedModelFactory sharedFactory;
 
 	@Inject
 	private SqlServiceImpl(
 			final FilesystemStore filesystem,
 			final PantheistConfig config,
-			final ObjectMapper objectMapper,
-			final CommonSharedModelFactory sharedFactory)
+			final ObjectMapper objectMapper)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.config = checkNotNull(config);
 		this.reservedWordsLowercase = new HashSet<>();
 		this.objectMapper = checkNotNull(objectMapper);
-		this.sharedFactory = checkNotNull(sharedFactory);
 	}
 
 	@Override
@@ -206,18 +198,24 @@ final class SqlServiceImpl implements SqlService
 	}
 
 	@Override
-	public AntiIterator<ResultSet> selectIndividualRow(final String tableName, final GenericPropertyValue indexValue,
+	public AntiIterator<ResultSet> selectIndividualRow(
+			final String tableName,
+			final String indexColumn,
+			final JsonNode indexValue,
 			final List<String> columnNames)
 	{
-		if (columnNames.isEmpty())
+		OtherPreconditions.checkNotNullOrEmpty(tableName);
+		OtherPreconditions.checkNotNullOrEmpty(indexColumn);
+		checkNotNull(indexValue);
+		if (!columnNames.contains(indexColumn))
 		{
-			throw new IllegalArgumentException("List of column names must be nonempty");
+			throw new IllegalArgumentException("List of column names must contain indexColumn");
 		}
 		final String columnSql = AntiIt.from(columnNames).map(this::toSqlColumnName).join(",").get();
 		final String sql = String.format("SELECT %s FROM %s WHERE %s=?",
 				columnSql,
 				toSqlTableName(tableName),
-				toSqlColumnName(indexValue.name()));
+				toSqlColumnName(indexColumn));
 
 		return consumer -> {
 			try (final Connection db = connect())
@@ -276,18 +274,22 @@ final class SqlServiceImpl implements SqlService
 	public void updateOrInsert(
 			final String tableName,
 			final String primaryKeyColumn,
-			final List<GenericPropertyValue> values)
+			final ObjectNode valueObj)
 	{
-		if (values.isEmpty())
+		if (!valueObj.has(primaryKeyColumn))
 		{
-			throw new IllegalArgumentException("List of values must be nonempty");
+			throw new IllegalArgumentException("values must include primary key column");
 		}
-		final String columnSql = AntiIt.from(values).map(v -> toSqlColumnName(v.name())).join(",").get();
-		final String questionMarks = AntiIt.from(values).map(v -> "?").join(",").get();
 
-		final String doUpdateSql = AntiIt.from(values)
-				.filter(v -> !v.name().equals(primaryKeyColumn))
-				.map(v -> toSqlColumnName(v.name()) + " = EXCLUDED." + toSqlColumnName(v.name()))
+		// Impose an ordering on columns
+		final List<Entry<String, JsonNode>> fields = AntiIt.fromIterator(valueObj.fields()).toList();
+		final String columnSql = AntiIt.from(fields)
+				.map(e -> toSqlColumnName(e.getKey())).join(",").get();
+		final String questionMarks = AntiIt.from(fields).map(e -> "?").join(",").get();
+
+		final String doUpdateSql = AntiIt.from(fields)
+				.filter(e -> !e.getKey().equals(primaryKeyColumn))
+				.map(e -> toSqlColumnName(e.getKey()) + " = EXCLUDED." + toSqlColumnName(e.getKey()))
 				.join(",")
 				.get();
 
@@ -301,7 +303,11 @@ final class SqlServiceImpl implements SqlService
 		{
 			try (PreparedStatement statement = db.prepareStatement(sql))
 			{
-				setUpStatement(db, statement, values);
+				for (int i = 0; i < fields.size(); i++)
+				{
+					final JsonNode v = fields.get(i).getValue();
+					setStatementValue(db, statement, i + 1, v);
+				}
 				statement.execute();
 			}
 		}
@@ -311,43 +317,30 @@ final class SqlServiceImpl implements SqlService
 		}
 	}
 
-	private void setUpStatement(
-			final Connection connection,
-			final PreparedStatement statement,
-			final List<GenericPropertyValue> values)
-			throws SQLException, JsonProcessingException
-	{
-		for (int i = 0; i < values.size(); i++)
-		{
-			final GenericPropertyValue v = values.get(i);
-			setStatementValue(connection, statement, i + 1, v);
-		}
-	}
-
 	private void setStatementValue(
 			final Connection connection,
 			final PreparedStatement statement, final int parameterIndex,
-			final GenericPropertyValue v)
+			final JsonNode v)
 			throws SQLException, JsonProcessingException
 	{
-		switch (v.typeInfo().type()) {
-		case BOOLEAN:
+		if (v.isBoolean())
+		{
 			statement.setBoolean(parameterIndex, v.booleanValue());
-			break;
-		case STRING:
-			statement.setString(parameterIndex, v.stringValue());
-			break;
-		case STRING_ARRAY:
-		case OBJECT_ARRAY:
+		}
+		else if (v.isTextual())
+		{
+			statement.setString(parameterIndex, v.textValue());
+		}
+		else if (v.isArray() || v.isObject())
 		{
 			final PGobject jsonObject = new PGobject();
 			jsonObject.setType("json");
-			jsonObject.setValue(v.jsonValue(objectMapper));
+			jsonObject.setValue(objectMapper.writeValueAsString(v));
 			statement.setObject(parameterIndex, jsonObject);
-			break;
 		}
-		default:
-			throw new UnsupportedOperationException("Unrecognized property type: " + v.typeInfo());
+		else
+		{
+			throw new UnsupportedOperationException("Unrecognized property type: " + v.getNodeType());
 		}
 
 	}
@@ -477,7 +470,7 @@ final class SqlServiceImpl implements SqlService
 	}
 
 	@Override
-	public JsonNode rsToJsonNode(final ResultSet resultSet, final List<SqlProperty> columns)
+	public ObjectNode rsToJsonNode(final ResultSet resultSet, final List<SqlProperty> columns)
 	{
 		try
 		{
@@ -493,9 +486,9 @@ final class SqlServiceImpl implements SqlService
 				case STRING:
 					result.put(fieldName, resultSet.getString(i + 1));
 					break;
-				case STRING_ARRAY:
-				case OBJECT_ARRAY:
-					result.replace(fieldName, objectMapper.readValue(resultSet.getString(i + 1), ArrayNode.class));
+				case ARRAY:
+				case OBJECT:
+					result.replace(fieldName, objectMapper.readValue(resultSet.getString(i + 1), JsonNode.class));
 					break;
 				default:
 					throw new UnsupportedOperationException("Cannot convert type to json: " + column.typeInfo());
@@ -506,53 +499,6 @@ final class SqlServiceImpl implements SqlService
 		catch (final SQLException | IOException e)
 		{
 			throw new SqlBackendException(e);
-		}
-	}
-
-	@Override
-	public Map<String, GenericPropertyValue> rsToGenericValues(
-			final ResultSet rs,
-			final List<SqlProperty> columns)
-	{
-		try
-		{
-			final ImmutableMap.Builder<String, GenericPropertyValue> builder = ImmutableMap.builder();
-
-			for (int i = 0; i < columns.size(); i++)
-			{
-				final SqlProperty column = columns.get(i);
-				final String name = column.name();
-
-				switch (column.typeInfo().type()) {
-				case STRING:
-					builder.put(name, sharedFactory.stringValue(name, rs.getString(i + 1)));
-					break;
-				case BOOLEAN:
-					builder.put(name, sharedFactory.booleanValue(name, rs.getBoolean(i + 1)));
-					break;
-				case STRING_ARRAY:
-				{
-					final List<String> value = objectMapper.readValue(rs.getString(i + 1),
-							new TypeReference<List<String>>() {
-							});
-					builder.put(name, sharedFactory.stringArrayValue(name, value));
-					break;
-				}
-				case OBJECT_ARRAY:
-				{
-					final ArrayNode jsonNode = objectMapper.readValue(rs.getString(i + 1), ArrayNode.class);
-					builder.put(name, sharedFactory.objectArrayValue(name, column.typeInfo(), jsonNode));
-					break;
-				}
-				default:
-					throw new UnsupportedOperationException("Cannot convert type from sql: " + column.typeInfo());
-				}
-			}
-			return builder.build();
-		}
-		catch (final SQLException | IOException e)
-		{
-			throw new SqlServiceException(e);
 		}
 	}
 }

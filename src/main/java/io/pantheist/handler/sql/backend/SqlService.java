@@ -2,11 +2,10 @@ package io.pantheist.handler.sql.backend;
 
 import java.sql.ResultSet;
 import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import io.pantheist.common.shared.model.GenericPropertyValue;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.handler.sql.model.SqlProperty;
 
@@ -36,20 +35,19 @@ public interface SqlService
 	 * Insert the specified stuff into the given table, or update if the primary key value is
 	 * already in use.
 	 *
-	 * The list of values must be nonempty.
+	 * The values object must be nonempty and must contain primaryKeyColumn.
 	 *
 	 * Generally, if one of the columns in the original table is missing here, we'll get a
 	 * not-null constraint exception from SQL because the tables are created with NOT NULL on
 	 * all columns.
 	 */
-	void updateOrInsert(String tableName, String primaryKeyColumn, List<GenericPropertyValue> values);
+	void updateOrInsert(String tableName, String primaryKeyColumn, ObjectNode values);
 
 	AntiIterator<ResultSet> selectIndividualRow(
 			String tableName,
-			GenericPropertyValue indexValue,
+			String indexColumn,
+			JsonNode indexValue,
 			List<String> columnNames);
 
-	JsonNode rsToJsonNode(ResultSet resultSet, List<SqlProperty> columns);
-
-	Map<String, GenericPropertyValue> rsToGenericValues(ResultSet resultSet, List<SqlProperty> columns);
+	ObjectNode rsToJsonNode(ResultSet resultSet, List<SqlProperty> columns);
 }

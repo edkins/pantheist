@@ -16,16 +16,19 @@ final class KindPropertyImpl implements KindProperty
 {
 	private final PropertyType type;
 	private final boolean isIdentifier;
-	private final Map<String, TypeInfo> itemProperties;
+	private final TypeInfo items;
+	private final Map<String, TypeInfo> properties;
 
 	private KindPropertyImpl(
 			@JsonProperty("type") final PropertyType type,
 			@JsonProperty("isIdentifier") final boolean isIdentifier,
-			@Nullable @JsonProperty("itemProperties") final Map<String, TypeInfo> itemProperties)
+			@Nullable @JsonProperty("items") final TypeInfo items,
+			@Nullable @JsonProperty("itemProperties") final Map<String, TypeInfo> properties)
 	{
 		this.type = checkNotNull(type);
 		this.isIdentifier = isIdentifier;
-		this.itemProperties = itemProperties;
+		this.items = items;
+		this.properties = properties;
 	}
 
 	@Override
@@ -41,15 +44,21 @@ final class KindPropertyImpl implements KindProperty
 	}
 
 	@Override
-	public Map<String, TypeInfo> itemProperties()
+	public Map<String, TypeInfo> properties()
 	{
-		return itemProperties;
+		return properties;
 	}
 
 	@Override
 	public TypeInfo typeInfo(final CommonSharedModelFactory modelFactory)
 	{
-		return modelFactory.typeInfo(type, itemProperties);
+		return modelFactory.typeInfo(type, items, properties);
+	}
+
+	@Override
+	public TypeInfo items()
+	{
+		return items;
 	}
 
 }

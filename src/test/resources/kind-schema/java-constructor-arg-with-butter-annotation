@@ -5,10 +5,14 @@
       "isClass": true,
       "constructors": {
         "includes": {
-          "parameters": {
-            "includes": {
-              "annotations": {
-                "includes": "Butter"
+          "properties": {
+            "parameters": {
+              "includes": {
+                "properties": {
+                  "annotations": {
+                    "includes": "Butter"
+                  }
+                }
               }
             }
           }

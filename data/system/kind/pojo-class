@@ -10,10 +10,14 @@
       "parentKind": "java-class-file",
       "constructors": {
         "includes": {
-          "parameters": {
-            "includes": {
-              "annotations": {
-                "includes": "JsonProperty"
+          "properties": {
+            "parameters": {
+              "includes": {
+                "properties": {
+                  "annotations": {
+                    "includes": "JsonProperty"
+                  }
+                }
               }
             }
           }

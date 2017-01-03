@@ -18,16 +18,28 @@
         "type":"boolean"
       },
       "annotations": {
-        "type":"string-array"
+        "type":"array",
+        "items": {
+          "type":"string"
+        }
       },
       "constructors": {
-        "type":"object-array",
-        "itemProperties": {
-          "parameters": {
-            "type": "object-array",
-            "itemProperties": {
-              "annotations": {
-                "type":"string-array"
+        "type":"array",
+        "items": {
+          "type":"object",
+          "properties": {
+            "parameters": {
+              "type":"array",
+              "items": {
+                "type":"object",
+                "properties": {
+                  "annotations": {
+                    "type":"array",
+                    "items": {
+                      "type":"string"
+                    }
+                  }
+                }
               }
             }
           }
