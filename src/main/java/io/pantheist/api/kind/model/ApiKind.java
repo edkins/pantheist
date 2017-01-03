@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.common.api.model.Presentation;
 import io.pantheist.common.api.model.ReplaceAction;
@@ -37,4 +38,8 @@ public interface ApiKind extends ListClassifierResponse
 	@Nullable
 	@JsonProperty("instancePresentation")
 	Presentation instancePresentation();
+
+	@Nullable
+	@JsonProperty("createAction")
+	CreateAction createAction();
 }

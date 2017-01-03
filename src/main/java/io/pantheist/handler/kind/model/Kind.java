@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.Presentation;
 
 @JsonInclude(Include.NON_NULL)
@@ -28,6 +29,10 @@ public interface Kind
 	@Nullable
 	@JsonProperty("instancePresentation")
 	Presentation instancePresentation();
+
+	@Nullable
+	@JsonProperty("createAction")
+	CreateAction createAction();
 
 	/**
 	 * Convenience method for obtaining the parent kind ID specified in the schema, if any.

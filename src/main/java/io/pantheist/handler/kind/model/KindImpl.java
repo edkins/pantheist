@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.assistedinject.Assisted;
 
+import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.Presentation;
 import io.pantheist.common.util.OtherPreconditions;
 
@@ -20,18 +21,21 @@ final class KindImpl implements Kind
 	private final boolean partOfSystem;
 	private final KindSchema schema;
 	private final Presentation instancePresentation;
+	private final CreateAction createAction;
 
 	@Inject
 	private KindImpl(
 			@Assisted("kindId") @JsonProperty("kindId") final String kindId,
 			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
 			@Nullable @Assisted("instancePresentation") @JsonProperty("instancePresentation") final Presentation instancePresentation,
-			@Assisted @JsonProperty("schema") final KindSchema schema)
+			@Assisted @JsonProperty("schema") final KindSchema schema,
+			@Nullable @Assisted @JsonProperty("createAction") final CreateAction createAction)
 	{
 		this.kindId = OtherPreconditions.checkNotNullOrEmpty(kindId);
 		this.partOfSystem = partOfSystem;
 		this.schema = checkNotNull(schema);
 		this.instancePresentation = instancePresentation;
+		this.createAction = createAction;
 	}
 
 	@Override
@@ -113,5 +117,11 @@ final class KindImpl implements Kind
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public CreateAction createAction()
+	{
+		return createAction;
 	}
 }

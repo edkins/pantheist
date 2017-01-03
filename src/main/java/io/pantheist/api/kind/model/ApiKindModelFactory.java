@@ -20,7 +20,8 @@ public interface ApiKindModelFactory
 			@Nullable @Assisted("kindId") String kindId,
 			KindSchema schema,
 			@Assisted("partOfSystem") boolean partOfSystem,
-			@Assisted("instancePresentation") Presentation instancePresentation);
+			@Assisted("instancePresentation") Presentation instancePresentation,
+			CreateAction createAction);
 
 	ListKindResponse listKindResponse(
 			List<ListKindItem> childResources,
