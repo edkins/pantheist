@@ -301,6 +301,7 @@ final class NginxServiceImpl implements NginxService
 		helper.setHttp("root", defaultRoot().getAbsolutePath() + "/");
 		helper.setHttp("charset", "utf-8");
 		helper.setType("image/png", "png");
+		helper.setType("text/html", "html");
 		helper.createEventsSection();
 
 		helper.write();

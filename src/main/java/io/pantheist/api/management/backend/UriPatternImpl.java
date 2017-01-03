@@ -187,4 +187,24 @@ public class UriPatternImpl implements UriPattern
 		return patternSegment(UriPatternSegmentEmptyImpl.EMPTY);
 	}
 
+	@Override
+	public String template()
+	{
+		final StringBuilder sb = new StringBuilder();
+		sb.append(scheme);
+		sb.append("://");
+		sb.append(authority);
+		boolean first = true;
+		for (final UriPatternSegment segment : segments)
+		{
+			if (!first)
+			{
+				sb.append('/');
+			}
+			first = false;
+			sb.append(segment.template());
+		}
+		return sb.toString();
+	}
+
 }

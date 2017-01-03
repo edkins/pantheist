@@ -1,13 +1,10 @@
 package io.pantheist.tests;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -21,7 +18,6 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import io.pantheist.api.java.model.ListJavaPkgItem;
-import io.pantheist.common.api.model.AdditionalStructureItem;
 import io.pantheist.common.api.model.BasicContentType;
 import io.pantheist.common.api.model.BindingAction;
 import io.pantheist.common.api.model.CreateAction;
@@ -145,21 +141,8 @@ public class ListClassifierTest
 	public void javaPkg_createAction() throws Exception
 	{
 		final CreateAction createAction = manage.listJavaPackages().createAction();
-		final List<AdditionalStructureItem> additional = createAction.additionalStructure();
 
-		assertThat(createAction.basicType(), is(BasicContentType.java));
-		assertThat(createAction.mimeType(), is(TEXT_PLAIN));
-
-		assertThat(additional.size(), is(3));
-		assertTrue("First segment should be literal", additional.get(0).literal());
-		assertThat(additional.get(0).name(), is("file"));
-
-		assertFalse("Second segment should be var", additional.get(1).literal());
-		// the actual name of the var doesn't really matter
-		assertThat(additional.get(1).name(), not(isEmptyOrNullString()));
-
-		assertTrue("Third segment should be literal", additional.get(2).literal());
-		assertThat(additional.get(2).name(), is("data"));
+		assertThat(createAction.urlTemplate(), containsString("java-pkg/{pkg}/file/{file}/data"));
 	}
 
 	@Test
@@ -206,9 +189,7 @@ public class ListClassifierTest
 
 		assertThat(createAction.basicType(), is(BasicContentType.json));
 		assertThat(createAction.mimeType(), is(JSON_SCHEMA_MIME));
-		assertThat(createAction.additionalStructure().size(), is(1));
-		assertThat(createAction.additionalStructure().get(0).literal(), is(true));
-		assertThat(createAction.additionalStructure().get(0).name(), is("data"));
+		assertThat(createAction.urlTemplate(), containsString("json-schema/{schemaId}/data"));
 	}
 
 	@Test
@@ -285,7 +266,7 @@ public class ListClassifierTest
 		assertThat(createAction, notNullValue());
 		assertThat(createAction.basicType(), is(BasicContentType.json));
 		assertThat(createAction.mimeType(), is(APPLICATION_JSON));
-		assertThat(createAction.additionalStructure(), nullValue());
+		assertThat(createAction.urlTemplate(), containsString("kind/{kindId}"));
 	}
 
 	@Test

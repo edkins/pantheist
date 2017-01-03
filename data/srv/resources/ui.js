@@ -83,7 +83,7 @@ function createUl(t,parentUrl)
 
 function createTreeNode(t,kindUrl,url)
 {
-	var name = decodeURIComponent(http.lastSegment(url));
+	var name = decodeURIComponent(uri.lastSegment(url));
 	
 	var li = document.createElement('li');
 	
@@ -201,14 +201,13 @@ function highlightActiveTab(buttonId)
 function showCreateForm(t)
 {
 	document.getElementById('create-form').classList.remove('hidden');
-	document.getElementById('create-label-1').textContent = http.lastSegment(t.url);
 	
 	var panel = document.getElementById('create-additional');
 	removeChildren(panel);
 	
-	if (t.data.createAction.additionalStructure != undefined)
+	if (t.data.createAction.urlTemplate != undefined)
 	{
-		for (var additional of t.data.createAction.additionalStructure)
+		for (var additional of uri.splitTemplate(t.data.createAction.urlTemplate))
 		{
 			if (additional.literal)
 			{
@@ -327,7 +326,7 @@ function refreshCurrentPane(t)
 
 function constructCreateUrl(t)
 {
-	var url = t.url;
+	var url = http.home;
 	
 	var panel = document.getElementById('create-form');
 	var items = panel.getElementsByTagName('*');

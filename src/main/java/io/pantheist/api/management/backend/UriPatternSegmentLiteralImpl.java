@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Map;
 import java.util.Optional;
 
+import io.pantheist.common.util.Escapers;
 import io.pantheist.common.util.OtherPreconditions;
 
 final class UriPatternSegmentLiteralImpl implements UriPatternSegment
@@ -50,5 +51,11 @@ final class UriPatternSegmentLiteralImpl implements UriPatternSegment
 	public boolean isEmpty()
 	{
 		return false;
+	}
+
+	@Override
+	public String template()
+	{
+		return Escapers.url(segment);
 	}
 }

@@ -14,15 +14,11 @@ public interface CommonApiModelFactory
 			@Assisted("suggestHiding") boolean suggestHiding,
 			@Assisted("kindUrl") String kindUrl);
 
-	AdditionalStructureItem additionalStructureItem(
-			@Assisted("literal") boolean literal,
-			@Assisted("name") String name,
-			@Assisted("suggestHiding") boolean suggestHiding);
-
 	CreateAction createAction(
 			BasicContentType basicType,
 			@Assisted("mimeType") String mimeType,
-			@Nullable List<AdditionalStructureItem> additionalStructure);
+			@Nullable @Assisted("urlTemplate") String urlTemplate,
+			@Nullable @Assisted("prototypeUrl") String prototypeUrl);
 
 	DataAction dataAction(
 			BasicContentType basicType,

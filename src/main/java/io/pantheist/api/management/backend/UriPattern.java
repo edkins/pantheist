@@ -15,4 +15,11 @@ public interface UriPattern
 	String getVar(String name, String url);
 
 	String generate(Map<String, String> values);
+
+	/**
+	 * Return this as a template, with variables enclosed in braces like so:
+	 *
+	 * http://localhost:3142/thing/{thingId}
+	 */
+	String template();
 }

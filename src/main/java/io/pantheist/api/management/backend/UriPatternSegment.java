@@ -17,4 +17,6 @@ interface UriPatternSegment
 	String generateAndDelete(Map<String, String> values);
 
 	boolean isEmpty();
+
+	String template();
 }

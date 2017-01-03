@@ -40,4 +40,10 @@ final class UriPatternSegmentEmptyImpl implements UriPatternSegment
 	{
 		return true;
 	}
+
+	@Override
+	public String template()
+	{
+		return "";
+	}
 }

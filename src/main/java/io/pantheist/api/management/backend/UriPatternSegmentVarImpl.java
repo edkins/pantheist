@@ -59,4 +59,10 @@ final class UriPatternSegmentVarImpl implements UriPatternSegment
 		return false;
 	}
 
+	@Override
+	public String template()
+	{
+		return "{" + name + "}";
+	}
+
 }

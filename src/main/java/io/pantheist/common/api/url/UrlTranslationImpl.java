@@ -8,12 +8,10 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import io.pantheist.api.management.backend.UriPattern;
 import io.pantheist.api.management.backend.UriPatternImpl;
-import io.pantheist.common.api.model.AdditionalStructureItem;
 import io.pantheist.common.api.model.BasicContentType;
 import io.pantheist.common.api.model.BindingAction;
 import io.pantheist.common.api.model.CommonApiModelFactory;
@@ -39,9 +37,11 @@ final class UrlTranslationImpl implements UrlTranslation
 	private final UriPattern kind;
 	private final UriPattern kindEntity;
 	private final UriPattern jsonSchema;
+	private final UriPattern jsonSchemaData;
 	private final UriPattern javaBinding;
 	private final UriPattern javaPkg;
 	private final UriPattern javaFile;
+	private final UriPattern javaFileData;
 	private final UriPattern location;
 	private final UriPattern flatDir;
 	private final UriPattern flatDirFile;
@@ -64,9 +64,11 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.kind = root.segment("kind").var("kindId");
 		this.kindEntity = kind.segment("entity").var("entityId");
 		this.jsonSchema = root.segment("json-schema").var("schemaId");
+		this.jsonSchemaData = jsonSchema.segment("data");
 		this.javaBinding = root.segment("java-binding");
 		this.javaPkg = root.segment("java-pkg").var("pkg");
 		this.javaFile = javaPkg.segment("file").var("file");
+		this.javaFileData = javaFile.segment("data");
 		this.location = root.segment("server").var("serverId").segment("location").var("locationId");
 		this.flatDir = root.segment("flat-dir").var("dir");
 		this.flatDirFile = flatDir.segment("file").var("file");
@@ -160,16 +162,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public CreateAction javaPkgCreateAction()
 	{
-		// This looks mysterious, but what it's saying is:
-		// - the client already expects urls to look like "/java-pkg/{}"
-		// - we are telling it that additional segments need to be appended to create resources in there
-		// - and the additional structure is "file/{}"
-
-		final ImmutableList<AdditionalStructureItem> additionalStructure = ImmutableList.of(
-				modelFactory.additionalStructureItem(true, "file", false),
-				modelFactory.additionalStructureItem(false, "file", false),
-				modelFactory.additionalStructureItem(true, "data", true));
-		return modelFactory.createAction(BasicContentType.java, TEXT_PLAIN, additionalStructure);
+		return modelFactory.createAction(BasicContentType.java, TEXT_PLAIN, javaFileData.template(), null);
 	}
 
 	@Override
@@ -187,9 +180,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public CreateAction jsonSchemaCreateAction()
 	{
-		final ImmutableList<AdditionalStructureItem> additionalStructure = ImmutableList.of(
-				modelFactory.additionalStructureItem(true, "data", true));
-		return modelFactory.createAction(BasicContentType.json, JSON_SCHEMA_MIME, additionalStructure);
+		return modelFactory.createAction(BasicContentType.json, JSON_SCHEMA_MIME, jsonSchemaData.template(), null);
 	}
 
 	@Override
@@ -232,7 +223,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public CreateAction kindCreateAction()
 	{
-		return modelFactory.createAction(BasicContentType.json, APPLICATION_JSON, null);
+		return modelFactory.createAction(BasicContentType.json, APPLICATION_JSON, kind.template(), null);
 	}
 
 	@Override

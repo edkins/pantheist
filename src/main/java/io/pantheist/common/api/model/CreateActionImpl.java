@@ -2,8 +2,6 @@ package io.pantheist.common.api.model;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.List;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
@@ -16,17 +14,20 @@ final class CreateActionImpl implements CreateAction
 {
 	private final BasicContentType basicType;
 	private final String mimeType;
-	private final List<AdditionalStructureItem> additionalStructure;
+	private final String urlTemplate;
+	private final String prototypeUrl;
 
 	@Inject
 	private CreateActionImpl(
 			@Assisted @JsonProperty("basicType") final BasicContentType basicType,
 			@Assisted("mimeType") @JsonProperty("mimeType") final String mimeType,
-			@Nullable @Assisted @JsonProperty("additionalStructure") final List<AdditionalStructureItem> additionalStructure)
+			@Nullable @Assisted("urlTemplate") @JsonProperty("urlTemplate") final String urlTemplate,
+			@Nullable @Assisted("prototypeUrl") @JsonProperty("prototypeUrl") final String prototypeUrl)
 	{
 		this.basicType = checkNotNull(basicType);
 		this.mimeType = OtherPreconditions.checkNotNullOrEmpty(mimeType);
-		this.additionalStructure = additionalStructure;
+		this.urlTemplate = OtherPreconditions.checkNotNullOrEmpty(urlTemplate);
+		this.prototypeUrl = prototypeUrl;
 	}
 
 	@Override
@@ -42,9 +43,15 @@ final class CreateActionImpl implements CreateAction
 	}
 
 	@Override
-	public List<AdditionalStructureItem> additionalStructure()
+	public String prototypeUrl()
 	{
-		return additionalStructure;
+		return prototypeUrl;
+	}
+
+	@Override
+	public String urlTemplate()
+	{
+		return urlTemplate;
 	}
 
 }
