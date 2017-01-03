@@ -9,7 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -34,6 +34,7 @@ import io.pantheist.system.config.PantheistConfig;
 final class SqlServiceImpl implements SqlService
 {
 	private static final Logger LOGGER = LogManager.getLogger(SqlServiceImpl.class);
+	private static final long BATCH_SIZE = 4000;
 	private final FilesystemStore filesystem;
 
 	private final PantheistConfig config;
@@ -164,24 +165,24 @@ final class SqlServiceImpl implements SqlService
 	@Override
 	public void updateOrInsert(
 			final String tableName,
-			final String primaryKeyColumn,
-			final ObjectNode valueObj)
+			final List<SqlProperty> columns,
+			final AntiIterator<ObjectNode> valueObjs)
 	{
-		if (!valueObj.has(primaryKeyColumn))
-		{
-			throw new IllegalArgumentException("values must include primary key column");
-		}
+		final String primaryKeyColumn = AntiIt.from(columns)
+				.filter(SqlProperty::isPrimaryKey)
+				.map(SqlProperty::name)
+				.failIfMultiple()
+				.get();
 
-		// Impose an ordering on columns
-		final List<Entry<String, JsonNode>> fields = AntiIt.fromIterator(valueObj.fields()).toList();
-		final String columnSql = AntiIt.from(fields)
-				.map(e -> coreService.toSqlColumnName(e.getKey())).join(",").get();
-		final String questionMarks = AntiIt.from(fields).map(e -> "?").join(",").get();
+		final String columnSql = AntiIt.from(columns)
+				.map(p -> coreService.toSqlColumnName(p.name())).join(",").get();
+		final String questionMarks = AntiIt.from(columns).map(p -> "?").join(",").get();
 
-		final String doUpdateSql = AntiIt.from(fields)
-				.filter(e -> !e.getKey().equals(primaryKeyColumn))
-				.map(e -> coreService.toSqlColumnName(e.getKey()) + " = EXCLUDED."
-						+ coreService.toSqlColumnName(e.getKey()))
+		// Note this will fail if only the primary key column exists
+		final String doUpdateSql = AntiIt.from(columns)
+				.filter(p -> !p.isPrimaryKey())
+				.map(p -> coreService.toSqlColumnName(p.name()) + " = EXCLUDED."
+						+ coreService.toSqlColumnName(p.name()))
 				.join(",")
 				.get();
 
@@ -193,18 +194,34 @@ final class SqlServiceImpl implements SqlService
 				doUpdateSql);
 		try (final Connection db = coreService.connect())
 		{
-			LOGGER.info("sql = {}", sql);
 			try (PreparedStatement statement = db.prepareStatement(sql))
 			{
-				for (int i = 0; i < fields.size(); i++)
-				{
-					final JsonNode v = fields.get(i).getValue();
-					coreService.setStatementValue(db, statement, i + 1, v);
-				}
-				statement.execute();
+				final AtomicLong counter = new AtomicLong(0);
+				valueObjs.forEach(obj -> {
+					try
+					{
+						for (int i = 0; i < columns.size(); i++)
+						{
+							final JsonNode v = obj.get(columns.get(i).name());
+							coreService.setStatementValue(db, statement, i + 1, v);
+						}
+						statement.addBatch();
+						if (counter.incrementAndGet() % BATCH_SIZE == 0)
+						{
+							LOGGER.info("sql = {}", sql);
+							statement.executeBatch();
+						}
+					}
+					catch (final SQLException | JsonProcessingException e)
+					{
+						throw new SqlServiceException(e);
+					}
+				});
+				LOGGER.info("sql = {}", sql);
+				statement.executeBatch();
 			}
 		}
-		catch (final SQLException | JsonProcessingException e)
+		catch (final SQLException e)
 		{
 			throw new SqlServiceException(e);
 		}

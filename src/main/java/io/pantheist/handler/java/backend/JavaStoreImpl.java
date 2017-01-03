@@ -18,9 +18,11 @@ import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 
+import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.OtherPreconditions;
+import io.pantheist.common.util.Pair;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
 import io.pantheist.handler.filesystem.backend.FilesystemSnapshot;
@@ -156,7 +158,7 @@ final class JavaStoreImpl implements JavaStore
 			FileUtils.write(map.get(filePath), code, StandardCharsets.UTF_8);
 		});
 
-		javaSqlLogic.update(javaFileId, code);
+		javaSqlLogic.update(AntiIt.single(Pair.of(javaFileId, code)));
 
 		return View.noContent();
 	}
@@ -347,13 +349,14 @@ final class JavaStoreImpl implements JavaStore
 	public void registerFilesInSql()
 	{
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
-		snapshot.recurse(rootJavaPath(snapshot))
-				.filter(snapshot::safeIsFile)
-				.filter(path -> path.lastSegment().endsWith(DOT_JAVA))
-				.forEach(path -> {
-					final JavaFileId id = fileIdFromPath(snapshot, path);
-					final String code = snapshot.readText(path);
-					javaSqlLogic.update(id, code);
-				});
+		javaSqlLogic.update(
+				snapshot.recurse(rootJavaPath(snapshot))
+						.filter(snapshot::safeIsFile)
+						.filter(path -> path.lastSegment().endsWith(DOT_JAVA))
+						.map(path -> {
+							final JavaFileId id = fileIdFromPath(snapshot, path);
+							final String code = snapshot.readText(path);
+							return Pair.of(id, code);
+						}));
 	}
 }

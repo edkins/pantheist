@@ -2,6 +2,8 @@ package io.pantheist.handler.java.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -14,32 +16,48 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 
+import io.pantheist.common.util.AntiIterator;
+import io.pantheist.common.util.Pair;
 import io.pantheist.handler.java.model.JavaFileId;
+import io.pantheist.handler.kind.backend.KindStore;
 import io.pantheist.handler.sql.backend.SqlService;
+import io.pantheist.handler.sql.model.SqlProperty;
 
 final class JavaSqlLogicImpl implements JavaSqlLogic
 {
+	private static final String JAVA_FILE = "java-file";
 	private final SqlService sqlService;
 	private final JavaParse javaParse;
 	private final ObjectMapper objectMapper;
+	private final KindStore kindStore;
 
 	@Inject
 	private JavaSqlLogicImpl(
 			final SqlService sqlService,
 			final JavaParse javaParse,
-			final ObjectMapper objectMapper)
+			final ObjectMapper objectMapper,
+			final KindStore kindStore)
 	{
 		this.sqlService = checkNotNull(sqlService);
 		this.javaParse = checkNotNull(javaParse);
 		this.objectMapper = checkNotNull(objectMapper);
+		this.kindStore = checkNotNull(kindStore);
 	}
 
 	@Override
-	public void update(final JavaFileId id, final String code)
+	public void update(final AntiIterator<Pair<JavaFileId, String>> codeWithIds)
 	{
+		final List<SqlProperty> columns = kindStore.listSqlPropertiesOfKind(JAVA_FILE).toList();
+
+		sqlService.updateOrInsert(JAVA_FILE, columns, codeWithIds.map(this::codeNode));
+	}
+
+	private ObjectNode codeNode(final Pair<JavaFileId, String> codeWithId)
+	{
+		final JavaFileId id = codeWithId.first();
 		final String qualifiedName = id.qualifiedName();
 
-		final CompilationUnit compilationUnit = javaParse.parse(code);
+		final CompilationUnit compilationUnit = javaParse.parse(codeWithId.second());
 		final JsonNodeFactory nf = objectMapper.getNodeFactory();
 
 		final ArrayNode annotationList = nf.arrayNode();
@@ -76,7 +94,7 @@ final class JavaSqlLogicImpl implements JavaSqlLogic
 		obj.replace("annotations", annotationList);
 		obj.replace("constructors", constructors);
 
-		sqlService.updateOrInsert("java-file", "qualifiedName", obj);
+		return obj;
 	}
 
 	private JsonNode constructorNode(final ConstructorDeclaration c)
