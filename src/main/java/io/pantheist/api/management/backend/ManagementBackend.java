@@ -2,7 +2,7 @@ package io.pantheist.api.management.backend;
 
 import io.pantheist.api.management.model.CreateConfigRequest;
 import io.pantheist.api.management.model.ListConfigResponse;
-import io.pantheist.common.api.model.ListClassifierResponse;
+import io.pantheist.api.management.model.ListRootResponse;
 import io.pantheist.common.util.Possible;
 
 public interface ManagementBackend
@@ -19,7 +19,7 @@ public interface ManagementBackend
 
 	Possible<Void> deleteConfig(String serverId, String locationId);
 
-	ListClassifierResponse listRootClassifiers();
+	ListRootResponse listRoot();
 
 	void reloadConfiguration();
 

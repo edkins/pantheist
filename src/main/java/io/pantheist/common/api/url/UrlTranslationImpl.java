@@ -48,6 +48,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	private final UriPattern sqlTable;
 	private final UriPattern sqlTableColumn;
 	private final UriPattern sqlTableColumnRow;
+	private final UriPattern clientConfig;
 
 	@Inject
 	private UrlTranslationImpl(
@@ -75,6 +76,7 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.sqlTable = root.segment("sql-table").var("table");
 		this.sqlTableColumn = sqlTable.var("column");
 		this.sqlTableColumnRow = sqlTableColumn.var("row");
+		this.clientConfig = root.segment("project").segment("client-config.json");
 	}
 
 	@Override
@@ -260,6 +262,12 @@ final class UrlTranslationImpl implements UrlTranslation
 	public DataAction sqlRowDataAction(final String table, final String column, final String row)
 	{
 		return modelFactory.dataAction(BasicContentType.json, APPLICATION_JSON, false);
+	}
+
+	@Override
+	public String clientConfigUrl()
+	{
+		return clientConfig.generate(ImmutableMap.of());
 	}
 
 }

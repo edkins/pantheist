@@ -71,4 +71,6 @@ public interface UrlTranslation
 
 	DataAction sqlRowDataAction(String table, String column, String row);
 
+	String clientConfigUrl();
+
 }

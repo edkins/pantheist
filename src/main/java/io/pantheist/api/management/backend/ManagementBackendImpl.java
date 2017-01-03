@@ -16,8 +16,7 @@ import io.pantheist.api.management.model.ApiManagementModelFactory;
 import io.pantheist.api.management.model.CreateConfigRequest;
 import io.pantheist.api.management.model.ListConfigItem;
 import io.pantheist.api.management.model.ListConfigResponse;
-import io.pantheist.common.api.model.CommonApiModelFactory;
-import io.pantheist.common.api.model.ListClassifierResponse;
+import io.pantheist.api.management.model.ListRootResponse;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.Possible;
@@ -35,7 +34,6 @@ final class ManagementBackendImpl implements ManagementBackend
 	private final NginxService nginxService;
 	private final UrlTranslation urlTranslation;
 	private final Initializer initializer;
-	private final CommonApiModelFactory commonFactory;
 
 	@Inject
 	ManagementBackendImpl(
@@ -44,15 +42,13 @@ final class ManagementBackendImpl implements ManagementBackend
 			final NginxService nginxService,
 			final UrlTranslation urlTranslation,
 			final KindStore kindStore,
-			final Initializer initializer,
-			final CommonApiModelFactory commonFactory)
+			final Initializer initializer)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.nginxService = checkNotNull(nginxService);
 		this.urlTranslation = checkNotNull(urlTranslation);
 		this.initializer = checkNotNull(initializer);
-		this.commonFactory = checkNotNull(commonFactory);
 	}
 
 	@Override
@@ -140,9 +136,11 @@ final class ManagementBackendImpl implements ManagementBackend
 	}
 
 	@Override
-	public ListClassifierResponse listRootClassifiers()
+	public ListRootResponse listRoot()
 	{
-		return commonFactory.listClassifierResponse(urlTranslation.listRootClassifiers());
+		return modelFactory.listRootResponse(
+				urlTranslation.listRootClassifiers(),
+				urlTranslation.clientConfigUrl());
 	}
 
 	@Override

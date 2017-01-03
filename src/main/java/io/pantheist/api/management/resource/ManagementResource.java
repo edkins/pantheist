@@ -48,7 +48,7 @@ public final class ManagementResource implements ResourceTag
 		LOGGER.info("GET /");
 		try
 		{
-			return resp.toJson(backend.listRootClassifiers());
+			return resp.toJson(backend.listRoot());
 		}
 		catch (final RuntimeException e)
 		{

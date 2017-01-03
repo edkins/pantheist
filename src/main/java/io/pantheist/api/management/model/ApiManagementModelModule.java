@@ -13,6 +13,7 @@ public class ApiManagementModelModule extends PrivateModule
 		install(new FactoryModuleBuilder()
 				.implement(ListConfigItem.class, ListConfigItemImpl.class)
 				.implement(ListConfigResponse.class, ListConfigResponseImpl.class)
+				.implement(ListRootResponse.class, ListRootResponseImpl.class)
 				.build(ApiManagementModelFactory.class));
 	}
 
