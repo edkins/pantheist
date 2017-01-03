@@ -12,5 +12,9 @@ public interface NginxDirective
 
 	void setSingleParameter(String value);
 
-	NginxCollection contents();
+	NginxBlock contents();
+
+	String nlIndent();
+
+	void padTo(String nlIndent);
 }

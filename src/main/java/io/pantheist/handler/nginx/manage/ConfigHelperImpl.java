@@ -12,10 +12,13 @@ import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 
+import com.google.common.collect.ImmutableList;
+
 import io.pantheist.handler.filesystem.backend.FilesystemSnapshot;
 import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.filesystem.backend.FsPath;
-import io.pantheist.handler.nginx.parser.NginxRoot;
+import io.pantheist.handler.nginx.parser.NginxBlock;
+import io.pantheist.handler.nginx.parser.NginxDirective;
 import io.pantheist.handler.nginx.parser.NginxSyntax;
 import io.pantheist.system.config.PantheistConfig;
 
@@ -26,7 +29,7 @@ final class ConfigHelperImpl implements ConfigHelper
 
 	// State
 	private final FilesystemSnapshot snapshot;
-	private final NginxRoot root;
+	private final NginxBlock root;
 
 	@Inject
 	private ConfigHelperImpl(
@@ -39,8 +42,16 @@ final class ConfigHelperImpl implements ConfigHelper
 
 		this.snapshot = filesystem.snapshot();
 
-		final String text = snapshot.read(path(),
-				in -> IOUtils.toString(in, StandardCharsets.UTF_8));
+		final String text;
+		if (snapshot.isFile(path()))
+		{
+			text = snapshot.read(path(),
+					in -> IOUtils.toString(in, StandardCharsets.UTF_8));
+		}
+		else
+		{
+			text = "";
+		}
 		this.root = syntax.parse(text);
 	}
 
@@ -78,11 +89,54 @@ final class ConfigHelperImpl implements ConfigHelper
 
 	private Stream<ConfigHelperServer> serverStream()
 	{
-		return root.contents()
+		return root
 				.getOrCreateBlock("http")
 				.contents().getAll("server")
 				.stream()
 				.map(ConfigHelperServerImpl::of);
+	}
+
+	@Override
+	public boolean isEmpty()
+	{
+		return root.isEmpty();
+	}
+
+	@Override
+	public ConfigHelperServer createLocalServer(final int port)
+	{
+		final NginxDirective serverDirective = root
+				.getOrCreateBlock("http")
+				.contents()
+				.addBlock("server", ImmutableList.of());
+		serverDirective.contents().getOrCreateSimple("listen").setSingleParameter("127.0.0.1:" + port);
+		return ConfigHelperServerImpl.of(serverDirective);
+	}
+
+	@Override
+	public void set(final String key, final String value)
+	{
+		root.getOrCreateSimple(key).setSingleParameter(value);
+	}
+
+	@Override
+	public void setType(final String mimeType, final String extension)
+	{
+		root.getOrCreateBlock("http").contents()
+				.getOrCreateBlock("types").contents()
+				.getOrCreateSimple(mimeType).setSingleParameter(extension);
+	}
+
+	@Override
+	public void setHttp(final String key, final String value)
+	{
+		root.getOrCreateBlock("http").contents().getOrCreateSimple(key).setSingleParameter(value);
+	}
+
+	@Override
+	public void createEventsSection()
+	{
+		root.getOrCreateBlock("events");
 	}
 
 }

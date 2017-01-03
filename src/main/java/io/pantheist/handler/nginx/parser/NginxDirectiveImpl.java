@@ -30,9 +30,9 @@ final class NginxDirectiveImpl implements NginxDirective
 	}
 
 	@Override
-	public NginxCollection contents()
+	public NginxBlock contents()
 	{
-		return block.contents();
+		return block;
 	}
 
 	@Override
@@ -57,5 +57,17 @@ final class NginxDirectiveImpl implements NginxDirective
 	public void setSingleParameter(final String value)
 	{
 		nameAndParameters.setSingleParameter(value);
+	}
+
+	@Override
+	public String nlIndent()
+	{
+		return null;
+	}
+
+	@Override
+	public void padTo(final String nlIndent)
+	{
+		block.padTo(nlIndent);
 	}
 }

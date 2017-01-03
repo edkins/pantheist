@@ -12,4 +12,16 @@ interface ConfigHelper
 	List<ConfigHelperServer> serverList();
 
 	Map<Integer, ConfigHelperServer> servers();
+
+	ConfigHelperServer createLocalServer(int port);
+
+	boolean isEmpty();
+
+	void set(String key, String value);
+
+	void setHttp(String key, String value);
+
+	void setType(String mimeType, String extension);
+
+	void createEventsSection();
 }

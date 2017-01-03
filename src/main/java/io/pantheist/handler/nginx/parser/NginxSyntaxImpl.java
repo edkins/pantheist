@@ -17,7 +17,7 @@ import io.pantheist.handler.parser.generic.RegexPattern;
 final class NginxSyntaxImpl implements NginxSyntax
 {
 	private final NginxNodeFactory nodeFactory;
-	private final Parser<NginxRoot> parser;
+	private final Parser<NginxBlock> parser;
 
 	@Inject
 	private NginxSyntaxImpl(final NginxNodeFactory nodeFactory)
@@ -33,7 +33,7 @@ final class NginxSyntaxImpl implements NginxSyntax
 	}
 
 	@Override
-	public NginxRoot parse(final String text)
+	public NginxBlock parse(final String text)
 	{
 		try
 		{
@@ -45,7 +45,7 @@ final class NginxSyntaxImpl implements NginxSyntax
 		}
 	}
 
-	private Parser<NginxRoot> createParser()
+	private Parser<NginxBlock> createParser()
 	{
 		final Parser<String> ws = RegexPattern.parserForRegex("whitespace", "( |\\t|\\n|#.*\\n)*");
 		final Parser<String> name = RegexPattern.parserForRegex("name", "[a-zA-Z_][a-zA-Z0-9_]*");
@@ -68,7 +68,11 @@ final class NginxSyntaxImpl implements NginxSyntax
 		final Parser<List<NginxDirective>> directives = directive.many();
 		directivesRef.set(directives);
 
-		return Parsers.sequence(ws, directives, nodeFactory::root);
+		return Parsers.sequence(ws, directives, this::createRoot);
 	}
 
+	private NginxBlock createRoot(final String ws, final List<NginxDirective> directives)
+	{
+		return nodeFactory.block(ws, directives, "");
+	}
 }

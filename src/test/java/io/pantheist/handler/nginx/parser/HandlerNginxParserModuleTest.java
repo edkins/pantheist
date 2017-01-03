@@ -14,10 +14,6 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 
-import io.pantheist.handler.nginx.parser.HandlerNginxParserModule;
-import io.pantheist.handler.nginx.parser.NginxRoot;
-import io.pantheist.handler.nginx.parser.NginxSyntax;
-
 public class HandlerNginxParserModuleTest
 {
 	private NginxSyntax sut;
@@ -38,7 +34,7 @@ public class HandlerNginxParserModuleTest
 	private void canParse(final String path) throws IOException
 	{
 		final String text = resource("/nginx-conf/" + path);
-		final NginxRoot parseTree = sut.parse(text);
+		final NginxBlock parseTree = sut.parse(text);
 
 		assertThat(parseTree.toString(), is(text));
 	}

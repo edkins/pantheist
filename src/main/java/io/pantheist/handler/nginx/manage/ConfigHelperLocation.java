@@ -11,4 +11,6 @@ public interface ConfigHelperLocation
 	NginxDirective directive();
 
 	void setAlias(Optional<String> alias);
+
+	void setProxyPass(String url);
 }

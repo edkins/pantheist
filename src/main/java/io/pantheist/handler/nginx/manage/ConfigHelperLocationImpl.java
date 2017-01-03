@@ -46,4 +46,10 @@ final class ConfigHelperLocationImpl implements ConfigHelperLocation
 		}
 	}
 
+	@Override
+	public void setProxyPass(final String url)
+	{
+		directive.contents().getOrCreateSimple("proxy_pass").setSingleParameter(url);
+	}
+
 }

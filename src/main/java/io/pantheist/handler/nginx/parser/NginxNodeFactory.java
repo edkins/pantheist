@@ -8,8 +8,6 @@ import com.google.inject.assistedinject.Assisted;
 
 interface NginxNodeFactory
 {
-	NginxRoot root(@Assisted("ws") String ws, List<NginxDirective> contents);
-
 	NginxWord word(
 			@Assisted("word") final String word,
 			@Assisted("ws") final String ws);
@@ -31,6 +29,4 @@ interface NginxNodeFactory
 			@Assisted("delim1") final String delim1,
 			List<NginxDirective> contents,
 			@Assisted("delim2") final String delim2);
-
-	NginxCollection collection(List<NginxDirective> contents, @Assisted("nlIndent") String nlIndent);
 }

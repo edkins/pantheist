@@ -57,4 +57,26 @@ final class StringHelpers
 			return "\n";
 		}
 	}
+
+	public static String padTo(String str, final String nlIndent)
+	{
+		if (str.endsWith(nlIndent))
+		{
+			return str;
+		}
+		else
+		{
+			final Optional<String> whitespace = indentationAtEnd(str);
+			if (whitespace.isPresent())
+			{
+				if (!str.endsWith("\n" + whitespace.get()))
+				{
+					// Something went wrong with the whitespace. Best leave it alone.
+					return str;
+				}
+				str = str.substring(0, str.length() - whitespace.get().length() - 1);
+			}
+			return str + nlIndent;
+		}
+	}
 }

@@ -7,6 +7,8 @@ import io.pantheist.common.util.Possible;
 
 public interface NginxService
 {
+	void generateConfIfMissing();
+
 	void startOrRestart();
 
 	void stop();

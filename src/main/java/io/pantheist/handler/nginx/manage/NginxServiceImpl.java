@@ -79,7 +79,7 @@ final class NginxServiceImpl implements NginxService
 				final Process process = new ProcessBuilder(
 						config.nginxExecutable(),
 						"-c",
-						helper.absolutePath()).start();
+						helper.absolutePath()).inheritIO().start();
 				runningProcess.supply(process);
 				LOGGER.info("nginx started on port {} with pid {}", config.nginxPort(), getPidOfProcess(process));
 			}
@@ -127,7 +127,27 @@ final class NginxServiceImpl implements NginxService
 
 	private boolean pidFileExists()
 	{
-		return sys("nginx.pid").in(config.dataDir()).isFile();
+		return pidFile().isFile();
+	}
+
+	private File pidFile()
+	{
+		return sys("nginx.pid").in(config.dataDir());
+	}
+
+	private File defaultAccessLog()
+	{
+		return sys("nginx-access.log").in(config.dataDir());
+	}
+
+	private File defaultErrorLog()
+	{
+		return sys("nginx-error.log").in(config.dataDir());
+	}
+
+	private File defaultRoot()
+	{
+		return filesystemStore.srvBucket().in(config.dataDir());
 	}
 
 	private File nginxConf()
@@ -253,5 +273,36 @@ final class NginxServiceImpl implements NginxService
 		helper.write();
 		startOrRestart();
 		return View.noContent();
+	}
+
+	@Override
+	public void generateConfIfMissing()
+	{
+		final ConfigHelper helper = helperFactory.helper();
+		if (!helper.isEmpty())
+		{
+			return;
+		}
+
+		LOGGER.info("{} did not exist so creating one", helper.absolutePath());
+
+		final ConfigHelperServer server = helper.createLocalServer(config.nginxPort());
+		final ConfigHelperLocation root = server.getOrCreateLocation("/");
+
+		root.setProxyPass("http://127.0.0.1:" + config.internalPort());
+
+		server.getOrCreateLocation("/resources/");
+		server.getOrCreateLocation("/third-party/");
+
+		// Other miscellaneous options we need to set
+		helper.set("pid", pidFile().getAbsolutePath());
+		helper.set("error_log", defaultErrorLog().getAbsolutePath());
+		helper.setHttp("access_log", defaultAccessLog().getAbsolutePath());
+		helper.setHttp("root", defaultRoot().getAbsolutePath() + "/");
+		helper.setHttp("charset", "utf-8");
+		helper.setType("image/png", "png");
+		helper.createEventsSection();
+
+		helper.write();
 	}
 }

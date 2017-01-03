@@ -55,6 +55,7 @@ final class InitializerImpl implements Initializer
 			LOGGER.info("Data dir is {}", config.dataDir());
 
 			filesystem.initialize();
+			nginxService.generateConfIfMissing();
 			anonymizeNginxConf();
 			server.start();
 			sqlService.startOrRestart();
