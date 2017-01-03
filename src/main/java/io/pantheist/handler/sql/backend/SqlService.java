@@ -5,6 +5,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.pantheist.common.util.AntiIterator;
+import io.pantheist.common.util.FilterableObjectStream;
 import io.pantheist.handler.sql.model.SqlProperty;
 
 public interface SqlService
@@ -19,5 +20,5 @@ public interface SqlService
 
 	void updateOrInsert(String tableName, List<SqlProperty> columns, AntiIterator<ObjectNode> values);
 
-	SelectBuilder select(String table, List<SqlProperty> columns);
+	FilterableObjectStream select(String table, List<SqlProperty> columns);
 }

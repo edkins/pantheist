@@ -122,8 +122,8 @@ final class SqlBackendImpl implements SqlBackend
 		{
 			final List<SqlProperty> columns = kindStore.listSqlPropertiesOfKind(table).toList();
 			return View.ok(sqlService.select(table, columns)
-					.columns(ImmutableList.of(column))
-					.execute()
+					.fields(ImmutableList.of(column))
+					.antiIt()
 					.map(obj -> rsToListRowItem(table, column, obj.get(column)))
 					.wrap(modelFactory::listRowResponse));
 		}
@@ -161,7 +161,7 @@ final class SqlBackendImpl implements SqlBackend
 		final Optional<ApiSqlRow> result = sqlService
 				.select(table, columns)
 				.whereEqual(column, index)
-				.execute()
+				.antiIt()
 				.failIfMultiple()
 				.map(x -> modelFactory.sqlRow(urlTranslation.sqlRowDataAction(table, column, row)));
 
@@ -189,7 +189,7 @@ final class SqlBackendImpl implements SqlBackend
 
 		return sqlService.select(table, columns)
 				.whereEqual(column, index)
-				.execute()
+				.antiIt()
 				.failIfMultiple()
 				.map(View::ok)
 				.orElse(FailureReason.DOES_NOT_EXIST.happened());

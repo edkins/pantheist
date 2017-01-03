@@ -3,9 +3,10 @@ package io.pantheist.api.kind.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-import java.util.Optional;
 
 import javax.inject.Inject;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.pantheist.api.kind.model.ApiKind;
 import io.pantheist.api.kind.model.ApiKindModelFactory;
@@ -20,7 +21,6 @@ import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
 import io.pantheist.handler.kind.backend.KindStore;
 import io.pantheist.handler.kind.backend.KindValidation;
-import io.pantheist.handler.kind.model.Entity;
 import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.handler.kind.model.KindModelFactory;
 
@@ -82,18 +82,14 @@ final class KindBackendImpl implements KindBackend
 		return kindStore.putKind(kindId, supplyKindId(kindId, kind));
 	}
 
-	private ListEntityItem toListEntityItem(final Entity entity)
+	private ListEntityItem toListEntityItem(final ObjectNode entity)
 	{
+		final String kindId = entity.get("kindId").textValue();
+		final String entityId = entity.get("entityId").textValue();
 		return modelFactory.listEntityItem(
-				urlTranslation.entityToUrl(entity.kindId(), entity.entityId()),
-				entity.entityId(),
-				kindUrlForEntity(entity));
-	}
-
-	private String kindUrlForEntity(final Entity entity)
-	{
-		final String kindId = Optional.ofNullable(entity.kindId()).orElse("unknown");
-		return urlTranslation.kindToUrl(kindId);
+				urlTranslation.entityToUrl(kindId, entityId),
+				entityId,
+				urlTranslation.kindToUrl(kindId));
 	}
 
 	@Override
@@ -104,7 +100,8 @@ final class KindBackendImpl implements KindBackend
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
 		}
-		return View.ok(kindValidation.listAllEntitiesWithKind(kindId)
+		return View.ok(kindValidation.objectsWithKind(kindId)
+				.antiIt()
 				.map(this::toListEntityItem)
 				.wrap(modelFactory::listEntityResponse));
 	}

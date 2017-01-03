@@ -4,9 +4,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Inject;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.pantheist.api.java.model.ApiJavaBinding;
 import io.pantheist.api.java.model.ApiJavaFile;
@@ -20,7 +26,6 @@ import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.FailureReason;
-import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
 import io.pantheist.handler.java.backend.JavaStore;
@@ -28,7 +33,6 @@ import io.pantheist.handler.java.model.JavaBinding;
 import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.java.model.JavaModelFactory;
 import io.pantheist.handler.kind.backend.KindValidation;
-import io.pantheist.handler.kind.model.Entity;
 
 final class JavaBackendImpl implements JavaBackend
 {
@@ -38,6 +42,7 @@ final class JavaBackendImpl implements JavaBackend
 	private final JavaModelFactory javaFactory;
 	private final CommonApiModelFactory commonFactory;
 	private final KindValidation kindValidation;
+	private final ObjectMapper objectMapper;
 
 	@Inject
 	JavaBackendImpl(
@@ -46,7 +51,8 @@ final class JavaBackendImpl implements JavaBackend
 			final UrlTranslation urlTranslation,
 			final JavaModelFactory javaFactory,
 			final CommonApiModelFactory commonFactory,
-			final KindValidation kindValidation)
+			final KindValidation kindValidation,
+			final ObjectMapper objectMapper)
 	{
 		this.javaStore = checkNotNull(javaStore);
 		this.modelFactory = checkNotNull(modelFactory);
@@ -54,6 +60,7 @@ final class JavaBackendImpl implements JavaBackend
 		this.javaFactory = checkNotNull(javaFactory);
 		this.commonFactory = checkNotNull(commonFactory);
 		this.kindValidation = checkNotNull(kindValidation);
+		this.objectMapper = checkNotNull(objectMapper);
 	}
 
 	@Override
@@ -110,11 +117,19 @@ final class JavaBackendImpl implements JavaBackend
 		}
 	}
 
-	private ListJavaFileItem toListJavaItem(final JavaFileId id)
+	private ListJavaFileItem toListJavaItem(final JavaFileId id, final Map<String, ObjectNode> entityMap)
 	{
 		final String url = urlTranslation.javaToUrl(id);
-		final Entity entity = kindValidation.discoverJavaKind(id);
-		final String kindId = entity.kindId();
+		final String kindId;
+		final ObjectNode entity = entityMap.get(id.qualifiedName());
+		if (entity == null)
+		{
+			kindId = "java-file";
+		}
+		else
+		{
+			kindId = entity.get("kindId").textValue();
+		}
 		return modelFactory.listFileItem(url, id.file(), urlTranslation.kindToUrl(kindId));
 	}
 
@@ -123,8 +138,14 @@ final class JavaBackendImpl implements JavaBackend
 	{
 		if (javaStore.packageExists(pkg))
 		{
+			final JsonNode pkgNode = objectMapper.getNodeFactory().textNode(pkg);
+			final Map<String, ObjectNode> entityMap = kindValidation.objectsWithKind("java-file")
+					.whereEqual("package", pkgNode)
+					.antiIt()
+					.toMap(x -> x.get("qualifiedName").textValue());
+
 			final List<ListJavaFileItem> list = javaStore.filesInPackage(pkg)
-					.map(this::toListJavaItem)
+					.map(e -> toListJavaItem(e, entityMap))
 					.toSortedList((jf1, jf2) -> jf1.name().compareTo(jf2.name()));
 			return View.ok(modelFactory.listFileResponse(list));
 		}
@@ -134,23 +155,22 @@ final class JavaBackendImpl implements JavaBackend
 		}
 	}
 
-	private String kindUrlFromEntity(final Entity entity)
-	{
-		OtherPreconditions.checkNotNullOrEmpty(entity.kindId());
-		return urlTranslation.kindToUrl(entity.kindId());
-	}
-
 	@Override
 	public Possible<ApiJavaFile> describeJavaFile(final String pkg, final String file)
 	{
 		final JavaFileId id = javaFactory.fileId(pkg, file);
 		if (javaStore.fileExists(id))
 		{
-			final Entity entity = kindValidation.discoverJavaKind(id);
+			final JsonNode qnameNode = objectMapper.getNodeFactory().textNode(id.qualifiedName());
+			final Optional<ObjectNode> entity = kindValidation.objectsWithKind("java-file")
+					.whereEqual("qualifiedName", qnameNode)
+					.antiIt()
+					.failIfMultiple();
+			final String kindId = entity.map(x -> x.get("kindId").textValue()).orElse("java-file");
 			return View.ok(modelFactory.javaFile(
 					urlTranslation.javaFileDataAction(id),
 					urlTranslation.javaFileDeleteAction(id),
-					kindUrlFromEntity(entity)));
+					urlTranslation.kindToUrl(kindId)));
 		}
 		else
 		{

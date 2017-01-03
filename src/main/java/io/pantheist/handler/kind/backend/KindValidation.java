@@ -1,12 +1,14 @@
 package io.pantheist.handler.kind.backend;
 
-import io.pantheist.common.util.AntiIterator;
-import io.pantheist.handler.java.model.JavaFileId;
-import io.pantheist.handler.kind.model.Entity;
+import io.pantheist.common.util.FilterableObjectStream;
 
 public interface KindValidation
 {
-	Entity discoverJavaKind(JavaFileId javaFileId);
-
-	AntiIterator<Entity> listAllEntitiesWithKind(String kindId);
+	/**
+	 * Objects returned will include a kindId, which may be a subkind
+	 * of the one requested here.
+	 *
+	 * They'll also include an entityId.
+	 */
+	FilterableObjectStream objectsWithKind(String kindId);
 }

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
+import io.pantheist.common.util.FilterableObjectStream;
 import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.handler.filesystem.backend.FilesystemSnapshot;
 import io.pantheist.handler.filesystem.backend.FilesystemStore;
@@ -321,7 +322,7 @@ final class SqlServiceImpl implements SqlService
 	}
 
 	@Override
-	public SelectBuilder select(final String table, final List<SqlProperty> columns)
+	public FilterableObjectStream select(final String table, final List<SqlProperty> columns)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(table);
 		checkNotNull(columns);
