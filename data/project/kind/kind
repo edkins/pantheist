@@ -1,7 +1,7 @@
 {
   "kindId": "kind",
   "partOfSystem": true,
-  "instancePresentation": {
+  "presentation": {
     "iconUrl": "/resources/images/kind.png",
     "openIconUrl": null
   },

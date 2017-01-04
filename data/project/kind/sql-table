@@ -1,7 +1,7 @@
 {
   "kindId" : "sql-table",
   "partOfSystem" : true,
-  "instancePresentation" : {
+  "presentation" : {
     "iconUrl" : "/resources/images/table.png",
     "openIconUrl" : null
   },

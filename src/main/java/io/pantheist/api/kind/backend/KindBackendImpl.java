@@ -12,7 +12,6 @@ import io.pantheist.api.kind.model.ApiKind;
 import io.pantheist.api.kind.model.ApiKindModelFactory;
 import io.pantheist.api.kind.model.ListEntityItem;
 import io.pantheist.api.kind.model.ListEntityResponse;
-import io.pantheist.api.kind.model.ListKindItem;
 import io.pantheist.api.kind.model.ListKindResponse;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.util.FailureReason;
@@ -49,10 +48,17 @@ final class KindBackendImpl implements KindBackend
 
 	private ApiKind toApiKind(final Kind k)
 	{
+		OtherPreconditions.checkNotNullOrEmpty(k.kindId());
+		final String url = urlTranslation.kindToUrl(k.kindId());
+		final String kindUrl = urlTranslation.kindToUrl("kind"); // this is the meta-kind
+		final String displayName = k.kindId(); // currently no other display name stored
 		return modelFactory.kind(
+				url,
+				kindUrl,
 				urlTranslation.listKindClassifiers(k.kindId()),
 				urlTranslation.listKindReplaceAction(k.kindId()),
-				k.kindId(), k.schema(), k.partOfSystem(), k.instancePresentation(), k.createAction());
+				k.kindId(), k.schema(), k.partOfSystem(), k.presentation(), k.createAction(),
+				displayName);
 	}
 
 	@Override
@@ -67,7 +73,7 @@ final class KindBackendImpl implements KindBackend
 	private Kind supplyKindId(final String kindId, final ApiKind kind)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
-		return kindFactory.kind(kindId, kind.schema(), kind.partOfSystem(), kind.instancePresentation(),
+		return kindFactory.kind(kindId, kind.schema(), kind.partOfSystem(), kind.presentation(),
 				kind.createAction());
 	}
 
@@ -107,18 +113,11 @@ final class KindBackendImpl implements KindBackend
 				.wrap(modelFactory::listEntityResponse));
 	}
 
-	private ListKindItem toListKindItem(final Kind kind)
-	{
-		final String url = urlTranslation.kindToUrl(kind.kindId());
-		final String kindUrl = urlTranslation.kindToUrl("kind"); // this is the meta-kind
-		return modelFactory.listKindItem(url, kindUrl, kind.instancePresentation());
-	}
-
 	@Override
 	public ListKindResponse listKinds()
 	{
-		final List<ListKindItem> list = kindStore.listAllKinds()
-				.map(this::toListKindItem)
+		final List<ApiKind> list = kindStore.listAllKinds()
+				.map(this::toApiKind)
 				.toSortedList((k1, k2) -> k1.url().compareTo(k2.url()));
 		return modelFactory.listKindResponse(list, urlTranslation.kindCreateAction());
 	}

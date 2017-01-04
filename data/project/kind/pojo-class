@@ -1,7 +1,7 @@
 {
   "kindId": "pojo-class",
   "partOfSystem": false,
-  "instancePresentation": {
+  "presentation": {
     "iconUrl": "/resources/images/pojo-class.png",
     "openIconUrl": null
   },

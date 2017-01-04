@@ -5,7 +5,7 @@ import javax.annotation.Nullable;
 import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.api.model.CreateAction;
-import io.pantheist.common.api.model.Presentation;
+import io.pantheist.common.api.model.KindPresentation;
 
 public interface KindModelFactory
 {
@@ -13,6 +13,6 @@ public interface KindModelFactory
 			@Assisted("kindId") String kindId,
 			KindSchema schema,
 			@Assisted("partOfSystem") boolean partOfSystem,
-			@Nullable @Assisted("instancePresentation") Presentation instancePresentation,
+			@Nullable KindPresentation instancePresentation,
 			@Nullable CreateAction createAction);
 }

@@ -166,6 +166,12 @@ resourceTree._onclickTreeItem = function(event)
 {
 	var url = event.target.dataset.url;
 	
+	if (url == undefined)
+	{
+		// clicked on a different thing?
+		return;
+	}
+	
 	if (event.ctrlKey)
 	{
 		ui.visitInfo(url);

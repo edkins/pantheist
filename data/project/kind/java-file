@@ -1,7 +1,7 @@
 {
   "kindId": "java-file",
   "partOfSystem": true,
-  "instancePresentation": {
+  "presentation": {
     "iconUrl": "/resources/images/file.png",
     "openIconUrl": null
   },

@@ -11,8 +11,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.api.model.CreateAction;
+import io.pantheist.common.api.model.KindPresentation;
 import io.pantheist.common.api.model.ListClassifierItem;
-import io.pantheist.common.api.model.Presentation;
 import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.handler.kind.model.KindSchema;
 
@@ -23,26 +23,35 @@ final class ApiKindImpl implements ApiKind
 	private final KindSchema schema;
 	private final boolean partOfSystem;
 	private final ReplaceAction replaceAction;
-	private final Presentation instancePresentation;
+	private final KindPresentation presentation;
 	private final CreateAction createAction;
+	private final String displayName;
+	private final String url;
+	private final String kindUrl;
 
 	@Inject
 	private ApiKindImpl(
+			@Nullable @Assisted("url") @JsonProperty("url") final String url,
+			@Nullable @Assisted("kindUrl") @JsonProperty("kindUrl") final String kindUrl,
 			@Nullable @Assisted @JsonProperty("childResources") final List<ListClassifierItem> childResources,
 			@Nullable @Assisted @JsonProperty("replaceAction") final ReplaceAction replaceAction,
 			@Nullable @Assisted("kindId") @JsonProperty("kindId") final String kindId,
 			@Assisted @JsonProperty("schema") final KindSchema schema,
 			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
-			@Nullable @Assisted("instancePresentation") @JsonProperty("instancePresentation") final Presentation instancePresentation,
-			@Nullable @Assisted @JsonProperty("createAction") final CreateAction createAction)
+			@Nullable @Assisted @JsonProperty("presentation") final KindPresentation presentation,
+			@Nullable @Assisted @JsonProperty("createAction") final CreateAction createAction,
+			@Nullable @Assisted("displayName") @JsonProperty("displayName") final String displayName)
 	{
+		this.url = url;
+		this.kindUrl = kindUrl;
 		this.childResources = childResources;
 		this.replaceAction = replaceAction;
 		this.kindId = kindId;
 		this.partOfSystem = partOfSystem;
-		this.instancePresentation = instancePresentation;
+		this.presentation = presentation;
 		this.schema = checkNotNull(schema);
 		this.createAction = createAction;
+		this.displayName = displayName;
 	}
 
 	@Override
@@ -70,9 +79,9 @@ final class ApiKindImpl implements ApiKind
 	}
 
 	@Override
-	public Presentation instancePresentation()
+	public KindPresentation presentation()
 	{
-		return instancePresentation;
+		return presentation;
 	}
 
 	@Override
@@ -85,5 +94,23 @@ final class ApiKindImpl implements ApiKind
 	public CreateAction createAction()
 	{
 		return createAction;
+	}
+
+	@Override
+	public String displayName()
+	{
+		return displayName;
+	}
+
+	@Override
+	public String url()
+	{
+		return url;
+	}
+
+	@Override
+	public String kindUrl()
+	{
+		return kindUrl;
 	}
 }

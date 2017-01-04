@@ -1,7 +1,7 @@
 {
   "kindId": "directory",
   "partOfSystem": true,
-  "instancePresentation": {
+  "presentation": {
     "iconUrl": "/resources/images/directory-closed.png",
     "openIconUrl": "/resources/images/directory-open.png"
   },

@@ -32,6 +32,8 @@ body {
 	width: 60%;
 	vertical-align: top;
 }
+.middle-page {
+}
 .panel-right {
 	display: table-cell;
 	width: 20%;
@@ -84,11 +86,6 @@ the item itself (as opposed to its children).
 .tree-item {
 	white-space: nowrap;
 }
-/*
-.tree-item:hover {
-	background: #eef;
-}
-*/
 
 .button-bar {
 	height: 25pt;
@@ -102,6 +99,9 @@ the item itself (as opposed to its children).
 
 .hidden {
 	visibility: hidden;
+}
+.gone {
+	display: none;
 }
 
 .tree-item.flash-activate {
@@ -166,4 +166,33 @@ the item itself (as opposed to its children).
 	to {
 		background: #008;
 	}
+}
+
+.create-kind {
+	margin: 4pt;
+	padding: 14pt;
+	border: solid #9be 2pt;
+	border-radius: 2pt;
+	cursor: default;
+}
+
+.create-kind:hover {
+	background: #def;
+}
+
+.create-kind-icon {
+	width: 24pt;
+	height: 24pt;
+    background-size: 24pt;
+    background-repeat: no-repeat;
+    display: inline-block;
+    position: relative;
+    top: 2pt;
+    padding-right: 12pt;
+	vertical-align: middle;
+}
+
+.create-kind-name {
+	vertical-align: middle;
+	font-size: x-large;
 }

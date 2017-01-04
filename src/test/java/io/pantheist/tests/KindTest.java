@@ -16,7 +16,6 @@ import org.junit.Test;
 import io.pantheist.api.java.model.ListJavaFileItem;
 import io.pantheist.api.kind.model.ApiKind;
 import io.pantheist.api.kind.model.ListEntityItem;
-import io.pantheist.api.kind.model.ListKindItem;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathJavaPackage;
 import io.pantheist.testclient.api.ManagementPathKind;
@@ -69,8 +68,8 @@ public class KindTest
 		final ApiKind kind = manage.kind("my-kind").getKind();
 
 		assertThat(kind.kindId(), is("my-kind"));
-		assertThat(kind.instancePresentation().iconUrl(), is("http://example.com/icon.png"));
-		assertThat(kind.instancePresentation().openIconUrl(), is("http://example.com/icon2.png"));
+		assertThat(kind.presentation().iconUrl(), is("http://example.com/icon.png"));
+		assertThat(kind.presentation().openIconUrl(), is("http://example.com/icon2.png"));
 		assertFalse("This kind not part of system", kind.partOfSystem());
 	}
 
@@ -90,11 +89,11 @@ public class KindTest
 		final ManagementPathKind kind = manage.kind("my-kind");
 		kind.putJsonResource(KIND_SCHEMA_RES);
 
-		final List<ListKindItem> list = manage.listKinds().childResources();
+		final List<ApiKind> list = manage.listKinds().childResources();
 
-		final ListKindItem item = list.stream().filter(k -> k.url().equals(kind.url())).findFirst().get();
+		final ApiKind item = list.stream().filter(k -> k.url().equals(kind.url())).findFirst().get();
 		assertThat(item.url(), is(kind.url()));
-		assertThat(item.instancePresentation().iconUrl(), is("http://example.com/icon.png"));
+		assertThat(item.presentation().iconUrl(), is("http://example.com/icon.png"));
 	}
 
 	@Test

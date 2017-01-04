@@ -7,9 +7,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import io.pantheist.common.annotations.NotNullableOnTheWayOut;
 import io.pantheist.common.api.model.CreateAction;
+import io.pantheist.common.api.model.KindPresentation;
 import io.pantheist.common.api.model.ListClassifierResponse;
-import io.pantheist.common.api.model.Presentation;
 import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.handler.kind.model.KindSchema;
 
@@ -17,9 +18,18 @@ import io.pantheist.handler.kind.model.KindSchema;
 @JsonDeserialize(as = ApiKindImpl.class)
 public interface ApiKind extends ListClassifierResponse
 {
+	@NotNullableOnTheWayOut
+	@JsonProperty("url")
+	String url();
+
+	@NotNullableOnTheWayOut
+	@JsonProperty("kindUrl")
+	String kindUrl();
+
+	@NotNullableOnTheWayOut
 	@Nullable
 	@JsonProperty("kindId")
-	String kindId(); // optional on put requests, but if present must agree with where you're putting it.
+	String kindId();
 
 	@JsonProperty("schema")
 	KindSchema schema();
@@ -32,14 +42,20 @@ public interface ApiKind extends ListClassifierResponse
 	@JsonProperty("partOfSystem")
 	boolean partOfSystem();
 
+	@NotNullableOnTheWayOut
 	@JsonProperty("replaceAction")
 	ReplaceAction replaceAction();
 
 	@Nullable
-	@JsonProperty("instancePresentation")
-	Presentation instancePresentation();
+	@JsonProperty("presentation")
+	KindPresentation presentation();
 
 	@Nullable
 	@JsonProperty("createAction")
 	CreateAction createAction();
+
+	@NotNullableOnTheWayOut
+	@Nullable
+	@JsonProperty("displayName")
+	String displayName();
 }

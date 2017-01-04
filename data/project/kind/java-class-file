@@ -1,7 +1,7 @@
 {
   "kindId": "java-class-file",
   "partOfSystem": false,
-  "instancePresentation": {
+  "presentation": {
     "iconUrl": "/resources/images/java-class-unknown.png",
     "openIconUrl": null
   },

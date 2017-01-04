@@ -1,7 +1,7 @@
 {
   "kindId": "pantheist-classifier",
   "partOfSystem": true,
-  "instancePresentation": {
+  "presentation": {
     "iconUrl": "/resources/images/pantheist-folder-closed.png",
     "openIconUrl": "/resources/images/pantheist-folder-open.png"
   },

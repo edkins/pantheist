@@ -1,18 +1,23 @@
 package io.pantheist.common.api.model;
 
+import javax.annotation.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-final class ApiPresentationImpl implements Presentation
+final class ApiPresentationImpl implements KindPresentation
 {
 	private final String iconUrl;
 	private final String openIconUrl;
+	private final String dislayName;
 
 	public ApiPresentationImpl(
-			@JsonProperty("iconUrl") final String iconUrl,
-			@JsonProperty("openIconUrl") final String openIconUrl)
+			@Nullable @JsonProperty("iconUrl") final String iconUrl,
+			@Nullable @JsonProperty("openIconUrl") final String openIconUrl,
+			@Nullable @JsonProperty("dislayName") final String dislayName)
 	{
 		this.iconUrl = iconUrl;
 		this.openIconUrl = openIconUrl;
+		this.dislayName = dislayName;
 	}
 
 	@Override
@@ -25,6 +30,12 @@ final class ApiPresentationImpl implements Presentation
 	public String openIconUrl()
 	{
 		return openIconUrl;
+	}
+
+	@Override
+	public String displayName()
+	{
+		return dislayName;
 	}
 
 }

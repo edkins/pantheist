@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import io.pantheist.common.api.model.CreateAction;
-import io.pantheist.common.api.model.Presentation;
+import io.pantheist.common.api.model.KindPresentation;
 
 @JsonInclude(Include.NON_NULL)
 @JsonDeserialize(as = KindImpl.class)
@@ -27,8 +27,8 @@ public interface Kind
 	KindSchema schema();
 
 	@Nullable
-	@JsonProperty("instancePresentation")
-	Presentation instancePresentation();
+	@JsonProperty("presentation")
+	KindPresentation presentation();
 
 	@Nullable
 	@JsonProperty("createAction")

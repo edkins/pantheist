@@ -1,7 +1,7 @@
 {
   "kindId": "java-interface-file",
   "partOfSystem": false,
-  "instancePresentation": {
+  "presentation": {
     "iconUrl": "/resources/images/java-interface-unknown.png",
     "openIconUrl": null
   },

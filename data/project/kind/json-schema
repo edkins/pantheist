@@ -1,7 +1,7 @@
 {
   "kindId": "json-schema",
   "partOfSystem": true,
-  "instancePresentation": {
+  "presentation": {
     "iconUrl": "/resources/images/json-schema.png",
     "openIconUrl": null
   },

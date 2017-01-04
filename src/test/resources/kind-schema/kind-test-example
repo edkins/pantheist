@@ -1,5 +1,5 @@
 {
-  "instancePresentation": {
+  "presentation": {
     "iconUrl": "http://example.com/icon.png",
     "openIconUrl": "http://example.com/icon2.png"
   },
