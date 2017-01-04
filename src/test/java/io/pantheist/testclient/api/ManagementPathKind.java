@@ -6,11 +6,9 @@ import io.pantheist.common.api.model.ListClassifierResponse;
 
 public interface ManagementPathKind
 {
-	void putJsonResource(String resourcePath);
-
-	ResponseType putJsonResourceResponseType(String resourcePath);
-
 	ApiKind getKind();
+
+	ManagementData data();
 
 	String url();
 

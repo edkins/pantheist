@@ -4,12 +4,15 @@ import io.pantheist.api.kind.model.ApiKind;
 import io.pantheist.api.kind.model.ListEntityResponse;
 import io.pantheist.api.kind.model.ListKindResponse;
 import io.pantheist.common.util.Possible;
+import io.pantheist.handler.kind.model.Kind;
 
 public interface KindBackend
 {
-	Possible<ApiKind> getKind(String kindId);
+	Possible<ApiKind> getKindInfo(String kindId);
 
-	Possible<Void> putKind(String kindId, ApiKind kind);
+	Possible<Kind> getKindData(String kindId);
+
+	Possible<Void> putKindData(String kindId, Kind kind);
 
 	Possible<ListEntityResponse> listEntitiesWithKind(String kindId);
 

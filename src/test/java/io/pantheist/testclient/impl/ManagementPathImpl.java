@@ -160,12 +160,6 @@ final class ManagementPathImpl implements
 	}
 
 	@Override
-	public void putJsonResource(final String resourcePath)
-	{
-		target.putResource(resourcePath, APPLICATION_JSON);
-	}
-
-	@Override
 	public ApiKind getKind()
 	{
 		return target.getJson(ApiKind.class);
@@ -175,12 +169,6 @@ final class ManagementPathImpl implements
 	public ManagementData data()
 	{
 		return new ManagementDataImpl(target.withSegment(DATA));
-	}
-
-	@Override
-	public ResponseType putJsonResourceResponseType(final String resourcePath)
-	{
-		return target.putResourceResponseType(resourcePath, APPLICATION_JSON);
 	}
 
 	@Override

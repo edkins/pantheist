@@ -48,21 +48,22 @@ final class KindBackendImpl implements KindBackend
 
 	private ApiKind toApiKind(final Kind k)
 	{
-		OtherPreconditions.checkNotNullOrEmpty(k.kindId());
-		final String url = urlTranslation.kindToUrl(k.kindId());
+		final String kindId = k.kindId();
+		OtherPreconditions.checkNotNullOrEmpty(kindId);
+		final String url = urlTranslation.kindToUrl(kindId);
 		final String kindUrl = urlTranslation.kindToUrl("kind"); // this is the meta-kind
-		final String displayName = k.kindId(); // currently no other display name stored
+		final String displayName = kindId; // currently no other display name stored
 		return modelFactory.kind(
 				url,
 				kindUrl,
-				urlTranslation.listKindClassifiers(k.kindId()),
-				urlTranslation.listKindReplaceAction(k.kindId()),
-				k.kindId(), k.schema(), k.partOfSystem(), k.presentation(), k.createAction(),
+				urlTranslation.listKindClassifiers(kindId),
+				urlTranslation.kindDataAction(kindId),
+				kindId, k.schema(), k.partOfSystem(), k.presentation(), k.createAction(),
 				displayName);
 	}
 
 	@Override
-	public Possible<ApiKind> getKind(final String kindId)
+	public Possible<ApiKind> getKindInfo(final String kindId)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
 		return kindStore.getKind(kindId)
@@ -70,7 +71,16 @@ final class KindBackendImpl implements KindBackend
 				.orElse(FailureReason.DOES_NOT_EXIST.happened());
 	}
 
-	private Kind supplyKindId(final String kindId, final ApiKind kind)
+	@Override
+	public Possible<Kind> getKindData(final String kindId)
+	{
+		OtherPreconditions.checkNotNullOrEmpty(kindId);
+		return kindStore.getKind(kindId)
+				.map(View::ok)
+				.orElse(FailureReason.DOES_NOT_EXIST.happened());
+	}
+
+	private Kind supplyKindId(final String kindId, final Kind kind)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
 		return kindFactory.kind(kindId, kind.schema(), kind.partOfSystem(), kind.presentation(),
@@ -78,7 +88,7 @@ final class KindBackendImpl implements KindBackend
 	}
 
 	@Override
-	public Possible<Void> putKind(final String kindId, final ApiKind kind)
+	public Possible<Void> putKindData(final String kindId, final Kind kind)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
 		checkNotNull(kind);

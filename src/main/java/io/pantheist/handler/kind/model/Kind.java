@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import io.pantheist.common.annotations.NotNullableOnTheWayOut;
 import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.KindPresentation;
 
@@ -17,6 +18,8 @@ import io.pantheist.common.api.model.KindPresentation;
 @JsonDeserialize(as = KindImpl.class)
 public interface Kind
 {
+	@NotNullableOnTheWayOut
+	@Nullable
 	@JsonProperty("kindId")
 	String kindId();
 

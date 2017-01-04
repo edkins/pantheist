@@ -88,6 +88,14 @@ http.putString = function(url,contentType,text)
 	{
 		throw new Error('url must be string, was ' + url);
 	}
+	if (typeof contentType !== 'string')
+	{
+		throw new Error('contentType must be string, was ' + contentType);
+	}
+	if (typeof text !== 'string')
+	{
+		throw new Error('text must be string, was ' + text);
+	}
 	return new Promise(
 		function(resolve,reject)
 		{

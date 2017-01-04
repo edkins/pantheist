@@ -23,7 +23,6 @@ import io.pantheist.common.api.model.BindingAction;
 import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.DataAction;
 import io.pantheist.common.api.model.ListClassifierItem;
-import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.testclient.api.ManagementFlatDirPath;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathJavaPackage;
@@ -126,7 +125,7 @@ public class ListClassifierTest
 	public void kind_classifiers() throws Exception
 	{
 		final ManagementPathKind kind = manage.kind("my-kind");
-		kind.putJsonResource(KIND_SCHEMA_RES);
+		kind.data().putResource(KIND_SCHEMA_RES, APPLICATION_JSON);
 
 		final List<? extends ListClassifierItem> list = kind.listClassifiers().childResources();
 
@@ -270,15 +269,16 @@ public class ListClassifierTest
 	}
 
 	@Test
-	public void kind_replaceAction() throws Exception
+	public void kind_dataAction() throws Exception
 	{
 		final ManagementPathKind kind = manage.kind("my-kind");
-		kind.putJsonResource(KIND_SCHEMA_RES);
+		kind.data().putResource(KIND_SCHEMA_RES, APPLICATION_JSON);
 
-		final ReplaceAction replaceAction = kind.getKind().replaceAction();
+		final DataAction dataAction = kind.getKind().dataAction();
 
-		assertThat(replaceAction, notNullValue());
-		assertThat(replaceAction.basicType(), is(BasicContentType.json));
-		assertThat(replaceAction.mimeType(), is(APPLICATION_JSON));
+		assertThat(dataAction, notNullValue());
+		assertThat(dataAction.basicType(), is(BasicContentType.json));
+		assertThat(dataAction.mimeType(), is(APPLICATION_JSON));
+		assertTrue("Kinds are puttable", dataAction.canPut());
 	}
 }

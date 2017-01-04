@@ -13,7 +13,7 @@ final class ApiPresentationImpl implements KindPresentation
 	public ApiPresentationImpl(
 			@Nullable @JsonProperty("iconUrl") final String iconUrl,
 			@Nullable @JsonProperty("openIconUrl") final String openIconUrl,
-			@Nullable @JsonProperty("dislayName") final String dislayName)
+			@Nullable @JsonProperty("displayName") final String dislayName)
 	{
 		this.iconUrl = iconUrl;
 		this.openIconUrl = openIconUrl;

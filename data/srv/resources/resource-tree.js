@@ -188,13 +188,22 @@ resourceTree._onclickTreeItem = function(event)
 			{
 				resourceTree._flashUrl(url,'flash-neutral');
 			}
-			else if (result.visitInfo != undefined && result.visitInfo.childResources != undefined)
+			else if (result.visitSuccess === 'server-error')
+			{
+				resourceTree._flashUrl(url,'flash-server-error');
+			}
+			else if (result.visitSuccess === 'no-data-action' && result.visitInfo != undefined && result.visitInfo.childResources != undefined)
 			{
 				resourceTree.invertExpansion(url);
 				resourceTree._flashUrl(url,'flash-expand');
 			}
+			else if (result.visitSuccess === 'client-error' || true)
+			{
+				resourceTree._flashUrl(url,'flash-client-error');
+			}
 		} ).catch( error => {
-			resourceTree._flashUrl(url,'flash-error');
+			console.error('Unexpected error: ' + error); 
+			resourceTree._flashUrl(url,'flash-client-error');
 		} );
 	}
 };

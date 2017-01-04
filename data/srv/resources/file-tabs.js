@@ -21,6 +21,30 @@ fileTabs._find = function(url)
 	return undefined;
 }
 
+Object.defineProperty(fileTabs, 'activeDataUrl', {
+	get: function()
+	{
+		var file = fileTabs._find(fileTabs._activeUrl);
+		if (file === undefined)
+		{
+			return undefined;
+		}
+		return file.dataUrl;
+	}
+});
+
+Object.defineProperty(fileTabs, 'activeKindUrl', {
+	get: function()
+	{
+		var file = fileTabs._find(fileTabs._activeUrl);
+		if (file === undefined)
+		{
+			return undefined;
+		}
+		return file.kindUrl;
+	}
+});
+
 Object.defineProperty(fileTabs, '_panel', {
 	get: function()
 	{
@@ -33,12 +57,13 @@ fileTabs.hasUrlOpen = function(url)
 	return fileTabs._find(url) !== undefined;
 };
 
-fileTabs.openIfNotAlready = function(url)
+fileTabs.openIfNotAlready = function(url, kindUrl, dataUrl)
 {
-	if (url == undefined)
+	if (url == undefined || kindUrl == undefined)
 	{
 		// do nothing: bad url
-		return 'failed';
+		console.error('opening invalid values: ' + url + ' ' + kindUrl);
+		return 'client-error';
 	}
 
 	var file = fileTabs._find(url);
@@ -50,7 +75,9 @@ fileTabs.openIfNotAlready = function(url)
 
 	var newFile = {
 		url: url,
-		domElement: document.createElement('li')
+		domElement: document.createElement('li'),
+		kindUrl: kindUrl,
+		dataUrl: dataUrl
 	};
 	
 	newFile.domElement.textContent = uri.lastSegment(url);
@@ -116,3 +143,30 @@ fileTabs.createCreateTab = function()
 	fileTabs._panel.append(newFile.domElement);
 	fileTabs._openFiles.push(newFile);
 }
+
+fileTabs._mustKeep = function(file)
+{
+	return file.url.startsWith('about:');
+};
+
+fileTabs.onclickCloseAll = function(url)
+{
+	var remainingFiles = [];
+	for (var file of fileTabs._openFiles)
+	{
+		if (fileTabs._mustKeep(file))
+		{
+			remainingFiles.push(file);
+		}
+		else
+		{
+			fileTabs._panel.removeChild(file.domElement);
+			if (file.url === fileTabs._activeUrl)
+			{
+				fileTabs._activeUrl = undefined;
+				ui.setEditorText('');
+			}
+		}
+	}
+	fileTabs._openFiles = remainingFiles;
+};

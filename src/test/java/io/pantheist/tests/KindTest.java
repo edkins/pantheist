@@ -36,6 +36,7 @@ public class KindTest
 
 	private static final String JAVA_FILE = "java-file";
 	private static final String TEXT_PLAIN = "text/plain";
+	private static final String APPLICATION_JSON = "application/json";
 	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String KIND_INTERFACE_RES = "/kind-schema/java-discoverable-interface";
 	private static final String JAVA_INTLIST_NAME = "NonEmptyNonNegativeIntList";
@@ -63,7 +64,7 @@ public class KindTest
 	@Test
 	public void kind_canReadBack() throws Exception
 	{
-		manage.kind("my-kind").putJsonResource(KIND_SCHEMA_RES);
+		manage.kind("my-kind").data().putResource(KIND_SCHEMA_RES, APPLICATION_JSON);
 
 		final ApiKind kind = manage.kind("my-kind").getKind();
 
@@ -76,7 +77,7 @@ public class KindTest
 	@Test
 	public void kind_canBeTaggedAsSystem() throws Exception
 	{
-		manage.kind("my-kind").putJsonResource(KIND_SCHEMA_SYSTEM_RES);
+		manage.kind("my-kind").data().putResource(KIND_SCHEMA_SYSTEM_RES, APPLICATION_JSON);
 
 		final ApiKind kind = manage.kind("my-kind").getKind();
 
@@ -87,7 +88,7 @@ public class KindTest
 	public void kind_isListed() throws Exception
 	{
 		final ManagementPathKind kind = manage.kind("my-kind");
-		kind.putJsonResource(KIND_SCHEMA_RES);
+		kind.data().putResource(KIND_SCHEMA_RES, APPLICATION_JSON);
 
 		final List<ApiKind> list = manage.listKinds().childResources();
 
@@ -99,8 +100,10 @@ public class KindTest
 	@Test
 	public void kind_withWrongId_rejected() throws Exception
 	{
-		final ResponseType response1 = manage.kind("my-kind").putJsonResourceResponseType(KIND_EXAMPLE_GARBAGE_ID_RES);
-		final ResponseType response2 = manage.kind("my-kind").putJsonResourceResponseType(KIND_EXAMPLE_CORRECT_ID_RES);
+		final ResponseType response1 = manage.kind("my-kind").data()
+				.putResourceResponseType(KIND_EXAMPLE_GARBAGE_ID_RES, APPLICATION_JSON);
+		final ResponseType response2 = manage.kind("my-kind").data()
+				.putResourceResponseType(KIND_EXAMPLE_CORRECT_ID_RES, APPLICATION_JSON);
 
 		assertThat(response1, is(ResponseType.BAD_REQUEST));
 		assertThat(response2, is(ResponseType.NO_CONTENT));
@@ -110,7 +113,7 @@ public class KindTest
 	public void discoveredJavaEntity_isListed_underKind() throws Exception
 	{
 		final ManagementPathKind kind = manage.kind("java-interface-file");
-		kind.putJsonResource(KIND_INTERFACE_RES);
+		kind.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
 
 		final ManagementPathJavaFile jclass = manage.javaPackage(JAVA_PKG).file("EmptyClass");
 		jclass.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
@@ -136,7 +139,7 @@ public class KindTest
 
 		assertThat(java.describeJavaFile().kindUrl(), is(baseKind.url()));
 
-		kind.putJsonResource(KIND_INTERFACE_RES);
+		kind.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
 
 		assertThat(java.describeJavaFile().kindUrl(), is(kind.url()));
 	}
@@ -148,7 +151,7 @@ public class KindTest
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
 		final ManagementPathJavaFile java = pkg.file(JAVA_INTLIST_NAME);
 		java.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
-		kind.putJsonResource(KIND_INTERFACE_RES);
+		kind.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
 
 		final List<ListJavaFileItem> list = pkg.listJavaFiles().childResources();
 		assertThat(list.size(), is(1));
@@ -178,7 +181,7 @@ public class KindTest
 		butteryJava.data().putResource(JAVA_BUTTER_RES, TEXT_PLAIN);
 		final ManagementPathJavaFile otherJava = pkg.file(JAVA_INTLIST_NAME);
 		otherJava.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
-		butteryKind.putJsonResource("/kind-schema/java-interface-with-butter-annotation");
+		butteryKind.data().putResource("/kind-schema/java-interface-with-butter-annotation", APPLICATION_JSON);
 
 		assertThat(butteryJava.describeJavaFile().kindUrl(), is(butteryKind.url()));
 		assertThat(otherJava.describeJavaFile().kindUrl(), is(baseKind.url()));
@@ -194,7 +197,7 @@ public class KindTest
 		butteryJava.data().putResource(JAVA_CONSTRUCTOR_BUTTER_NAME_RES, TEXT_PLAIN);
 		final ManagementPathJavaFile otherJava = pkg.file(JAVA_CONSTRUCTOR_NON_BUTTER_NAME);
 		otherJava.data().putResource(JAVA_CONSTRUCTOR_NON_BUTTER_RES, TEXT_PLAIN);
-		butteryKind.putJsonResource("/kind-schema/java-constructor-arg-with-butter-annotation");
+		butteryKind.data().putResource("/kind-schema/java-constructor-arg-with-butter-annotation", APPLICATION_JSON);
 
 		assertThat(otherJava.describeJavaFile().kindUrl(), is(baseKind.url()));
 		assertThat(butteryJava.describeJavaFile().kindUrl(), is(butteryKind.url()));
@@ -204,9 +207,9 @@ public class KindTest
 	public void conflictingKinds_oneIsChosen() throws Exception
 	{
 		final ManagementPathKind kind1 = manage.kind("interface1");
-		kind1.putJsonResource(KIND_INTERFACE_RES);
+		kind1.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
 		final ManagementPathKind kind2 = manage.kind("interface2");
-		kind2.putJsonResource(KIND_INTERFACE_RES);
+		kind2.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
 
 		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
 		java.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);

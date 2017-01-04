@@ -22,16 +22,17 @@ import io.pantheist.api.kind.model.ListEntityResponse;
 import io.pantheist.common.annotations.ResourceTag;
 import io.pantheist.common.http.Resp;
 import io.pantheist.common.util.Possible;
+import io.pantheist.handler.kind.model.Kind;
 
 @Path("/")
-public class KindResourceImpl implements ResourceTag
+public class KindResource implements ResourceTag
 {
-	private static final Logger LOGGER = LogManager.getLogger(KindResourceImpl.class);
+	private static final Logger LOGGER = LogManager.getLogger(KindResource.class);
 	private final KindBackend backend;
 	private final Resp resp;
 
 	@Inject
-	private KindResourceImpl(
+	private KindResource(
 			final KindBackend backend,
 			final ObjectMapper objectMapper,
 			final Resp resp)
@@ -60,21 +61,21 @@ public class KindResourceImpl implements ResourceTag
 	}
 
 	/**
-	 * Handles kinds (PUT)
+	 * Handles kind data (PUT)
 	 */
 	@PUT
-	@Path("kind/{kindId}")
+	@Path("kind/{kindId}/data")
 	@Consumes("application/json")
 	public Response putKind(
 			@PathParam("kindId") final String kindId,
 			final String data)
 	{
-		LOGGER.info("PUT kind/{}", kindId);
+		LOGGER.info("PUT kind/{}/data", kindId);
 		try
 		{
 			return resp.possibleEmpty(
-					resp.request(data, ApiKind.class)
-							.posMap(kind -> backend.putKind(kindId, kind)));
+					resp.request(data, Kind.class)
+							.posMap(kind -> backend.putKindData(kindId, kind)));
 		}
 		catch (final RuntimeException ex)
 		{
@@ -83,18 +84,39 @@ public class KindResourceImpl implements ResourceTag
 	}
 
 	/**
-	 * Handles kinds (GET)
+	 * Handles kind data (GET)
+	 */
+	@GET
+	@Path("kind/{kindId}/data")
+	@Produces("application/json")
+	public Response getKindData(
+			@PathParam("kindId") final String kindId)
+	{
+		LOGGER.info("GET kind/{}/data", kindId);
+		try
+		{
+			final Possible<Kind> result = backend.getKindData(kindId);
+			return resp.possibleToJson(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles kind information (GET)
 	 */
 	@GET
 	@Path("kind/{kindId}")
 	@Produces("application/json")
-	public Response getKind(
+	public Response getKindInfo(
 			@PathParam("kindId") final String kindId)
 	{
 		LOGGER.info("GET kind/{}", kindId);
 		try
 		{
-			final Possible<ApiKind> result = backend.getKind(kindId);
+			final Possible<ApiKind> result = backend.getKindInfo(kindId);
 			return resp.possibleToJson(result);
 		}
 		catch (final RuntimeException ex)

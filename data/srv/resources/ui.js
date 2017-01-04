@@ -19,6 +19,10 @@ ui.flashClass = function(element,cssClass)
 	{
 		throw new Error('Flash classes start with flash- so we can keep track of them');
 	}
+	if (element == undefined)
+	{
+		throw new Error('No element to flash');
+	}
 
 	var oldClasses = Array.from( element.classList );
 	for (var oldClass of oldClasses)
@@ -36,7 +40,7 @@ ui.flashClass = function(element,cssClass)
 		{
 			// Dirty css/js hack
 			// Triggering reflow to make sure that animation gets restarted when we add the class back
-			var ignore = el.offsetWidth;
+			var ignore = element.offsetWidth;
 		}
 
 		element.classList.add(cssClass);
@@ -76,8 +80,8 @@ ui.setEditorText = function(text)
 {
 	editor.setValue(''+text);
 	editor.selection.clearSelection();
-	document.getElementById('editor').classList.remove('gone');
-	document.getElementById('create-page').classList.add('gone');
+	document.getElementById('editor').classList.remove('hidden');
+	document.getElementById('create-page').classList.add('hidden');
 }
 
 ui._setupAce = function()
@@ -174,8 +178,8 @@ ui._visitAbout = function(pseudoUrl)
 	{
 	case 'about:create':
 	{
-		document.getElementById('editor').classList.add('gone');
-		document.getElementById('create-page').classList.remove('gone');
+		document.getElementById('editor').classList.add('hidden');
+		document.getElementById('create-page').classList.remove('hidden');
 		fileTabs.switchTo(pseudoUrl);
 		var panel = document.getElementById('create-page-list');
 		ui.removeChildren(panel);
@@ -206,10 +210,11 @@ ui._visitAbout = function(pseudoUrl)
 				panel.append(div);
 			}
 		}
-		return undefined;
+		return {visitSuccess: 'success'};
 	}
 	default:
-		return undefined;
+		console.error('visiting invalid value: ' + pseudoUrl);
+		return {visitSuccess: 'client-error'};
 	}
 };
 
@@ -217,7 +222,10 @@ ui.visit = function(url)
 {
 	if (typeof url !== 'string')
 	{
-		throw new Error('url must be string, was ' + url);
+		console.error('visiting invalid value: ' + url);
+		return {
+			visitSuccess: 'client-error'
+		}
 	}
 
 	if (url.startsWith('about:'))
@@ -228,7 +236,7 @@ ui.visit = function(url)
 	return http.getJson(url).then( data => {
 		if (data.dataAction != undefined)
 		{
-			var success = fileTabs.openIfNotAlready(url);
+			var success = fileTabs.openIfNotAlready(url, data.kindUrl, data.dataAction.url);
 			fileTabs.switchTo(url);
 			
 			return http.getString(data.dataAction.mimeType, data.dataAction.url).then( text => {
@@ -237,57 +245,131 @@ ui.visit = function(url)
 					visitSuccess: success,
 					visitInfo: data
 				};
+			}).catch(error => {
+				console.error('Data fetch: ' + error);
+				return {
+					visitSuccess: 'server-error',
+					visitInfo: error
+				};
 			});
 		}
 		else
 		{
 			return {
-				visitSuccess: 'failed',
+				visitSuccess: 'no-data-action',
 				visitInfo: data
 			};
 		}
+	}, error => {
+		console.error('Info fetch: ' + error);
+		return {
+			visitSuccess: 'server-error',
+			visitInfo: error
+		};
 	} );
-}
+};
 
 ui._visitScratch = function(text)
 {
 	fileTabs.switchTo(undefined);
 	ui.setEditorText(text);
-}
+};
 
 ui.visitInfo = function(url)
 {
 	return http.getString('application/json', url)
 		.then( text => ui._visitScratch(text) )
 		.catch( error => ui._visitScratch(error) );
-}
+};
 
-function clickReload(event)
+ui._onclickReload = function(event)
 {
+	var button = document.getElementById('btn-reload');
 	http.post(http.home + '/system/reload', undefined, undefined).then( () => {
+		ui.flashClass(button, 'flash-activate');
 		ui._visitScratch('Server has reloaded configuration');
 	}).catch( error => {
-		ui._visitScratch(error);
+		console.error(''+error);
+		ui.flashClass(button, 'flash-server-error');
 	});
-}
+};
 
-function clickShutdown(event)
+ui._onclickShutdown = function(event)
 {
+	var button = document.getElementById('btn-shutdown');
 	http.post(http.home + '/system/terminate', undefined, undefined).then( () => {
+		ui.flashClass(button, 'flash-activate');
 		ui._visitScratch('Terminated');
 	}).catch( error => {
-		ui._visitScratch(error);
-	});;
+		console.error(''+error);
+		ui.flashClass(button, 'flash-server-error');
+	});
+};
+
+ui._onclickSave = function(event)
+{
+	var saveButton = document.getElementById('btn-save');
+	var url = fileTabs.activeDataUrl;
+	
+	if (url == undefined)
+	{
+		console.error('data url is undefined');
+		ui.flashClass(saveButton, 'flash-client-error');
+	}
+	
+	var kindUrl = fileTabs.activeKindUrl;
+	if (kindUrl == undefined)
+	{
+		console.error('kindUrl is undefined');
+		ui.flashClass(saveButton, 'flash-client-error');
+	}
+
+	var kind = ui._kinds[kindUrl];
+	if (kind == undefined)
+	{
+		console.error('unknown kind: ' + kindUrl);
+		ui.flashClass(saveButton, 'flash-client-error');
+	}
+	
+	if (kind.dataAction == undefined)
+	{
+		console.error('no data action for kind: ' + kindUrl);
+		ui.flashClass(saveButton, 'flash-client-error');
+	}
+	
+	if (!kind.dataAction.canPut)
+	{
+		console.error('read-only kind: ' + kindUrl);
+		ui.flashClass(saveButton, 'flash-client-error');
+	}
+
+	if (document.getElementById('editor').classList.contains('hidden'))
+	{
+		console.error('editor is hidden');
+		ui.flashClass(saveButton, 'flash-client-error');
+	}
+
+	http.putString(url, kind.dataAction.mimeType, editor.getValue()).then(
+		ok => {
+			ui.flashClass(saveButton, 'flash-activate');
+		},
+		error => {
+			console.error('sending data: ' + error);
+			ui.flashClass(saveButton, 'flash-server-error');
+		}
+	);
 }
 
 window.onload = function()
 {
 	ui._setupAce();
 	
-	document.getElementById('btn-reload').onclick = clickReload;
-	document.getElementById('btn-shutdown').onclick = clickShutdown;
+	document.getElementById('btn-reload').onclick = ui._onclickReload;
+	document.getElementById('btn-shutdown').onclick = ui._onclickShutdown;
+	document.getElementById('btn-save').onclick = ui._onclickSave;
+	document.getElementById('btn-close-all').onclick = fileTabs.onclickCloseAll;
 
 	fileTabs.createCreateTab();
 
 	ui.refreshCache().then( () => resourceTree.initialize() );
-}
+};

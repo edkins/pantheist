@@ -19,7 +19,6 @@ import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.DataAction;
 import io.pantheist.common.api.model.DeleteAction;
 import io.pantheist.common.api.model.ListClassifierItem;
-import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.handler.java.model.JavaFileId;
 import io.pantheist.handler.java.model.JavaModelFactory;
@@ -35,6 +34,7 @@ final class UrlTranslationImpl implements UrlTranslation
 
 	private final UriPattern managementRoot;
 	private final UriPattern kind;
+	private final UriPattern kindData;
 	private final UriPattern kindEntity;
 	private final UriPattern jsonSchema;
 	private final UriPattern jsonSchemaData;
@@ -65,6 +65,7 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.javaFactory = checkNotNull(javaFactory);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.kind = root.segment("kind").var("kindId");
+		this.kindData = kind.segment("data");
 		this.kindEntity = kind.segment("entity").var("entityId");
 		this.jsonSchema = root.segment("json-schema").var("schemaId");
 		this.jsonSchemaData = jsonSchema.segment("data");
@@ -235,12 +236,6 @@ final class UrlTranslationImpl implements UrlTranslation
 	}
 
 	@Override
-	public ReplaceAction listKindReplaceAction(final String kindId)
-	{
-		return modelFactory.replaceAction(BasicContentType.json, APPLICATION_JSON);
-	}
-
-	@Override
 	public String sqlTableToUrl(final String table)
 	{
 		return sqlTable.generate(ImmutableMap.of("table", table));
@@ -282,6 +277,13 @@ final class UrlTranslationImpl implements UrlTranslation
 	{
 		return modelFactory.dataAction(BasicContentType.text, "text/plain", true,
 				flatDirFileData.generate(ImmutableMap.of("dir", dir, "file", file)));
+	}
+
+	@Override
+	public DataAction kindDataAction(final String kindId)
+	{
+		return modelFactory.dataAction(BasicContentType.json, APPLICATION_JSON, true,
+				kindData.generate(ImmutableMap.of("kindId", kindId)));
 	}
 
 }

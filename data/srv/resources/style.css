@@ -98,9 +98,6 @@ the item itself (as opposed to its children).
 }
 
 .hidden {
-	visibility: hidden;
-}
-.gone {
 	display: none;
 }
 
@@ -116,9 +113,15 @@ the item itself (as opposed to its children).
 	background: #fff;
 }
 
-.tree-item.flash-error {
+.tree-item.flash-client-error {
 	animation-duration: 0.8s;
-	animation-name: flash-error-anim;
+	animation-name: flash-client-error-anim;
+	background: #fff;
+}
+
+.tree-item.flash-server-error {
+	animation-duration: 0.8s;
+	animation-name: flash-server-error-anim;
 	background: #fff;
 }
 
@@ -128,9 +131,27 @@ the item itself (as opposed to its children).
 	background: #008;
 }
 
+.button.flash-activate {
+	animation-duration: 0.5s;
+	animation-name: flash-activate-anim;
+	background: #fff;
+}
+
+.button.flash-client-error {
+	animation-duration: 0.8s;
+	animation-name: flash-client-error-anim;
+	background: #fff;
+}
+
+.button.flash-server-error {
+	animation-duration: 0.8s;
+	animation-name: flash-server-error-anim;
+	background: #fff;
+}
+
 @keyframes flash-activate-anim {
 	from {
-		background: #f80;
+		background: #4c4;
 	}
 
 	to {
@@ -148,9 +169,19 @@ the item itself (as opposed to its children).
 	}
 }
 
-@keyframes flash-error-anim {
+@keyframes flash-server-error-anim {
 	from {
 		background: #f00;
+	}
+
+	to {
+		background: #fff;
+	}
+}
+
+@keyframes flash-client-error-anim {
+	from {
+		background: #800;
 	}
 
 	to {

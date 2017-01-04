@@ -12,7 +12,7 @@ public class ApiKindResourceModule extends AbstractModule
 	protected void configure()
 	{
 		final Multibinder<ResourceTag> multi = Multibinder.newSetBinder(binder(), ResourceTag.class);
-		multi.addBinding().to(KindResourceImpl.class);
+		multi.addBinding().to(KindResource.class);
 	}
 
 }

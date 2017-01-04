@@ -11,9 +11,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.api.model.CreateAction;
+import io.pantheist.common.api.model.DataAction;
 import io.pantheist.common.api.model.KindPresentation;
 import io.pantheist.common.api.model.ListClassifierItem;
-import io.pantheist.common.api.model.ReplaceAction;
 import io.pantheist.handler.kind.model.KindSchema;
 
 final class ApiKindImpl implements ApiKind
@@ -22,7 +22,7 @@ final class ApiKindImpl implements ApiKind
 	private final String kindId;
 	private final KindSchema schema;
 	private final boolean partOfSystem;
-	private final ReplaceAction replaceAction;
+	private final DataAction dataAction;
 	private final KindPresentation presentation;
 	private final CreateAction createAction;
 	private final String displayName;
@@ -34,7 +34,7 @@ final class ApiKindImpl implements ApiKind
 			@Nullable @Assisted("url") @JsonProperty("url") final String url,
 			@Nullable @Assisted("kindUrl") @JsonProperty("kindUrl") final String kindUrl,
 			@Nullable @Assisted @JsonProperty("childResources") final List<ListClassifierItem> childResources,
-			@Nullable @Assisted @JsonProperty("replaceAction") final ReplaceAction replaceAction,
+			@Nullable @Assisted @JsonProperty("replaceAction") final DataAction dataAction,
 			@Nullable @Assisted("kindId") @JsonProperty("kindId") final String kindId,
 			@Assisted @JsonProperty("schema") final KindSchema schema,
 			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
@@ -45,7 +45,7 @@ final class ApiKindImpl implements ApiKind
 		this.url = url;
 		this.kindUrl = kindUrl;
 		this.childResources = childResources;
-		this.replaceAction = replaceAction;
+		this.dataAction = dataAction;
 		this.kindId = kindId;
 		this.partOfSystem = partOfSystem;
 		this.presentation = presentation;
@@ -73,9 +73,9 @@ final class ApiKindImpl implements ApiKind
 	}
 
 	@Override
-	public ReplaceAction replaceAction()
+	public DataAction dataAction()
 	{
-		return replaceAction;
+		return dataAction;
 	}
 
 	@Override
