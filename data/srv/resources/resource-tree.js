@@ -164,11 +164,12 @@ resourceTree._flashUrl = function(url,cssClass)
 
 resourceTree._onclickTreeItem = function(event)
 {
-	var url = event.target.dataset.url;
+	var url = event.currentTarget.dataset.url;
 	
 	if (url == undefined)
 	{
-		// clicked on a different thing?
+		console.error('No url defined for this element');
+		ui.flashClass(event.currentTarget, 'flash-client-error');
 		return;
 	}
 	

@@ -45,8 +45,16 @@ body {
 	padding: 2pt;
 }
 
-li.active {
+.file-list li.active {
     background: #f80;
+}
+
+.file-list li.untitled {
+    color: #bbb;
+}
+
+.file-list li.active.untitled {
+    color: #fff;
 }
 
 ul {
@@ -101,52 +109,34 @@ the item itself (as opposed to its children).
 	display: none;
 }
 
-.tree-item.flash-activate {
+.flash-activate {
 	animation-duration: 0.5s;
 	animation-name: flash-activate-anim;
 	background: #fff;
 }
 
-.tree-item.flash-neutral {
+.flash-neutral {
 	animation-duration: 0.5s;
 	animation-name: flash-expand-anim;
 	background: #fff;
 }
 
-.tree-item.flash-client-error {
+.flash-client-error {
 	animation-duration: 0.8s;
 	animation-name: flash-client-error-anim;
 	background: #fff;
 }
 
-.tree-item.flash-server-error {
+.flash-server-error {
 	animation-duration: 0.8s;
 	animation-name: flash-server-error-anim;
 	background: #fff;
 }
 
-.tree-item.flash-loading {
+.flash-loading {
 	animation-duration: 1.0s;
 	animation-name: flash-loading-anim;
 	background: #008;
-}
-
-.button.flash-activate {
-	animation-duration: 0.5s;
-	animation-name: flash-activate-anim;
-	background: #fff;
-}
-
-.button.flash-client-error {
-	animation-duration: 0.8s;
-	animation-name: flash-client-error-anim;
-	background: #fff;
-}
-
-.button.flash-server-error {
-	animation-duration: 0.8s;
-	animation-name: flash-server-error-anim;
-	background: #fff;
 }
 
 @keyframes flash-activate-anim {
@@ -159,9 +149,19 @@ the item itself (as opposed to its children).
 	}
 }
 
-@keyframes flash-expand-anim {
+@keyframes flash-activate-anim-blue {
 	from {
-		background: #888;
+		background: #4c4;
+	}
+
+	to {
+		background: #def;
+	}
+}
+
+@keyframes flash-server-error-anim {
+	from {
+		background: #f00;
 	}
 
 	to {
@@ -169,7 +169,7 @@ the item itself (as opposed to its children).
 	}
 }
 
-@keyframes flash-server-error-anim {
+@keyframes flash-error-anim-blue {
 	from {
 		background: #f00;
 	}
@@ -226,4 +226,16 @@ the item itself (as opposed to its children).
 .create-kind-name {
 	vertical-align: middle;
 	font-size: x-large;
+}
+.create-kind:hover.flash-activate {
+	animation-duration: 0.5s;
+	animation-name: flash-activate-anim-blue;
+}
+.create-kind:hover.flash-client-error {
+	animation-duration: 0.5s;
+	animation-name: flash-error-anim-blue;
+}
+.create-kind:hover.flash-server-error {
+	animation-duration: 0.5s;
+	animation-name: flash-error-anim-blue;
 }

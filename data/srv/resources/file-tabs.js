@@ -97,6 +97,35 @@ fileTabs.openIfNotAlready = function(url, kindUrl, dataUrl)
 	return 'success';
 };
 
+fileTabs._nextUntitledPseudoUrl = function()
+{
+	for (var i = 0;; i++)
+	{
+		var name = 'about:untitled/' + i;
+		if (fileTabs._find(name) == undefined)
+		{
+			return name;
+		}
+	}
+};
+
+fileTabs.openNew = function(kindUrl, displayName)
+{
+	var newFile = {
+		url: fileTabs._nextUntitledPseudoUrl(),
+		domElement: document.createElement('li'),
+		kindUrl: kindUrl
+	};
+	
+	newFile.domElement.dataset.url = newFile.url;
+	newFile.domElement.textContent = displayName;
+	newFile.domElement.onclick = fileTabs._onclickTab;
+	newFile.domElement.classList.add('untitled');
+	
+	fileTabs._panel.append(newFile.domElement);
+	fileTabs._openFiles.push(newFile);
+};
+
 fileTabs.switchTo = function(url)
 {
 	if (fileTabs._activeUrl === url)
@@ -125,7 +154,7 @@ fileTabs.switchTo = function(url)
 
 fileTabs._onclickTab = function(event)
 {
-	ui.visit(event.target.dataset.url);
+	ui.visit(event.currentTarget.dataset.url);
 };
 
 fileTabs.createCreateTab = function()
@@ -146,7 +175,7 @@ fileTabs.createCreateTab = function()
 
 fileTabs._mustKeep = function(file)
 {
-	return file.url.startsWith('about:');
+	return file.url === 'about:create';
 };
 
 fileTabs.onclickCloseAll = function(url)

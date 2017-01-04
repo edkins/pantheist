@@ -167,52 +167,97 @@ Object.defineProperty(ui, '_sortedKindList', {
 		{
 			result.push(ui._kinds[kindUrl]);
 		}
-		result.sort((a,b) => a.displayName.localeCompare(b.displayName));
+		result.sort((a,b) => ui._kindDisplayName(a).localeCompare(ui._kindDisplayName(b)));
 		return result;
 	}
 });
 
-ui._visitAbout = function(pseudoUrl)
+ui._kindDisplayName = function(kind)
 {
-	switch(pseudoUrl)
+	if (kind.presentation != undefined && kind.presentation.displayName != undefined)
 	{
-	case 'about:create':
+		return kind.presentation.displayName;
+	}
+	else
 	{
-		document.getElementById('editor').classList.add('hidden');
-		document.getElementById('create-page').classList.remove('hidden');
-		fileTabs.switchTo(pseudoUrl);
-		var panel = document.getElementById('create-page-list');
-		ui.removeChildren(panel);
-		for (var kind of ui._sortedKindList)
+		return kind.kindId;
+	}
+};
+
+ui._visitCreate = function(pseudoUrl)
+{
+	document.getElementById('editor').classList.add('hidden');
+	document.getElementById('create-page').classList.remove('hidden');
+	fileTabs.switchTo(pseudoUrl);
+	var panel = document.getElementById('create-page-list');
+	ui.removeChildren(panel);
+	for (var kind of ui._sortedKindList)
+	{
+		if (kind.createAction != undefined)
 		{
-			if (kind.createAction != undefined)
-			{
-				var div = document.createElement('div');
-				var icon = document.createElement('span');
-				var textSpan = document.createElement('span');
-				var iconUrl = ui.getKindIcon(kind.url, true);
-				var displayName = kind.kindId;
-				if (kind.presentation != undefined && kind.presentation.displayName != undefined)
-				{
-					displayName = kind.presentation.displayName;
-				}
-				
-				div.classList.add('create-kind');
-				
-				icon.classList.add('create-kind-icon');
-				icon.style['background-image'] = "url('" + iconUrl + "')";
-				
-				textSpan.textContent = displayName;
-				textSpan.classList.add('create-kind-name');
-				
-				div.append(icon);
-				div.append(textSpan);
-				panel.append(div);
-			}
+			var div = document.createElement('div');
+			var icon = document.createElement('span');
+			var textSpan = document.createElement('span');
+			var iconUrl = ui.getKindIcon(kind.url, true);
+			var displayName = ui._kindDisplayName(kind);
+			
+			div.classList.add('create-kind');
+			div.dataset.kindUrl = kind.url;
+			div.onclick = ui._onclickCreateItem;
+			
+			icon.classList.add('create-kind-icon');
+			icon.style['background-image'] = "url('" + iconUrl + "')";
+			
+			textSpan.textContent = displayName;
+			textSpan.classList.add('create-kind-name');
+			
+			div.append(icon);
+			div.append(textSpan);
+			panel.append(div);
 		}
+	}
+	return {visitSuccess: 'success'};
+};
+
+ui._visitUntitled = function(pseudoUrl)
+{
+	fileTabs.switchTo(pseudoUrl);
+	
+	var kind = ui._kinds[fileTabs.activeKindUrl];
+	
+	if (kind === undefined || kind.createAction === undefined || kind.createAction.prototypeUrl === undefined)
+	{
+		ui.setEditorText('');
 		return {visitSuccess: 'success'};
 	}
-	default:
+	else
+	{
+		http.getString('text/plain', kind.createAction.prototypeUrl).then(
+			text => {
+				ui.setEditorText(text);
+				return {visitSuccess: 'success'};
+			},
+			error => {
+				console.log('Fetching prototype: ' + error);
+				return {visitSuccess: 'server-error'};
+			}
+		);
+	}
+
+};
+
+ui._visitAbout = function(pseudoUrl)
+{
+	if (pseudoUrl === 'about:create')
+	{
+		return ui._visitCreate(pseudoUrl);
+	}
+	else if (pseudoUrl.startsWith('about:untitled/'))
+	{
+		return ui._visitUntitled(pseudoUrl);
+	}
+	else
+	{
 		console.error('visiting invalid value: ' + pseudoUrl);
 		return {visitSuccess: 'client-error'};
 	}
@@ -308,45 +353,51 @@ ui._onclickShutdown = function(event)
 
 ui._onclickSave = function(event)
 {
-	var saveButton = document.getElementById('btn-save');
+	var button = document.getElementById('btn-save');
 	var url = fileTabs.activeDataUrl;
 	
 	if (url == undefined)
 	{
 		console.error('data url is undefined');
-		ui.flashClass(saveButton, 'flash-client-error');
+		ui.flashClass(button, 'flash-client-error');
+		return;
 	}
 	
 	var kindUrl = fileTabs.activeKindUrl;
 	if (kindUrl == undefined)
 	{
 		console.error('kindUrl is undefined');
-		ui.flashClass(saveButton, 'flash-client-error');
+		ui.flashClass(button, 'flash-client-error');
+		return;
 	}
 
 	var kind = ui._kinds[kindUrl];
 	if (kind == undefined)
 	{
 		console.error('unknown kind: ' + kindUrl);
-		ui.flashClass(saveButton, 'flash-client-error');
+		ui.flashClass(button, 'flash-client-error');
+		return;
 	}
 	
 	if (kind.dataAction == undefined)
 	{
 		console.error('no data action for kind: ' + kindUrl);
 		ui.flashClass(saveButton, 'flash-client-error');
+		return;
 	}
 	
 	if (!kind.dataAction.canPut)
 	{
 		console.error('read-only kind: ' + kindUrl);
 		ui.flashClass(saveButton, 'flash-client-error');
+		return;
 	}
 
 	if (document.getElementById('editor').classList.contains('hidden'))
 	{
 		console.error('editor is hidden');
 		ui.flashClass(saveButton, 'flash-client-error');
+		return;
 	}
 
 	http.putString(url, kind.dataAction.mimeType, editor.getValue()).then(
@@ -358,7 +409,30 @@ ui._onclickSave = function(event)
 			ui.flashClass(saveButton, 'flash-server-error');
 		}
 	);
-}
+};
+
+ui._onclickCreateItem = function(event)
+{
+	var button = event.currentTarget;
+	var kindUrl = event.currentTarget.dataset.kindUrl;
+	var kind = ui._kinds[kindUrl];
+	if (kind == undefined)
+	{
+		console.error('unknown kind: ' + kindUrl);
+		ui.flashClass(button, 'flash-client-error');
+		return;
+	}
+
+	if (kind.createAction == undefined)
+	{
+		console.error('no create action for kind: ' + kindUrl);
+		ui.flashClass(button, 'flash-client-error');
+		return;
+	}
+	
+	fileTabs.openNew(kindUrl, ui._kindDisplayName(kind));
+	ui.flashClass(button, 'flash-activate');
+};
 
 window.onload = function()
 {
