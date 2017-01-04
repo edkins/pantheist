@@ -15,35 +15,17 @@ ui.removeChildren = function(element)
 
 ui.flashClass = function(element,cssClass)
 {
-	if (cssClass !== undefined && !cssClass.startsWith('flash-'))
-	{
-		throw new Error('Flash classes start with flash- so we can keep track of them');
-	}
 	if (element == undefined)
 	{
 		throw new Error('No element to flash');
 	}
-
-	var oldClasses = Array.from( element.classList );
-	for (var oldClass of oldClasses)
-	{
-		if (oldClass.startsWith('flash-'))
-		{
-			element.classList.remove(oldClass);
-		}
-	}
 	
-	if (cssClass !== undefined)
+	if (cssClass != undefined)
 	{
-
-		if (oldClasses.indexOf(cssClass) !== -1)
-		{
-			// Dirty css/js hack
-			// Triggering reflow to make sure that animation gets restarted when we add the class back
-			var ignore = element.offsetWidth;
-		}
-
 		element.classList.add(cssClass);
+		setTimeout( () => {
+			element.classList.remove(cssClass);
+		}, 50 );
 	}
 }
 
@@ -195,15 +177,18 @@ ui._visitCreate = function(pseudoUrl)
 	{
 		if (kind.createAction != undefined)
 		{
-			var div = document.createElement('div');
+			var background = document.createElement('div');
+			var button = document.createElement('div');
 			var icon = document.createElement('span');
 			var textSpan = document.createElement('span');
 			var iconUrl = ui.getKindIcon(kind.url, true);
 			var displayName = ui._kindDisplayName(kind);
 			
-			div.classList.add('create-kind');
-			div.dataset.kindUrl = kind.url;
-			div.onclick = ui._onclickCreateItem;
+			background.classList.add('create-kind-background');
+			
+			button.classList.add('create-kind');
+			button.dataset.kindUrl = kind.url;
+			button.onclick = ui._onclickCreateItem;
 			
 			icon.classList.add('create-kind-icon');
 			icon.style['background-image'] = "url('" + iconUrl + "')";
@@ -211,9 +196,10 @@ ui._visitCreate = function(pseudoUrl)
 			textSpan.textContent = displayName;
 			textSpan.classList.add('create-kind-name');
 			
-			div.append(icon);
-			div.append(textSpan);
-			panel.append(div);
+			button.append(icon);
+			button.append(textSpan);
+			background.append(button);
+			panel.append(background);
 		}
 	}
 	return {visitSuccess: 'success'};

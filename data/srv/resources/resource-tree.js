@@ -179,7 +179,7 @@ resourceTree._onclickTreeItem = function(event)
 	}
 	else
 	{
-		resourceTree._flashUrl(url,'flash-loading');
+		//resourceTree._flashUrl(url,'flash-loading');
 		ui.visit(url).then( result => {
 			if (result.visitSuccess === 'success')
 			{

@@ -93,12 +93,13 @@ the item itself (as opposed to its children).
 
 .tree-item {
 	white-space: nowrap;
+	background-color: #fff;
 }
 
 .button-bar {
 	height: 25pt;
 }
-.button-bar .button {
+.button {
     border: solid #ccc 1px;
     margin-right: 4pt;
     padding: 0pt 6pt;
@@ -109,106 +110,44 @@ the item itself (as opposed to its children).
 	display: none;
 }
 
-.flash-activate {
-	animation-duration: 0.5s;
-	animation-name: flash-activate-anim;
-	background: #fff;
+.flash-activate.flash-activate {
+	background-color: #4c4;
+	transition: background-color 0.0s;
 }
 
 .flash-neutral {
-	animation-duration: 0.5s;
-	animation-name: flash-expand-anim;
-	background: #fff;
+	background-color: #888;
+	transition: background-color 0.0s;
 }
 
 .flash-client-error {
-	animation-duration: 0.8s;
-	animation-name: flash-client-error-anim;
-	background: #fff;
+	background-color: #800;
+	transition: background-color 0.0s;
 }
 
 .flash-server-error {
-	animation-duration: 0.8s;
-	animation-name: flash-server-error-anim;
-	background: #fff;
+	background-color: #f00;
+	transition: background-color 0.0s;
 }
 
-.flash-loading {
-	animation-duration: 1.0s;
-	animation-name: flash-loading-anim;
-	background: #008;
-}
-
-@keyframes flash-activate-anim {
-	from {
-		background: #4c4;
-	}
-
-	to {
-		background: #fff;
-	}
-}
-
-@keyframes flash-activate-anim-blue {
-	from {
-		background: #4c4;
-	}
-
-	to {
-		background: #def;
-	}
-}
-
-@keyframes flash-server-error-anim {
-	from {
-		background: #f00;
-	}
-
-	to {
-		background: #fff;
-	}
-}
-
-@keyframes flash-error-anim-blue {
-	from {
-		background: #f00;
-	}
-
-	to {
-		background: #fff;
-	}
-}
-
-@keyframes flash-client-error-anim {
-	from {
-		background: #800;
-	}
-
-	to {
-		background: #fff;
-	}
-}
-
-@keyframes flash-loading-anim {
-	from {
-		background: #fff;
-	}
-
-	to {
-		background: #008;
-	}
-}
-
-.create-kind {
+.create-kind-background {
 	margin: 4pt;
-	padding: 14pt;
 	border: solid #9be 2pt;
 	border-radius: 2pt;
+	background-color: #fff;
+	transition: background-color 0.0s;
+}
+.create-kind-background:hover {
+	background-color: #def;
+}
+.create-kind {
+	background-color: transparent;
+	padding: 14pt;
 	cursor: default;
 }
 
-.create-kind:hover {
-	background: #def;
+* {
+	transition: background-color 0.5s;
 }
 
 .create-kind-icon {
@@ -226,16 +165,4 @@ the item itself (as opposed to its children).
 .create-kind-name {
 	vertical-align: middle;
 	font-size: x-large;
-}
-.create-kind:hover.flash-activate {
-	animation-duration: 0.5s;
-	animation-name: flash-activate-anim-blue;
-}
-.create-kind:hover.flash-client-error {
-	animation-duration: 0.5s;
-	animation-name: flash-error-anim-blue;
-}
-.create-kind:hover.flash-server-error {
-	animation-duration: 0.5s;
-	animation-name: flash-error-anim-blue;
 }
