@@ -31,6 +31,10 @@ http._error = function(xmlhttp)
 
 http.getString = function(acceptContentType,url)
 {
+	if (typeof url !== 'string')
+	{
+		throw new Error('url must be string, was ' + url);
+	}
 	return new Promise(
 		function(resolve,reject)
 		{
@@ -59,6 +63,10 @@ http.getString = function(acceptContentType,url)
 
 http.getJson = function(url)
 {
+	if (typeof url !== 'string')
+	{
+		throw new Error('url must be string, was ' + url);
+	}
 	return http.getString('application/json', url).then(
 		text => {
 			try
@@ -76,6 +84,10 @@ http.getJson = function(url)
 
 http.putString = function(url,contentType,text)
 {
+	if (typeof url !== 'string')
+	{
+		throw new Error('url must be string, was ' + url);
+	}
 	return new Promise(
 		function(resolve,reject)
 		{
@@ -104,6 +116,10 @@ http.putString = function(url,contentType,text)
 
 http.post = function(url,contentType,data)
 {
+	if (typeof url !== 'string')
+	{
+		throw new Error('url must be string, was ' + url);
+	}
 	return new Promise(
 		function(resolve,reject)
 		{
@@ -135,6 +151,10 @@ http.post = function(url,contentType,data)
 
 http.del = function(url)
 {
+	if (typeof url !== 'string')
+	{
+		throw new Error('url must be string, was ' + url);
+	}
 	return new Promise(
 		function(resolve,reject)
 		{

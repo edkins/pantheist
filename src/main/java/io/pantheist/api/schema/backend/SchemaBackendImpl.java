@@ -69,7 +69,7 @@ final class SchemaBackendImpl implements SchemaBackend
 		if (schemaStore.jsonSchemaExists(schemaId))
 		{
 			return View.ok(modelFactory.apiSchema(
-					urlTranslation.jsonSchemaDataAction(),
+					urlTranslation.jsonSchemaDataAction(schemaId),
 					urlTranslation.jsonSchemaDeleteAction()));
 		}
 		else

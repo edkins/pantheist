@@ -1,8 +1,11 @@
 'use strict';
 
 var editor = undefined;
+var ui = ui || {};
+ui.tab = undefined;
+ui.kindUrlPresentation = undefined;
 
-function removeChildren(element)
+ui.removeChildren = function(element)
 {
 	while (element.firstChild)
 	{
@@ -10,154 +13,69 @@ function removeChildren(element)
 	}
 }
 
-function invertExpansion(url)
+ui.flashClass = function(element,cssClass)
 {
-	if (url in ui.expandedNodes)
+	if (cssClass !== undefined && !cssClass.startsWith('flash-'))
 	{
-		delete ui.expandedNodes[url];
+		throw new Error('Flash classes start with flash- so we can keep track of them');
 	}
-	else
-	{
-		ui.expandedNodes[url] = '';
-	}
-}
 
-function listThings(t)
-{
-	var rootItem = createTreeItem(t,http.home + '/kind/pantheist-root',true,http.home,'root'); 
-	return createUl(t,http.home).then(
-		ul => {
-			var panel = document.getElementById('resource-list');
-			removeChildren(panel);
-			panel.append(rootItem);
-			panel.append(ul);
+	var oldClasses = Array.from( element.classList );
+	for (var oldClass of oldClasses)
+	{
+		if (oldClass.startsWith('flash-'))
+		{
+			element.classList.remove(oldClass);
 		}
-	);
-}
-
-function processList(i,array,fn)
-{
-	if (i >= array.length)
-	{
-		return Promise.resolve(undefined);
-	}
-	else
-	{
-		return Promise.resolve(fn(array[i])).then( x => processList(i+1,array,fn) );
-	}
-}
-
-function createTreeItem(t,kindUrl,expanded,url,name)
-{
-	var item = document.createElement('div');
-	var icon = document.createElement('span');
-	
-	var iconUrl = t.getKindIcon(kindUrl,expanded);
-	
-	icon.style['background-image'] = "url('" + iconUrl + "')";
-	icon.classList.add('tree-item-icon');
-	
-	item.append(icon);
-	
-	item.classList.add('tree-item');
-	item.append(name);
-	item.dataset.url = url;
-	item.onclick = clickTreeItem;
-
-	return item;
-}
-
-function createUl(t,parentUrl)
-{
-	var ul = document.createElement('ul');
-	return createListElements(t,parentUrl).then(
-		elements => {
-			for (var element of elements)
-			{
-				ul.append(element);
-			}
-			return ul;
-		}
-	);
-}
-
-function createTreeNode(t,kindUrl,url)
-{
-	var name = decodeURIComponent(uri.lastSegment(url));
-	
-	var li = document.createElement('li');
-	
-	var expanded = (url in t.expandedNodes);
-	
-	var item = createTreeItem(t,kindUrl,expanded,url,name);
-	li.append(item);
-
-	li.classList.add('tree-node');
-	if (expanded)
-	{
-		return createUl(t,url).then( cul => {
-			li.append(cul);
-			return li;
-		} );
 	}
 	
-	return Promise.resolve(li);
+	if (cssClass !== undefined)
+	{
+
+		if (oldClasses.indexOf(cssClass) !== -1)
+		{
+			// Dirty css/js hack
+			// Triggering reflow to make sure that animation gets restarted when we add the class back
+			var ignore = el.offsetWidth;
+		}
+
+		element.classList.add(cssClass);
+	}
 }
 
-function createListElements(t,parentUrl)
+ui.getKindIcon = function(kindUrl, expanded)
 {
-	return t.getJson(parentUrl).then(
-		data => {
-			if (data.childResources.length === 0)
-			{
-				var li = document.createElement('li');
-				li.append('empty');
-				li.classList.add('tree-node');
-				li.classList.add('notice');
-				return [li];
-			}
-		
-			var elements = [];
-			return processList(0, data.childResources, child =>
-				{
-					if (child.suggestHiding)
-					{
-						return createListElements(t, child.url).then(
-							els => {
-								for (var el of els)
-								{
-									elements.push(el);
-								}
-							}
-						);
-					}
-					else
-					{
-						return createTreeNode(t, child.kindUrl, child.url).then(
-							li => elements.push(li)
-						);
-					}
-				}
-			).then( x => elements );
+	var result = undefined;
+	if (kindUrl !== undefined && ui.kindUrlPresentation !== undefined && ui.kindUrlPresentation[kindUrl] != undefined)
+	{
+		if (expanded && ui.kindUrlPresentation[kindUrl].openIconUrl != undefined)
+		{
+			return ui.kindUrlPresentation[kindUrl].openIconUrl;
 		}
-	).catch(
-		error => {
-			var li = document.createElement('li');
-			li.append(''+error);
-			li.classList.add('tree-node');
-			li.classList.add('error');
-			return [li];
+		if (ui.kindUrlPresentation[kindUrl].iconUrl != undefined)
+		{
+			return ui.kindUrlPresentation[kindUrl].iconUrl;
 		}
-	);
-}
+	}
+	
+	return '/resources/images/red-ball.png';
+};
 
-function setEditorText(text)
+Object.defineProperty(ui, 'rootKindUrl', {
+	get: function()
+	{
+		return http.home + '/kind/pantheist-root';
+	}
+});
+
+ui.setEditorText = function(text)
 {
-	editor.setValue(text);
+	editor.setValue(''+text);
 	editor.selection.clearSelection();
+	document.getElementById('editor').classList.remove('hidden');
 }
 
-function setupAce()
+ui._setupAce = function()
 {
     editor = ace.edit("editor");
     editor.setTheme("ace/theme/chrome");
@@ -165,87 +83,23 @@ function setupAce()
     editor.$blockScrolling = Infinity;
 }
 
-function highlightLocationInResourceList(url)
+ui._absorbKindInfo = function(kindInfo)
 {
-	var panel = document.getElementById('resource-list');
-	var items = panel.getElementsByTagName('div');
-	for (var i = 0; i < items.length; i++)
+	for (var kind of kindInfo.childResources)
 	{
-		var item = items.item(i);
-		var wasActive = item.classList.contains('active');
-		if (item.dataset.url === url && !wasActive)
+		if (kind.instancePresentation != undefined)
 		{
-			item.classList.add('active');
-		}
-		if (item.dataset.url !== url && wasActive)
-		{
-			item.classList.remove('active');
+			ui.kindUrlPresentation[kind.url] = kind.instancePresentation;
 		}
 	}
-}
+};
 
-function highlightActiveTab(buttonId)
-{
-	var panel = document.getElementById('tab-bar');
-	var items = panel.getElementsByTagName('span');
-	for (var i = 0; i < items.length; i++)
-	{
-		items.item(i).classList.remove('active');
-	}
-	if (buttonId !== undefined)
-	{
-		document.getElementById(buttonId).classList.add('active');
-	}
-}
-
-function showCreateForm(t)
-{
-	document.getElementById('create-form').classList.remove('hidden');
-	
-	var panel = document.getElementById('create-additional');
-	removeChildren(panel);
-	
-	if (t.data.createAction.urlTemplate != undefined)
-	{
-		for (var additional of uri.splitTemplate(t.data.createAction.urlTemplate))
-		{
-			if (additional.literal)
-			{
-				var span = document.createElement('span');
-				if (!additional.suggestHiding)
-				{
-					span.append(' ' + additional.name + ' ')
-				}
-				span.dataset.segtype = 'literal';
-				span.dataset.name = additional.name;
-				panel.append(span);
-			}
-			else
-			{
-				var inp = document.createElement('input');
-				inp.type = 'text';
-				inp.dataset.segtype = 'var';
-				panel.append(inp);
-			}
-		}
-	}
-}
-
-function hideCreateForm()
-{
-	document.getElementById('create-form').classList.add('hidden');
-}
-
-function hideSendButton()
-{
-	document.getElementById('btn-send').classList.add('hidden');
-	document.getElementById('send-response').textContent = '';
-}
-
-function showSendButton()
-{
-	document.getElementById('btn-send').classList.remove('hidden');
-}
+ui.refreshCache = function() {
+	ui.kindUrlPresentation = [];
+	return http.getJson(http.home + '/kind').then( kindInfo => {
+			ui._absorbKindInfo(kindInfo);
+		});
+};
 
 function setEditorMode(basicType)
 {
@@ -267,63 +121,7 @@ function setEditorMode(basicType)
 		break;
 	}
 }
-
-function refreshCurrentPane(t)
-{
-	switch(t.tab)
-	{
-	case 'btn-info':
-		if (t.data !== undefined && t.data.replaceAction != undefined)
-		{
-			showSendButton();
-		}
-		else
-		{
-			hideSendButton();
-		}
-		hideCreateForm();
-		setEditorMode('json');
-		break;
-	case 'btn-data':
-		if (t.data !== undefined && t.data.dataAction != undefined)
-		{
-			if (t.data.dataAction.canPut)
-			{
-				showSendButton();
-			}
-			else
-			{
-				hideSendButton();
-			}
-			setEditorMode(t.data.dataAction.basicType);
-		}
-		hideCreateForm();
-		break;
-	case 'btn-create':
-		showSendButton();
-		if (t.data !== undefined && t.data.createAction != undefined)
-		{
-			showCreateForm(t);
-    		setEditorMode(t.data.createAction.basicType);
-		}
-		else
-		{
-			hideCreateForm();
-			setEditorMode('unknown');
-		}
-
-		break;
-	case 'btn-binding':
-		showSendButton();
-		hideCreateForm();
-		setEditorMode('json');
-		break;
-	default:
-		hideSendButton();
-		hideCreateForm();
-	}
-}
-
+/*
 function constructCreateUrl(t)
 {
 	var url = http.home;
@@ -353,348 +151,95 @@ function constructCreateUrl(t)
 	}
 	return url;
 }
-
-function showAvailableActionsAsTabs(t)
+*/
+ui._visitAbout = function(pseudoUrl)
 {
-	if (t.data !== undefined && t.data.createAction != undefined)
+	switch(pseudoUrl)
 	{
-		document.getElementById('btn-create').classList.remove('hidden');
-	}
-	else
-	{
-		document.getElementById('btn-create').classList.add('hidden');
-	}
-
-	if (t.data !== undefined && t.data.dataAction != undefined)
-	{
-		document.getElementById('btn-data').classList.remove('hidden');
-	}
-	else
-	{
-		document.getElementById('btn-data').classList.add('hidden');
-	}
-
-	if (t.data !== undefined && t.data.deleteAction != undefined)
-	{
-		document.getElementById('btn-delete').classList.remove('hidden');
-	}
-	else
-	{
-		document.getElementById('btn-delete').classList.add('hidden');
-	}
-
-	if (t.data !== undefined && t.data.bindingAction != undefined)
-	{
-		document.getElementById('btn-binding').classList.remove('hidden');
-	}
-	else
-	{
-		document.getElementById('btn-binding').classList.add('hidden');
+	case 'about:create':
+		document.getElementById('editor').classList.add('hidden');
+		fileTabs.switchTo(pseudoUrl);
+		return undefined;
+	default:
+		return undefined;
 	}
 }
 
-function flashMsg(msg)
+ui.visit = function(url)
 {
-	var el = document.getElementById('send-response');
-	
-	el.textContent = '' + msg;
-	
-	// Dirty css/js hack
-	// Restart css animation by removing class, triggering reflow, then adding class back again
-	el.classList.remove('msg-flash');
-	var ignore = el.offsetWidth;
-	el.classList.add('msg-flash');
+	if (typeof url !== 'string')
+	{
+		throw new Error('url must be string, was ' + url);
+	}
+
+	if (url.startsWith('about:'))
+	{
+		return ui._visitAbout(url);
+	}
+
+	return http.getJson(url).then( data => {
+		if (data.dataAction != undefined)
+		{
+			var success = fileTabs.openIfNotAlready(url);
+			fileTabs.switchTo(url);
+			
+			return http.getString(data.dataAction.mimeType, data.dataAction.url).then( text => {
+				ui.setEditorText(text);
+				return {
+					visitSuccess: success,
+					visitInfo: data
+				};
+			});
+		}
+		else
+		{
+			return {
+				visitSuccess: 'failed',
+				visitInfo: data
+			};
+		}
+	} );
 }
 
-function clickTreeItem(event)
+ui._visitScratch = function(text)
 {
-	var url = event.target.dataset.url;
-
-	if (document.getElementById('address-bar').value === url)
-	{
-		Transaction.fetch().then( t => {
-			if (t.data !== undefined && t.data.childResources != undefined)
-			{
-				invertExpansion(url);
-			}
-			respondToClickingTreeItem(t);
-		} );
-	}
-	else
-	{
-		document.getElementById('address-bar').value = url;
-		Transaction.fetch().then( t => {
-			respondToClickingTreeItem(t);
-		});
-	}
+	fileTabs.switchTo(undefined);
+	ui.setEditorText(text);
 }
-	
-function respondToClickingTreeItem(t)
-{
-	showAvailableActionsAsTabs(t);
 
-	if (t.tab === undefined)
-	{
-		ui.tab = 'btn-info';
-		t.tab = 'btn-info';
-		highlightActiveTab('btn-info');
-	}
-	
-	refreshCurrentPane(t);
-	trackContent(t);
-	listThings(t).then( () => {
-		highlightLocationInResourceList(t.url);
-	});
+ui.visitInfo = function(url)
+{
+	return http.getString('application/json', url)
+		.then( text => ui._visitScratch(text) )
+		.catch( error => ui._visitScratch(error) );
 }
 
 function clickReload(event)
 {
 	http.post(http.home + '/system/reload', undefined, undefined).then( () => {
-		flashMsg('Server has reloaded configuration');
+		ui._visitScratch('Server has reloaded configuration');
 	}).catch( error => {
-		flashMsg(error);
+		ui._visitScratch(error);
 	});
 }
 
 function clickShutdown(event)
 {
-	var t = new Transaction();
 	http.post(http.home + '/system/terminate', undefined, undefined).then( () => {
-		flashMsg('Terminated');
+		ui._visitScratch('Terminated');
 	}).catch( error => {
-		flashMsg(error);
+		ui._visitScratch(error);
 	});;
-}
-
-function clickInfo(event)
-{
-	ui.tab = 'btn-info';
-	highlightActiveTab('btn-info');
-	
-	if (document.getElementById('address-bar').value === '')
-	{
-		document.getElementById('address-bar').value = http.home;
-	}
-
-	Transaction.fetch().then( t => {
-		showAvailableActionsAsTabs(t);
-		highlightLocationInResourceList(t.url);
-		trackContent(t);
-		listThings(t);
-	});
-}
-
-function trackContent(t)
-{
-	switch(t.tab)
-	{
-	case 'btn-info':
-		if (t.data === undefined)
-		{
-			flashMsg('No info to display');
-			setEditorText('')
-		}
-		else
-		{
-			setEditorText(JSON.stringify(t.data, null, '    '))
-		}
-		break;
-
-	case 'btn-data':
-		if (t.data !== undefined && t.data.dataAction != undefined)
-		{
-			http.getString(t.data.dataAction.mimeType, t.url + '/data').then(
-				text => {
-					setEditorText(text);
-				}
-			).catch(
-				error => {
-					flashMsg(error);
-					setEditorText('');
-				}
-			);
-		}
-		else
-		{
-			flashMsg('No data to display');
-			setEditorText('');
-		}
-		break;
-	
-	case 'btn-binding':
-		if (t.data !== undefined && t.data.bindingAction != undefined)
-		{
-			return http.getString('application/json', t.data.bindingAction.url).then(
-				text => {
-					setEditorText(text);
-				}
-			).catch(
-				error => {
-					flashMsg(error);
-					setEditorText('');
-				}
-			);
-		}
-		else
-		{
-			flashMsg('No binding to display');
-			setEditorText('');
-		}
-		break;
-
-	default:
-		// otherwise leave editor text as it is.
-	}
-}
-
-function clickData(event)
-{
-	ui.tab = 'btn-data';
-	highlightActiveTab('btn-data');
-
-	Transaction.fetch().then( t => {
-		refreshCurrentPane(t);
-		if (t.data !== undefined && t.data.dataAction != undefined)
-		{
-			trackContent(t);
-		}
-	});
-}
-
-function clickCreate(event)
-{
-	ui.tab = 'btn-create';
-	highlightActiveTab('btn-create');
-
-	Transaction.fetch().then( t => {
-		setEditorText('');
-		refreshCurrentPane(t);
-	});
-}
-
-function clickBinding(event)
-{
-	ui.tab = 'btn-binding';
-	highlightActiveTab('btn-binding');
-
-	Transaction.fetch().then( t => {
-		refreshCurrentPane(t);
-		trackContent(t);
-	});
-}
-
-function clickSend(event)
-{
-	Transaction.fetch().then( t => {
-		var text = editor.getValue();
-		
-		switch(t.tab)
-		{
-		case 'btn-info':
-			if (t.data === undefined || t.data.replaceAction == undefined)
-			{
-				flashMsg('Unknown data type to send');
-				return;
-			}
-		
-			return http.putString(t.url, t.data.replaceAction.mimeType, text)
-				.then( x => {
-					flashMsg('OK');
-					listThings(t);
-				} )
-				.catch (error => flashMsg(error) );
-
-		case 'btn-data':
-			if (t.data === undefined || t.data.dataAction == undefined)
-			{
-				flashMsg('Unknown data type to send');
-				return;
-			}
-		
-			return http.putString(t.url + '/data', t.data.dataAction.mimeType, text)
-				.then( x => {
-					flashMsg('OK');
-					listThings(t);
-				} )
-				.catch (error => flashMsg(error) );
-
-		case 'btn-create':
-			if (t.data === undefined || t.data.createAction == undefined)
-			{
-				flashMsg('Unknown data type to send');
-				return;
-			}
-		
-			var sendUrl = constructCreateUrl(t);
-			if (sendUrl === undefined)
-			{
-				return;
-			}
-
-			return http.putString(sendUrl, t.data.createAction.mimeType, text)
-				.then( x => {
-					flashMsg('OK');
-					listThings(t);
-				})
-				.catch (error => flashMsg(error) );
-
-		case 'btn-binding':
-			if (t.data === undefined || t.data.bindingAction == undefined)
-			{
-				flashMsg('Unknown binding action');
-				return;
-			}
-		
-			var sendUrl = t.data.bindingAction.url;
-			return http.putString(sendUrl, 'application/json', text)
-				.then( x => {
-					flashMsg('OK');
-					listThings(t);
-				})
-				.catch (error => flashMsg(error) );
-		}
-	} );
-}
-
-function clickDelete(event)
-{
-	Transaction.fetch().then( t => {
-		http.del(t.url).then( () => {
-			flashMsg('Deleted');
-			listThings(t);
-		}).catch( error => {
-			flashMsg(error);
-		});
-	});
-}
-
-function changeAddressBar(event)
-{
-	if (ui.tab === 'btn-info')
-	{
-		ui.tab = undefined;
-		highlightActiveTab(undefined);
-	}
 }
 
 window.onload = function()
 {
-	setupAce();
+	ui._setupAce();
 	
-	document.getElementById('address-bar').oninput = changeAddressBar;
 	document.getElementById('btn-reload').onclick = clickReload;
 	document.getElementById('btn-shutdown').onclick = clickShutdown;
-	document.getElementById('btn-info').onclick = clickInfo;
-	document.getElementById('btn-data').onclick = clickData;
-	document.getElementById('btn-create').onclick = clickCreate;
-	document.getElementById('btn-binding').onclick = clickBinding;
-	document.getElementById('btn-send').onclick = clickSend;
-	document.getElementById('btn-delete').onclick = clickDelete;
 
-	document.getElementById('address-bar').value = http.home;
+	fileTabs.createCreateTab();
 
-	Transaction.fetch().then( t => {
-		refreshCurrentPane(t);
-		listThings(t);
-	});
+	ui.refreshCache().then( () => resourceTree.initialize() );
 }

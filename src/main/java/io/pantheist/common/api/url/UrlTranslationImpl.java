@@ -45,9 +45,11 @@ final class UrlTranslationImpl implements UrlTranslation
 	private final UriPattern location;
 	private final UriPattern flatDir;
 	private final UriPattern flatDirFile;
+	private final UriPattern flatDirFileData;
 	private final UriPattern sqlTable;
 	private final UriPattern sqlTableColumn;
 	private final UriPattern sqlTableColumnRow;
+	private final UriPattern sqlTableColumnRowData;
 	private final UriPattern clientConfig;
 
 	@Inject
@@ -73,9 +75,11 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.location = root.segment("server").var("serverId").segment("location").var("locationId");
 		this.flatDir = root.segment("flat-dir").var("dir");
 		this.flatDirFile = flatDir.segment("file").var("file");
+		this.flatDirFileData = flatDirFile.segment("data");
 		this.sqlTable = root.segment("sql-table").var("table");
 		this.sqlTableColumn = sqlTable.var("column");
 		this.sqlTableColumnRow = sqlTableColumn.var("row");
+		this.sqlTableColumnRowData = sqlTableColumnRow.segment("data");
 		this.clientConfig = root.segment("project").segment("client-config.json");
 	}
 
@@ -170,7 +174,8 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public DataAction javaFileDataAction(final JavaFileId javaFileId)
 	{
-		return modelFactory.dataAction(BasicContentType.java, TEXT_PLAIN, true);
+		return modelFactory.dataAction(BasicContentType.java, TEXT_PLAIN, true,
+				javaFileData.generate(ImmutableMap.of("pkg", javaFileId.pkg(), "file", javaFileId.file())));
 	}
 
 	@Override
@@ -186,9 +191,10 @@ final class UrlTranslationImpl implements UrlTranslation
 	}
 
 	@Override
-	public DataAction jsonSchemaDataAction()
+	public DataAction jsonSchemaDataAction(final String schemaId)
 	{
-		return modelFactory.dataAction(BasicContentType.json, JSON_SCHEMA_MIME, true);
+		return modelFactory.dataAction(BasicContentType.json, JSON_SCHEMA_MIME, true,
+				jsonSchemaData.generate(ImmutableMap.of("schemaId", schemaId)));
 	}
 
 	@Override
@@ -261,7 +267,8 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public DataAction sqlRowDataAction(final String table, final String column, final String row)
 	{
-		return modelFactory.dataAction(BasicContentType.json, APPLICATION_JSON, false);
+		return modelFactory.dataAction(BasicContentType.json, APPLICATION_JSON, false,
+				sqlTableColumnRowData.generate(ImmutableMap.of("table", table, "column", column, "row", row)));
 	}
 
 	@Override
@@ -273,7 +280,8 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public DataAction flatDirFileDataAction(final String dir, final String file)
 	{
-		return modelFactory.dataAction(BasicContentType.text, "text/plain", true);
+		return modelFactory.dataAction(BasicContentType.text, "text/plain", true,
+				flatDirFileData.generate(ImmutableMap.of("dir", dir, "file", file)));
 	}
 
 }

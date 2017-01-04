@@ -3,7 +3,8 @@
 <script src="/third-party/ace-builds/src-noconflict/ace.js"></script>
 <script src="/resources/uri.js"></script>
 <script src="/resources/http.js"></script>
-<script src="/resources/transaction.js"></script>
+<script src="/resources/file-tabs.js"></script>
+<script src="/resources/resource-tree.js"></script>
 <script src="/resources/ui.js"></script>
 <link rel="stylesheet" href="/resources/style.css">
 </head>
@@ -13,54 +14,25 @@
 <div class="panel-holder">
 <div class="panel-row">
 <div class="panel-left">
-	<div class="panel-left-div" id="resource-list">
+	<div class="panel-left-div">
+		<div class="button-bar">
+			<span class="button">Close all</span>
+		</div>
+		<ul id="open-file-list">
+		</ul>
 	</div>
 </div>
-<div class="panel-right">
-
-	<div class="buttons-holder">
-	<div class="buttons-row">
-	<div class="buttons-left">
-		<input id="address-bar" type="text" autocomplete="off" class="address-bar">
-	</div>
-
-	<div class="buttons-right">
-		<input id="btn-reload" type="button" value="Reload">
-		<input id="btn-shutdown" type="button" value="Shutdown">
-	</div>
-	</div>
-	</div>
-	
-	<div class="tab-bar" id="tab-bar">
-		<span class="tab" id="btn-info">
-			Info
-		</span>
-		<span class="tab hidden" id="btn-data">
-			Data
-		</span>
-		<span class="tab hidden" id="btn-create">
-			Create
-		</span>
-		<span class="tab hidden" id="btn-binding">
-			Bind
-		</span>
-
-		<span class="gap">
-
-		</span>
-		<span class="action hidden" id="btn-send">
-			Send
-		</span>
-		<span class="scary-action hidden" id="btn-delete">
-			Del
-		</span>
-		<span class="msg-flash" id="send-response"></span>
-	</div>
-	<div class="create-form hidden" id="create-form">
-		<span id="create-additional"></span>
-	</div>
-
+<div class="panel-middle">
 	<div id="editor"></div>
+</div>
+<div class="panel-right">
+	<div class="button-bar">
+		<span class="button" id="btn-reload">Reload</span>
+		<span class="button" id="btn-shutdown">Shutdown</span>
+	</div>
+
+	<div class="panel-right-div" id="resource-list">
+	</div>
 </div>
 </div>
 </div>

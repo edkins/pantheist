@@ -14,4 +14,7 @@ public interface DataAction
 
 	@JsonProperty("canPut")
 	boolean canPut();
+
+	@JsonProperty("url")
+	String url();
 }

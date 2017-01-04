@@ -23,7 +23,8 @@ public interface CommonApiModelFactory
 	DataAction dataAction(
 			BasicContentType basicType,
 			@Assisted("mimeType") String mimeType,
-			@Assisted("canPut") boolean canPut);
+			@Assisted("canPut") boolean canPut,
+			@Assisted("url") String url);
 
 	ReplaceAction replaceAction(
 			BasicContentType basicType,

@@ -17,7 +17,7 @@ body {
 }
 .panel-left {
 	display: table-cell;
-	width: 30%;
+	width: 20%;
 	vertical-align: top;
 	padding-right: 6pt;
 	cursor: default;
@@ -25,31 +25,26 @@ body {
 .panel-left-div {
 	height: 600pt;
 	overflow-y: scroll;
+	padding: 2pt;
+}
+.panel-middle {
+	display: table-cell;
+	width: 60%;
+	vertical-align: top;
 }
 .panel-right {
 	display: table-cell;
-	width: 70%;
+	width: 20%;
 	vertical-align: top;
 }
-.buttons-holder {
-	display: table;
-	width: 100%;
-	table-layout: fixed;
+.panel-right-div {
+	height: 600pt;
+	overflow-y: scroll;
+	padding: 2pt;
 }
-.buttons-row {
-	height: 30pt;
-	display: table-row;
-}
-.buttons-left {
-	display: table-cell;
-	width: 70%;
-	vertical-align: top;
-}
-.buttons-right {
-	display: table-cell;
-	width: 30%;
-	vertical-align: top;
-	text-align: right;
+
+li.active {
+    background: #f80;
 }
 
 ul {
@@ -89,75 +84,86 @@ the item itself (as opposed to its children).
 .tree-item {
 	white-space: nowrap;
 }
-
+/*
 .tree-item:hover {
 	background: #eef;
 }
+*/
 
-.tree-item.active {
-	background: #fdb;
-}
-
-.tree-item.active:hover {
-	background: #fdb;
-}
-
-.address-bar {
-	width: 100%;
-}
-
-.create-form {
+.button-bar {
 	height: 25pt;
 }
-
-.tab-bar {
-	height: 25pt;
-}
-.tab-bar .tab {
+.button-bar .button {
     border: solid #ccc 1px;
     margin-right: 4pt;
-    padding: 4pt 10pt;
+    padding: 0pt 6pt;
 	cursor: default;
-}
-.tab-bar .tab.active {
-	background: #fdb;
-}
-.tab-bar .action {
-    border: solid black 1px;
-    margin-right: 4pt;
-    padding: 4pt 10pt;
-	cursor: default;
-	background: #0a0;
-	color: white;
-}
-.tab-bar .scary-action {
-    border: solid black 1px;
-    margin-right: 4pt;
-    padding: 4pt 10pt;
-	cursor: default;
-	background: #c60;
-	color: white;
-}
-.tab-bar .gap {
-	padding: 0pt 40pt;
 }
 
 .hidden {
 	visibility: hidden;
 }
 
-.msg-flash {
+.tree-item.flash-activate {
 	animation-duration: 0.5s;
-	animation-name: flashtext;
-	color: #ccc;
+	animation-name: flash-activate-anim;
+	background: #fff;
 }
 
-@keyframes flashtext {
+.tree-item.flash-neutral {
+	animation-duration: 0.5s;
+	animation-name: flash-expand-anim;
+	background: #fff;
+}
+
+.tree-item.flash-error {
+	animation-duration: 0.8s;
+	animation-name: flash-error-anim;
+	background: #fff;
+}
+
+.tree-item.flash-loading {
+	animation-duration: 1.0s;
+	animation-name: flash-loading-anim;
+	background: #008;
+}
+
+@keyframes flash-activate-anim {
 	from {
-		color: #000;
+		background: #f80;
 	}
 
 	to {
-		color: #ccc;
+		background: #fff;
+	}
+}
+
+@keyframes flash-expand-anim {
+	from {
+		background: #888;
+	}
+
+	to {
+		background: #fff;
+	}
+}
+
+@keyframes flash-error-anim {
+	from {
+		background: #f00;
+	}
+
+	to {
+		background: #fff;
+	}
+}
+
+@keyframes flash-loading-anim {
+	from {
+		background: #fff;
+	}
+
+	to {
+		background: #008;
 	}
 }

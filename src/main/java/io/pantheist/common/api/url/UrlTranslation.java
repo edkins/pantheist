@@ -61,7 +61,7 @@ public interface UrlTranslation
 
 	CreateAction jsonSchemaCreateAction();
 
-	DataAction jsonSchemaDataAction();
+	DataAction jsonSchemaDataAction(String schemaId);
 
 	DeleteAction jsonSchemaDeleteAction();
 
