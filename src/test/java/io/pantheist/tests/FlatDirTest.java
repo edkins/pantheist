@@ -53,8 +53,7 @@ public class FlatDirTest
 		// Create some java to make sure it has java-binding
 		manage.javaPackage(JAVA_PKG)
 				.file(JAVA_EMPTY_CLASS_NAME)
-				.data()
-				.putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
+				.putJavaResource(JAVA_EMPTY_CLASS_RES);
 
 		final List<ListFileItem> list = manage.flatDir("system").listFlatDirFiles().childResources();
 
@@ -76,8 +75,7 @@ public class FlatDirTest
 	{
 		manage.javaPackage(JAVA_PKG)
 				.file(JAVA_EMPTY_CLASS_NAME)
-				.data()
-				.putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
+				.putJavaResource(JAVA_EMPTY_CLASS_RES);
 
 		final List<ListFileItem> list = manage.flatDir("system/java/io/pantheist/examples")
 				.listFlatDirFiles()
@@ -93,8 +91,7 @@ public class FlatDirTest
 	{
 		manage.javaPackage(JAVA_PKG)
 				.file(JAVA_EMPTY_CLASS_NAME)
-				.data()
-				.putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
+				.putJavaResource(JAVA_EMPTY_CLASS_RES);
 
 		final List<ListFileItem> list = manage.flatDir(SLASH)
 				.listFlatDirFiles()

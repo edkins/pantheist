@@ -12,6 +12,7 @@ import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.DataAction;
+import io.pantheist.common.api.model.DeleteAction;
 import io.pantheist.common.api.model.KindPresentation;
 import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.handler.kind.model.KindSchema;
@@ -25,9 +26,9 @@ final class ApiKindImpl implements ApiKind
 	private final DataAction dataAction;
 	private final KindPresentation presentation;
 	private final CreateAction createAction;
-	private final String displayName;
 	private final String url;
 	private final String kindUrl;
+	private final DeleteAction deleteAction;
 
 	@Inject
 	private ApiKindImpl(
@@ -40,7 +41,7 @@ final class ApiKindImpl implements ApiKind
 			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
 			@Nullable @Assisted @JsonProperty("presentation") final KindPresentation presentation,
 			@Nullable @Assisted @JsonProperty("createAction") final CreateAction createAction,
-			@Nullable @Assisted("displayName") @JsonProperty("displayName") final String displayName)
+			@Nullable @Assisted @JsonProperty("deleteAction") final DeleteAction deleteAction)
 	{
 		this.url = url;
 		this.kindUrl = kindUrl;
@@ -51,7 +52,7 @@ final class ApiKindImpl implements ApiKind
 		this.presentation = presentation;
 		this.schema = checkNotNull(schema);
 		this.createAction = createAction;
-		this.displayName = displayName;
+		this.deleteAction = deleteAction;
 	}
 
 	@Override
@@ -97,9 +98,9 @@ final class ApiKindImpl implements ApiKind
 	}
 
 	@Override
-	public String displayName()
+	public DeleteAction deleteAction()
 	{
-		return displayName;
+		return deleteAction;
 	}
 
 	@Override

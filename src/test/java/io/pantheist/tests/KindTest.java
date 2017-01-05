@@ -35,7 +35,6 @@ public class KindTest
 	private ManagementPathRoot manage;
 
 	private static final String JAVA_FILE = "java-file";
-	private static final String TEXT_PLAIN = "text/plain";
 	private static final String APPLICATION_JSON = "application/json";
 	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String KIND_INTERFACE_RES = "/kind-schema/java-discoverable-interface";
@@ -116,10 +115,10 @@ public class KindTest
 		kind.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
 
 		final ManagementPathJavaFile jclass = manage.javaPackage(JAVA_PKG).file("EmptyClass");
-		jclass.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
+		jclass.putJavaResource(JAVA_EMPTY_CLASS_RES);
 
 		final ManagementPathJavaFile jinterface = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
-		jinterface.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
+		jinterface.putJavaResource(JAVA_INTLIST_RES);
 
 		final List<ListEntityItem> list = kind.listEntities().childResources();
 
@@ -135,13 +134,13 @@ public class KindTest
 		final ManagementPathKind baseKind = manage.kind(JAVA_FILE);
 		final ManagementPathKind kind = manage.kind("java-interface-file");
 		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
-		java.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
+		java.putJavaResource(JAVA_INTLIST_RES);
 
-		assertThat(java.describeJavaFile().kindUrl(), is(baseKind.url()));
+		assertThat(java.headKindUrl(), is(baseKind.url()));
 
 		kind.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
 
-		assertThat(java.describeJavaFile().kindUrl(), is(kind.url()));
+		assertThat(java.headKindUrl(), is(kind.url()));
 	}
 
 	@Test
@@ -150,7 +149,7 @@ public class KindTest
 		final ManagementPathKind kind = manage.kind("java-interface-file");
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
 		final ManagementPathJavaFile java = pkg.file(JAVA_INTLIST_NAME);
-		java.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
+		java.putJavaResource(JAVA_INTLIST_RES);
 		kind.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
 
 		final List<ListJavaFileItem> list = pkg.listJavaFiles().childResources();
@@ -164,7 +163,7 @@ public class KindTest
 		final ManagementPathKind javaFileKind = manage.kind(JAVA_FILE);
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
 		final ManagementPathJavaFile java = pkg.file(JAVA_INTLIST_NAME);
-		java.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
+		java.putJavaResource(JAVA_INTLIST_RES);
 
 		final List<ListJavaFileItem> list = pkg.listJavaFiles().childResources();
 		assertThat(list.size(), is(1));
@@ -178,13 +177,13 @@ public class KindTest
 		final ManagementPathKind butteryKind = manage.kind("buttery");
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
 		final ManagementPathJavaFile butteryJava = pkg.file(JAVA_BUTTER_NAME);
-		butteryJava.data().putResource(JAVA_BUTTER_RES, TEXT_PLAIN);
+		butteryJava.putJavaResource(JAVA_BUTTER_RES);
 		final ManagementPathJavaFile otherJava = pkg.file(JAVA_INTLIST_NAME);
-		otherJava.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
+		otherJava.putJavaResource(JAVA_INTLIST_RES);
 		butteryKind.data().putResource("/kind-schema/java-interface-with-butter-annotation", APPLICATION_JSON);
 
-		assertThat(butteryJava.describeJavaFile().kindUrl(), is(butteryKind.url()));
-		assertThat(otherJava.describeJavaFile().kindUrl(), is(baseKind.url()));
+		assertThat(butteryJava.headKindUrl(), is(butteryKind.url()));
+		assertThat(otherJava.headKindUrl(), is(baseKind.url()));
 	}
 
 	@Test
@@ -194,13 +193,13 @@ public class KindTest
 		final ManagementPathKind butteryKind = manage.kind("buttery");
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
 		final ManagementPathJavaFile butteryJava = pkg.file(JAVA_CONSTRUCTOR_BUTTER_NAME);
-		butteryJava.data().putResource(JAVA_CONSTRUCTOR_BUTTER_NAME_RES, TEXT_PLAIN);
+		butteryJava.putJavaResource(JAVA_CONSTRUCTOR_BUTTER_NAME_RES);
 		final ManagementPathJavaFile otherJava = pkg.file(JAVA_CONSTRUCTOR_NON_BUTTER_NAME);
-		otherJava.data().putResource(JAVA_CONSTRUCTOR_NON_BUTTER_RES, TEXT_PLAIN);
+		otherJava.putJavaResource(JAVA_CONSTRUCTOR_NON_BUTTER_RES);
 		butteryKind.data().putResource("/kind-schema/java-constructor-arg-with-butter-annotation", APPLICATION_JSON);
 
-		assertThat(otherJava.describeJavaFile().kindUrl(), is(baseKind.url()));
-		assertThat(butteryJava.describeJavaFile().kindUrl(), is(butteryKind.url()));
+		assertThat(otherJava.headKindUrl(), is(baseKind.url()));
+		assertThat(butteryJava.headKindUrl(), is(butteryKind.url()));
 	}
 
 	@Test
@@ -212,9 +211,9 @@ public class KindTest
 		kind2.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
 
 		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
-		java.data().putResource(JAVA_INTLIST_RES, TEXT_PLAIN);
+		java.putJavaResource(JAVA_INTLIST_RES);
 
-		assertThat(java.describeJavaFile().kindUrl(), isOneOf(kind1.url(), kind2.url()));
+		assertThat(java.headKindUrl(), isOneOf(kind1.url(), kind2.url()));
 	}
 
 	@Test
@@ -227,9 +226,9 @@ public class KindTest
 		final ManagementPathJavaFile javaSugar = mainRule.putJavaResource(JAVA_SUGAR_NAME);
 		final ManagementPathJavaFile javaButterSugar = mainRule.putJavaResource(JAVA_BUTTER_SUGAR_NAME);
 
-		assertThat(javaButter.describeJavaFile().kindUrl(), is(butterKind.url()));
-		assertThat(javaSugar.describeJavaFile().kindUrl(), is(baseKind.url()));
-		assertThat(javaButterSugar.describeJavaFile().kindUrl(), is(butterSugarKind.url()));
+		assertThat(javaButter.headKindUrl(), is(butterKind.url()));
+		assertThat(javaSugar.headKindUrl(), is(baseKind.url()));
+		assertThat(javaButterSugar.headKindUrl(), is(butterSugarKind.url()));
 	}
 
 	@Test

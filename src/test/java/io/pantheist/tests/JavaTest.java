@@ -47,14 +47,12 @@ public class JavaTest
 	{
 		manage.javaPackage(JAVA_PKG)
 				.file(JAVA_JERSEY_NAME)
-				.data()
-				.putResource(JAVA_JERSEY_RES, TEXT_PLAIN);
+				.putJavaResource(JAVA_JERSEY_RES);
 
 		final String data = manage
 				.javaPackage(JAVA_PKG)
 				.file(JAVA_JERSEY_NAME)
-				.data()
-				.getString(TEXT_PLAIN);
+				.getJava();
 
 		assertThat(data, is(mainRule.resource(JAVA_JERSEY_RES)));
 	}
@@ -64,31 +62,31 @@ public class JavaTest
 	{
 		manage.javaPackage(JAVA_PKG)
 				.file(JAVA_JERSEY_NAME)
-				.data()
-				.putResource(JAVA_JERSEY_RES, TEXT_PLAIN);
+				.putJavaResource(JAVA_JERSEY_RES);
 
 		manage.javaPackage(JAVA_PKG)
 				.file(JAVA_EMPTY_CLASS_NAME)
-				.data()
-				.putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
+				.putJavaResource(JAVA_EMPTY_CLASS_RES);
 	}
 
 	@Test
-	public void invalidJava_cannotStore() throws Exception
+	public void invalidJava_canStore_andRetrieve() throws Exception
 	{
-		final ResponseType responseType = manage.javaPackage(JAVA_PKG)
-				.file(JAVA_JERSEY_NAME)
-				.data()
-				.putResourceResponseType(JAVA_SYNTAXERROR_RES, TEXT_PLAIN);
+		final ManagementPathJavaFile file = manage.javaPackage(JAVA_PKG)
+				.file(JAVA_JERSEY_NAME);
+		final ResponseType responseType = file
+				.putJavaResourceResponseType(JAVA_SYNTAXERROR_RES);
 
-		assertEquals(ResponseType.BAD_REQUEST, responseType);
+		assertEquals(ResponseType.NO_CONTENT, responseType);
+
+		assertThat(file.getJava(), is(mainRule.resource(JAVA_SYNTAXERROR_RES)));
 	}
 
 	@Test
 	public void java_canList() throws Exception
 	{
 		final ManagementPathJavaFile file = manage.javaPackage(JAVA_PKG).file(JAVA_EMPTY_CLASS_NAME);
-		file.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
+		file.putJavaResource(JAVA_EMPTY_CLASS_RES);
 
 		final List<ListJavaFileItem> list = manage.javaPackage(JAVA_PKG).listJavaFiles().childResources();
 
@@ -101,7 +99,7 @@ public class JavaTest
 	{
 		final ManagementPathJavaFile file = manage.javaPackage(JAVA_PKG)
 				.file(JAVA_EMPTY_CLASS_NAME);
-		file.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
+		file.putJavaResource(JAVA_EMPTY_CLASS_RES);
 
 		assertThat(file.getJavaFileResponseType(), is(ResponseType.OK));
 
@@ -127,14 +125,14 @@ public class JavaTest
 
 		assertThat(manage.javaBinding().getJavaBinding().location(), is("system/java"));
 
-		file.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
+		file.putJavaResource(JAVA_EMPTY_CLASS_RES);
 
 		manage.javaBinding().setJavaBinding("some/other/thing");
 		assertThat(manage.javaBinding().getJavaBinding().location(), is("some/other/thing"));
 
-		assertThat(file.data().getResponseTypeForContentType(TEXT_PLAIN), is(ResponseType.NOT_FOUND));
+		assertThat(file.getJavaFileResponseType(), is(ResponseType.NOT_FOUND));
 		manage.javaBinding().setJavaBinding("system/java");
-		assertThat(file.data().getResponseTypeForContentType(TEXT_PLAIN), is(ResponseType.OK));
+		assertThat(file.getJavaFileResponseType(), is(ResponseType.OK));
 	}
 
 	@Test
@@ -145,7 +143,7 @@ public class JavaTest
 
 		final ManagementPathJavaFile file = manage.javaPackage(JAVA_PKG).file(JAVA_EMPTY_CLASS_NAME);
 		assertThat(url, is(file.url()));
-		assertThat(file.data().getString(TEXT_PLAIN), is(code));
+		assertThat(file.getJava(), is(code));
 	}
 
 	@Test

@@ -44,7 +44,6 @@ public class ListClassifierTest
 	private ManagementPathRoot manage;
 
 	private static final String APPLICATION_JSON = "application/json";
-	private static final String TEXT_PLAIN = "text/plain";
 	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
@@ -83,7 +82,7 @@ public class ListClassifierTest
 	public void javaPkg_listed() throws Exception
 	{
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
-		pkg.file(JAVA_EMPTY_CLASS_NAME).data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
+		pkg.file(JAVA_EMPTY_CLASS_NAME).putJavaResource(JAVA_EMPTY_CLASS_RES);
 
 		final List<ListJavaPkgItem> list = manage.listJavaPackages().childResources();
 
@@ -95,7 +94,7 @@ public class ListClassifierTest
 	public void javaPkg_classifiers() throws Exception
 	{
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
-		pkg.file(JAVA_EMPTY_CLASS_NAME).data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
+		pkg.file(JAVA_EMPTY_CLASS_NAME).putJavaResource(JAVA_EMPTY_CLASS_RES);
 
 		final List<? extends ListClassifierItem> list = pkg.listClassifiers().childResources();
 
@@ -112,7 +111,7 @@ public class ListClassifierTest
 	{
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
 		final ManagementPathJavaPackage bad = manage.javaPackage("some.invalid.package");
-		pkg.file(JAVA_EMPTY_CLASS_NAME).data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
+		pkg.file(JAVA_EMPTY_CLASS_NAME).putJavaResource(JAVA_EMPTY_CLASS_RES);
 
 		final ResponseType response1 = pkg.listClassifierResponseType();
 		final ResponseType response2 = bad.listClassifierResponseType();
@@ -145,35 +144,12 @@ public class ListClassifierTest
 	}
 
 	@Test
-	public void javaFile_dataAction() throws Exception
-	{
-		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
-		final ManagementPathJavaFile file = pkg.file(JAVA_EMPTY_CLASS_NAME);
-		file.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
-
-		final DataAction dataAction = file.describeJavaFile().dataAction();
-		assertThat(dataAction.basicType(), is(BasicContentType.java));
-		assertThat(dataAction.mimeType(), is(TEXT_PLAIN));
-		assertTrue("Should say we can put", dataAction.canPut());
-	}
-
-	@Test
-	public void javaFile_deleteAction() throws Exception
-	{
-		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
-		final ManagementPathJavaFile file = pkg.file(JAVA_EMPTY_CLASS_NAME);
-		file.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
-
-		assertThat(file.describeJavaFile().deleteAction(), notNullValue());
-	}
-
-	@Test
 	public void javaFile_notThere_noDataAction() throws Exception
 	{
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
 		final ManagementPathJavaFile file = pkg.file(JAVA_EMPTY_CLASS_NAME);
 		final ManagementPathJavaFile bad = pkg.file("FileThatIsNotThere");
-		file.data().putResource(JAVA_EMPTY_CLASS_RES, TEXT_PLAIN);
+		file.putJavaResource(JAVA_EMPTY_CLASS_RES);
 
 		final ResponseType response1 = file.getJavaFileResponseType();
 		final ResponseType response2 = bad.getJavaFileResponseType();

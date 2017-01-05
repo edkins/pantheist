@@ -89,20 +89,49 @@ final class JavaStoreImpl implements JavaStore
 	{
 		checkNotNull(javaFileId);
 		checkNotNull(code);
-		return putOrPost(Optional.of(javaFileId), code, failIfExists).map(x -> null);
+		return putOrPost(javaFileId, code, failIfExists);
 	}
 
 	@Override
 	public Possible<JavaFileId> postJava(final String code, final boolean failIfExists)
 	{
 		checkNotNull(code);
-		return putOrPost(Optional.empty(), code, failIfExists);
+		return parseAndObtainId(code)
+				.posMap(id -> putOrPost(id, code, failIfExists).map(x -> id));
 	}
 
-	private Possible<JavaFileId> putOrPost(
-			final Optional<JavaFileId> javaFileIdOpt,
+	private Possible<Void> putOrPost(
+			final JavaFileId javaFileId,
 			final String code,
 			final boolean failIfExists)
+	{
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final FsPath filePath = path(snapshot, javaFileId);
+
+		if (snapshot.isFile(filePath)) // still need to call isFile even if we don't care
+		{
+			if (failIfExists)
+			{
+				return FailureReason.ALREADY_EXISTS.happened();
+			}
+		}
+
+		filePath.parent().leadingPortions().forEach(dirPath -> snapshot.isDir(dirPath));
+
+		snapshot.write(map -> {
+			for (final FsPath dirPath : filePath.parent().leadingPortions())
+			{
+				map.get(dirPath).mkdir();
+			}
+			FileUtils.write(map.get(filePath), code, StandardCharsets.UTF_8);
+		});
+
+		javaSqlLogic.update(AntiIt.single(Pair.of(javaFileId, code)));
+
+		return View.noContent();
+	}
+
+	private Possible<JavaFileId> parseAndObtainId(final String code)
 	{
 		final CompilationUnit compilationUnit;
 
@@ -141,41 +170,6 @@ final class JavaStoreImpl implements JavaStore
 		final JavaFileId javaFileId = modelFactory.fileId(
 				packageDeclaration.get().getPackageName(),
 				types.get(0).getNameAsString());
-
-		if (javaFileIdOpt.isPresent())
-		{
-			if (!javaFileId.equals(javaFileIdOpt.get()))
-			{
-				LOGGER.warn(
-						"Wrong package or type. Request said " + javaFileIdOpt.get() + ", java code said "
-								+ javaFileId);
-				return FailureReason.REQUEST_FAILED_SCHEMA.happened();
-			}
-		}
-
-		final FilesystemSnapshot snapshot = filesystem.snapshot();
-		final FsPath filePath = path(snapshot, javaFileId);
-
-		if (snapshot.isFile(filePath)) // still need to call isFile even if we don't care
-		{
-			if (failIfExists)
-			{
-				return FailureReason.ALREADY_EXISTS.happened();
-			}
-		}
-
-		filePath.parent().leadingPortions().forEach(dirPath -> snapshot.isDir(dirPath));
-
-		snapshot.write(map -> {
-			for (final FsPath dirPath : filePath.parent().leadingPortions())
-			{
-				map.get(dirPath).mkdir();
-			}
-			FileUtils.write(map.get(filePath), code, StandardCharsets.UTF_8);
-		});
-
-		javaSqlLogic.update(AntiIt.single(Pair.of(javaFileId, code)));
-
 		return View.ok(javaFileId);
 	}
 

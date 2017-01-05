@@ -15,13 +15,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.pantheist.api.java.model.ApiJavaBinding;
-import io.pantheist.api.java.model.ApiJavaFile;
 import io.pantheist.api.java.model.ApiJavaModelFactory;
 import io.pantheist.api.java.model.ListJavaFileItem;
 import io.pantheist.api.java.model.ListJavaFileResponse;
 import io.pantheist.api.java.model.ListJavaPkgItem;
 import io.pantheist.api.java.model.ListJavaPkgResponse;
 import io.pantheist.common.api.model.CommonApiModelFactory;
+import io.pantheist.common.api.model.Kinded;
+import io.pantheist.common.api.model.KindedImpl;
 import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.util.AntiIt;
@@ -71,10 +72,13 @@ final class JavaBackendImpl implements JavaBackend
 	}
 
 	@Override
-	public Possible<String> getJavaFile(final String pkg, final String file)
+	public Possible<Kinded<String>> getJavaFile(final String pkg, final String file)
 	{
 		final JavaFileId id = javaFactory.fileId(pkg, file);
-		return javaStore.getJava(id);
+		return javaStore.getJava(id).map(code -> {
+			final String kindUrl = getJavaFileKindUrl(id);
+			return KindedImpl.of(kindUrl, code);
+		});
 	}
 
 	private ListJavaPkgResponse toListJavaPkgResponse(final List<ListJavaPkgItem> childResources)
@@ -155,27 +159,15 @@ final class JavaBackendImpl implements JavaBackend
 		}
 	}
 
-	@Override
-	public Possible<ApiJavaFile> describeJavaFile(final String pkg, final String file)
+	private String getJavaFileKindUrl(final JavaFileId id)
 	{
-		final JavaFileId id = javaFactory.fileId(pkg, file);
-		if (javaStore.fileExists(id))
-		{
-			final JsonNode qnameNode = objectMapper.getNodeFactory().textNode(id.qualifiedName());
-			final Optional<ObjectNode> entity = kindValidation.objectsWithKind("java-file")
-					.whereEqual("qualifiedName", qnameNode)
-					.antiIt()
-					.failIfMultiple();
-			final String kindId = entity.map(x -> x.get("kindId").textValue()).orElse("java-file");
-			return View.ok(modelFactory.javaFile(
-					urlTranslation.javaFileDataAction(id),
-					urlTranslation.javaFileDeleteAction(id),
-					urlTranslation.kindToUrl(kindId)));
-		}
-		else
-		{
-			return FailureReason.DOES_NOT_EXIST.happened();
-		}
+		final JsonNode qnameNode = objectMapper.getNodeFactory().textNode(id.qualifiedName());
+		final Optional<ObjectNode> entity = kindValidation.objectsWithKind("java-file")
+				.whereEqual("qualifiedName", qnameNode)
+				.antiIt()
+				.failIfMultiple();
+		final String kindId = entity.map(x -> x.get("kindId").textValue()).orElse("java-file");
+		return urlTranslation.kindToUrl(kindId);
 	}
 
 	@Override

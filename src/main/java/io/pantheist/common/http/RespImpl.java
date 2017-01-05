@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.pantheist.common.api.model.Kinded;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
@@ -126,6 +127,19 @@ public final class RespImpl implements Resp
 		catch (final URISyntaxException e)
 		{
 			return unexpectedError(e);
+		}
+	}
+
+	@Override
+	public Response possibleKindedData(final Possible<Kinded<String>> kindedData)
+	{
+		if (kindedData.isPresent())
+		{
+			return Response.ok(kindedData.get().data()).link(kindedData.get().kindUrl(), "type").build();
+		}
+		else
+		{
+			return failure(kindedData.failure());
 		}
 	}
 }

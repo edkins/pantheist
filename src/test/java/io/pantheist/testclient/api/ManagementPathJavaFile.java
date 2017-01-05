@@ -1,14 +1,16 @@
 package io.pantheist.testclient.api;
 
-import io.pantheist.api.java.model.ApiJavaFile;
-
 public interface ManagementPathJavaFile
 {
-	ManagementData data();
+	String getJava();
+
+	void putJavaResource(String code);
+
+	ResponseType putJavaResourceResponseType(String code);
 
 	String url();
 
-	ApiJavaFile describeJavaFile();
+	String headKindUrl();
 
 	ResponseType getJavaFileResponseType();
 

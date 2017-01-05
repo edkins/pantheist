@@ -130,7 +130,7 @@ public class MainRule implements TestRule
 	public ManagementPathJavaFile putJavaResource(final String name, final String resourceName)
 	{
 		final ManagementPathJavaFile java = actions().manage().javaPackage("io.pantheist.examples").file(name);
-		java.data().putResource("/java-example/" + resourceName, "text/plain");
+		java.putJavaResource("/java-example/" + resourceName);
 		return java;
 	}
 

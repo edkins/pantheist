@@ -6,11 +6,15 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
@@ -25,6 +29,7 @@ import io.pantheist.handler.sql.model.SqlProperty;
 
 final class JavaSqlLogicImpl implements JavaSqlLogic
 {
+	private static final Logger LOGGER = LogManager.getLogger(JavaSqlLogicImpl.class);
 	private static final String JAVA_FILE = "java-file";
 	private final SqlService sqlService;
 	private final JavaParse javaParse;
@@ -56,32 +61,39 @@ final class JavaSqlLogicImpl implements JavaSqlLogic
 	{
 		final JavaFileId id = codeWithId.first();
 		final String qualifiedName = id.qualifiedName();
-
-		final CompilationUnit compilationUnit = javaParse.parse(codeWithId.second());
 		final JsonNodeFactory nf = objectMapper.getNodeFactory();
-
 		final ArrayNode annotationList = nf.arrayNode();
 		boolean isClass = false;
 		boolean isInterface = false;
 		final ArrayNode constructors = nf.arrayNode();
-		if (compilationUnit.getTypes().size() == 1)
+
+		try
 		{
-			final TypeDeclaration<?> mainType = compilationUnit.getType(0);
-			if (mainType instanceof ClassOrInterfaceDeclaration)
+			final CompilationUnit compilationUnit = javaParse.parse(codeWithId.second());
+
+			if (compilationUnit.getTypes().size() == 1)
 			{
-				final ClassOrInterfaceDeclaration mainClass = (ClassOrInterfaceDeclaration) mainType;
-				isClass = !mainClass.isInterface();
-				isInterface = mainClass.isInterface();
-			}
-
-			mainType.getAnnotations().forEach(a -> annotationList.add(a.getNameAsString()));
-
-			mainType.getMembers().forEach(m -> {
-				if (m instanceof ConstructorDeclaration)
+				final TypeDeclaration<?> mainType = compilationUnit.getType(0);
+				if (mainType instanceof ClassOrInterfaceDeclaration)
 				{
-					constructors.add(constructorNode((ConstructorDeclaration) m));
+					final ClassOrInterfaceDeclaration mainClass = (ClassOrInterfaceDeclaration) mainType;
+					isClass = !mainClass.isInterface();
+					isInterface = mainClass.isInterface();
 				}
-			});
+
+				mainType.getAnnotations().forEach(a -> annotationList.add(a.getNameAsString()));
+
+				mainType.getMembers().forEach(m -> {
+					if (m instanceof ConstructorDeclaration)
+					{
+						constructors.add(constructorNode((ConstructorDeclaration) m));
+					}
+				});
+			}
+		}
+		catch (final ParseProblemException e)
+		{
+			LOGGER.catching(e);
 		}
 
 		final ObjectNode obj = nf.objectNode();

@@ -8,6 +8,7 @@ import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.DataAction;
+import io.pantheist.common.api.model.DeleteAction;
 import io.pantheist.common.api.model.KindPresentation;
 import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.handler.kind.model.KindSchema;
@@ -24,7 +25,7 @@ public interface ApiKindModelFactory
 			@Assisted("partOfSystem") boolean partOfSystem,
 			@Assisted KindPresentation instancePresentation,
 			CreateAction createAction,
-			@Assisted("displayName") String displayName);
+			DeleteAction deleteAction);
 
 	ListKindResponse listKindResponse(
 			List<ApiKind> childResources,

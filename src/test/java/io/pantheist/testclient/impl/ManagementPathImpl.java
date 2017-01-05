@@ -10,7 +10,6 @@ import io.pantheist.api.flatdir.model.ApiFlatDirFile;
 import io.pantheist.api.flatdir.model.ListFileResponse;
 import io.pantheist.api.flatdir.model.ListFlatDirResponse;
 import io.pantheist.api.java.model.ApiJavaBinding;
-import io.pantheist.api.java.model.ApiJavaFile;
 import io.pantheist.api.java.model.ListJavaFileResponse;
 import io.pantheist.api.java.model.ListJavaPkgResponse;
 import io.pantheist.api.kind.model.ApiKind;
@@ -69,6 +68,7 @@ final class ManagementPathImpl implements
 
 	// Content types
 	private static final String APPLICATION_JSON = "application/json";
+	private static final String TEXT_PLAIN = "text/plain";
 
 	// Collaborators
 	private final TargetWrapper target;
@@ -220,15 +220,9 @@ final class ManagementPathImpl implements
 	}
 
 	@Override
-	public ApiJavaFile describeJavaFile()
-	{
-		return target.getJson(ApiJavaFile.class);
-	}
-
-	@Override
 	public ResponseType getJavaFileResponseType()
 	{
-		return target.getResponseType(APPLICATION_JSON);
+		return target.getResponseType(TEXT_PLAIN);
 	}
 
 	@Override
@@ -363,5 +357,29 @@ final class ManagementPathImpl implements
 	public ResponseType postCreateResponseType(final String data, final String contentType)
 	{
 		return target.withSegment("create").postResponseType(data, contentType);
+	}
+
+	@Override
+	public String headKindUrl()
+	{
+		return target.headLink("type");
+	}
+
+	@Override
+	public String getJava()
+	{
+		return target.getString(TEXT_PLAIN);
+	}
+
+	@Override
+	public void putJavaResource(final String resourcePath)
+	{
+		target.putResource(resourcePath, TEXT_PLAIN);
+	}
+
+	@Override
+	public ResponseType putJavaResourceResponseType(final String resourcePath)
+	{
+		return target.putResourceResponseType(resourcePath, TEXT_PLAIN);
 	}
 }

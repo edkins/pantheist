@@ -7,6 +7,7 @@ import java.io.InputStream;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Link;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -314,5 +315,23 @@ public final class TargetWrapper
 	{
 		final Response response = target.request().post(Entity.entity(data, contentType));
 		return expectCreated(response, "POST");
+	}
+
+	public String headLink(final String string)
+	{
+		final Response response = target.request().head();
+		if (response.getStatus() == 200 && !response.hasEntity())
+		{
+			final Link link = response.getLink("type");
+			if (link == null)
+			{
+				throw new ManagementUnexpectedResponseException("No 'type' link returned");
+			}
+			return link.getUri().toString();
+		}
+		else
+		{
+			throw errorResponse(response, "HEAD");
+		}
 	}
 }

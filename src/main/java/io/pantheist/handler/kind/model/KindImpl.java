@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.assistedinject.Assisted;
 
 import io.pantheist.common.api.model.CreateAction;
+import io.pantheist.common.api.model.DeleteAction;
 import io.pantheist.common.api.model.KindPresentation;
 
 final class KindImpl implements Kind
@@ -21,6 +22,7 @@ final class KindImpl implements Kind
 	private final KindSchema schema;
 	private final KindPresentation presentation;
 	private final CreateAction createAction;
+	private final DeleteAction deleteAction;
 
 	@Inject
 	private KindImpl(
@@ -28,13 +30,15 @@ final class KindImpl implements Kind
 			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
 			@Nullable @Assisted @JsonProperty("presentation") final KindPresentation presentation,
 			@Assisted @JsonProperty("schema") final KindSchema schema,
-			@Nullable @Assisted @JsonProperty("createAction") final CreateAction createAction)
+			@Nullable @Assisted @JsonProperty("createAction") final CreateAction createAction,
+			@Nullable @Assisted @JsonProperty("deleteAction") final DeleteAction deleteAction)
 	{
 		this.kindId = kindId;
 		this.partOfSystem = partOfSystem;
 		this.schema = checkNotNull(schema);
 		this.presentation = presentation;
 		this.createAction = createAction;
+		this.deleteAction = deleteAction;
 	}
 
 	@Override
@@ -122,5 +126,11 @@ final class KindImpl implements Kind
 	public CreateAction createAction()
 	{
 		return createAction;
+	}
+
+	@Override
+	public DeleteAction deleteAction()
+	{
+		return deleteAction;
 	}
 }

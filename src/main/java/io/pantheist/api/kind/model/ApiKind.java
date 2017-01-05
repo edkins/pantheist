@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.pantheist.common.annotations.NotNullableOnTheWayOut;
 import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.DataAction;
+import io.pantheist.common.api.model.DeleteAction;
 import io.pantheist.common.api.model.KindPresentation;
 import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.handler.kind.model.KindSchema;
@@ -54,8 +55,7 @@ public interface ApiKind extends ListClassifierResponse
 	@JsonProperty("createAction")
 	CreateAction createAction();
 
-	@NotNullableOnTheWayOut
 	@Nullable
-	@JsonProperty("displayName")
-	String displayName();
+	@JsonProperty("deleteAction")
+	DeleteAction deleteAction();
 }

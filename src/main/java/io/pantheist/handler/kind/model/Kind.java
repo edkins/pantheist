@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import io.pantheist.common.annotations.NotNullableOnTheWayOut;
 import io.pantheist.common.api.model.CreateAction;
+import io.pantheist.common.api.model.DeleteAction;
 import io.pantheist.common.api.model.KindPresentation;
 
 @JsonInclude(Include.NON_NULL)
@@ -36,6 +37,9 @@ public interface Kind
 	@Nullable
 	@JsonProperty("createAction")
 	CreateAction createAction();
+
+	@JsonProperty("deleteAction")
+	DeleteAction deleteAction();
 
 	/**
 	 * Convenience method for obtaining the parent kind ID specified in the schema, if any.

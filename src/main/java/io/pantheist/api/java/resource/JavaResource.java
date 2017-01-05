@@ -18,10 +18,10 @@ import org.apache.logging.log4j.Logger;
 
 import io.pantheist.api.java.backend.JavaBackend;
 import io.pantheist.api.java.model.ApiJavaBinding;
-import io.pantheist.api.java.model.ApiJavaFile;
 import io.pantheist.api.java.model.ListJavaFileResponse;
 import io.pantheist.api.java.model.ListJavaPkgResponse;
 import io.pantheist.common.annotations.ResourceTag;
+import io.pantheist.common.api.model.Kinded;
 import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.common.http.Resp;
 import io.pantheist.common.util.Possible;
@@ -104,14 +104,14 @@ public final class JavaResource implements ResourceTag
 	 * Handles java code (PUT)
 	 */
 	@PUT
-	@Path("java-pkg/{pkg}/file/{file}/data")
+	@Path("java-pkg/{pkg}/file/{file}")
 	@Consumes("text/plain")
 	public Response putJavaCode(
 			@PathParam("pkg") final String pkg,
 			@PathParam("file") final String file,
 			final String data)
 	{
-		LOGGER.info("PUT java-pkg/{}/file/{}/data", pkg, file);
+		LOGGER.info("PUT java-pkg/{}/file/{}", pkg, file);
 		try
 		{
 			final Possible<Void> result = backend.putJavaFile(pkg, file, data);
@@ -125,41 +125,21 @@ public final class JavaResource implements ResourceTag
 
 	/**
 	 * Handles java code (GET)
-	 */
-	@GET
-	@Path("java-pkg/{pkg}/file/{file}/data")
-	@Produces("text/plain")
-	public Response getJavaCode(
-			@PathParam("pkg") final String pkg,
-			@PathParam("file") final String file)
-	{
-		LOGGER.info("GET java-pkg/{}/file/{}/data", pkg, file);
-		try
-		{
-			final Possible<String> result = backend.getJavaFile(pkg, file);
-			return resp.possibleData(result);
-		}
-		catch (final RuntimeException ex)
-		{
-			return resp.unexpectedError(ex);
-		}
-	}
-
-	/**
-	 * Handles java file info (GET)
+	 *
+	 * Also returns kind url in the 'type' link header
 	 */
 	@GET
 	@Path("java-pkg/{pkg}/file/{file}")
-	@Produces("application/json")
-	public Response describeJavaFile(
+	@Produces("text/plain")
+	public Response getJavaCode(
 			@PathParam("pkg") final String pkg,
 			@PathParam("file") final String file)
 	{
 		LOGGER.info("GET java-pkg/{}/file/{}", pkg, file);
 		try
 		{
-			final Possible<ApiJavaFile> result = backend.describeJavaFile(pkg, file);
-			return resp.possibleToJson(result);
+			final Possible<Kinded<String>> result = backend.getJavaFile(pkg, file);
+			return resp.possibleKindedData(result);
 		}
 		catch (final RuntimeException ex)
 		{

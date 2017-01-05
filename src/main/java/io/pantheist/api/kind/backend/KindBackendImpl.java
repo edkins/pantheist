@@ -52,14 +52,13 @@ final class KindBackendImpl implements KindBackend
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
 		final String url = urlTranslation.kindToUrl(kindId);
 		final String kindUrl = urlTranslation.kindToUrl("kind"); // this is the meta-kind
-		final String displayName = kindId; // currently no other display name stored
 		return modelFactory.kind(
 				url,
 				kindUrl,
 				urlTranslation.listKindClassifiers(kindId),
 				urlTranslation.kindDataAction(kindId),
 				kindId, k.schema(), k.partOfSystem(), k.presentation(), k.createAction(),
-				displayName);
+				k.deleteAction());
 	}
 
 	@Override
@@ -84,7 +83,7 @@ final class KindBackendImpl implements KindBackend
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
 		return kindFactory.kind(kindId, kind.schema(), kind.partOfSystem(), kind.presentation(),
-				kind.createAction());
+				kind.createAction(), kind.deleteAction());
 	}
 
 	@Override
