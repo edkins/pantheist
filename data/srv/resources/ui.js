@@ -156,7 +156,7 @@ ui._visitUntitled = function(pseudoUrl)
 				return {visitSuccess: 'success'};
 			},
 			error => {
-				console.log('Fetching prototype: ' + error);
+				console.error('Fetching prototype: ' + error);
 				return {visitSuccess: 'server-error'};
 			}
 		);
@@ -170,6 +170,7 @@ ui.openNew = function(kindUrl, dataUrl, elementToFlash)
 	var displayName = ui._kindDisplayName(kind);
 	var mimeType = kind.createAction.mimeType;
 	var method = kind.createAction.method;
+	var schemaUrl = kind.createAction.jsonSchema;
 	var pseudoUrl = fileTabs.openNew(kindUrl, displayName, dataUrl, mimeType, method)
 	
 	if (kind === undefined || kind.createAction === undefined || kind.createAction.prototypeUrl === undefined)
@@ -183,10 +184,17 @@ ui.openNew = function(kindUrl, dataUrl, elementToFlash)
 		return http.getString('text/plain', kind.createAction.prototypeUrl).then(
 			text => {
 				editSessions.create(pseudoUrl,text);
-				ui.flashClass(elementToFlash, 'flash-activate');
+				if (schemaUrl != undefined)
+				{
+					return jsonForm.create(pseudoUrl, schemaUrl, elementToFlash, true);
+				}
+				else
+				{
+					ui.flashClass(elementToFlash, 'flash-activate');
+				}
 			},
 			error => {
-				console.log('Fetching prototype: ' + error);
+				console.error('Fetching prototype: ' + error);
 				ui.flashClass(elementToFlash, 'flash-server-error');
 			}
 		);
@@ -216,8 +224,31 @@ ui.loadIfNotAlready = function(url)
 	{
 		return Promise.resolve(undefined);
 	}
-	
-	
+};
+
+ui._viewSwitch = function(view)
+{
+	var panel = document.getElementById('view-switcher');
+	if (view === undefined)
+	{
+		panel.classList.add('hidden');
+	}
+	else if (view === 'form')
+	{
+		document.getElementById('btn-view-text').classList.remove('active');
+		document.getElementById('btn-view-form').classList.add('active');
+		panel.classList.remove('hidden');
+	}
+	else if (view === 'text')
+	{
+		document.getElementById('btn-view-form').classList.remove('active');
+		document.getElementById('btn-view-text').classList.add('active');
+		panel.classList.remove('hidden');
+	}
+	else
+	{
+		throw new Error('Unknown view: ' + view);
+	}
 };
 
 ui.switchTo = function(url)
@@ -225,13 +256,35 @@ ui.switchTo = function(url)
 	fileTabs.switchTo(url);
 	if (url === 'about:create')
 	{
+		ui._viewSwitch(undefined);
 		editSessions.switchTo(undefined);
+		jsonForm.switchTo(undefined);
 		createPage.showCreatePage();
+	}
+	else if (editSessions.has(url) && !jsonForm.hasActive(url))
+	{
+		if (jsonForm.has(url))
+		{
+			ui._viewSwitch('text');
+		}
+		else
+		{
+			ui._viewSwitch(undefined);
+		}
+		createPage.hideCreatePage();
+		jsonForm.switchTo(undefined);
+		editSessions.switchTo(url);
+	}
+	else if (jsonForm.has(url))
+	{
+		ui._viewSwitch('form');
+		createPage.hideCreatePage();
+		editSessions.switchTo(undefined);
+		jsonForm.switchTo(url);
 	}
 	else
 	{
-		createPage.hideCreatePage();
-		editSessions.switchTo(url);
+		throw new Error('No component has url: ' + url);
 	}
 };
 
@@ -243,19 +296,11 @@ ui.visit = function(url, kindUrl, dataUrl, mimeType, elementToFlash, flashOnSucc
 		ui.flashClass(elementToFlash, 'flash-client-error');
 		return undefined;
 	}
-	
-	if (fileTabs.has(url) !== editSessions.has(url))
-	{
-		console.error('fileTabs and editSessions disagree on whether url exists: ' + url + ' ' + fileTabs.has(url) + ' ' + editSessions.has(url));
-		ui.flashClass(elementToFlash, 'flash-client-error');
-		return undefined;
-	}
 
 	if (fileTabs.has(url))
 	{
 		// Already loaded, just need to switch to it.
-		fileTabs.switchTo(url);
-		editSessions.switchTo(url);
+		ui.switchTo(url);
 		
 		if (flashOnSuccess)
 		{
@@ -264,20 +309,55 @@ ui.visit = function(url, kindUrl, dataUrl, mimeType, elementToFlash, flashOnSucc
 		return undefined;
 	}
 
+	if (editSessions.has(url))
+	{
+		console.error('editSessions has url when it shouldn\'t: ' + url);
+		ui.flashClass(elementToFlash, 'flash-client-error');
+		return undefined;
+	}
+
+	if (jsonForm.has(url))
+	{
+		console.error('jsonForm has url when it shouldn\'t: ' + url);
+		ui.flashClass(elementToFlash, 'flash-client-error');
+		return undefined;
+	}
+	
+	var kind = ui._kinds[kindUrl];
+	
+	if (kind === undefined)
+	{
+		console.error('unknown kind: ' + kindUrl);
+		ui.flashClass(elementToFlash, 'flash-client-error');
+		return undefined;
+	}
+	
+	var schemaUrl = undefined;
+	if (kind.createAction != undefined)
+	{
+		schemaUrl = kind.createAction.jsonSchema;
+	}
+
 	return http.getString(mimeType, dataUrl).then(
 		text => {
 			var displayName = uri.lastSegment(url);
 			fileTabs.open(url, kindUrl, dataUrl, mimeType)
-			editSessions.create(url, text);
 
-			fileTabs.switchTo(url);
-			editSessions.switchTo(url);
-			
-			if (flashOnSuccess)
+			editSessions.create(url, text);
+			if (schemaUrl != undefined)
 			{
-				ui.flashClass(elementToFlash, 'flash-activate');
+				jsonForm.create(url, schemaUrl, elementToFlash, flashOnSuccess).then( () => {
+					ui.switchTo(url);
+				} );
 			}
-			return undefined;
+			else
+			{
+				ui.switchTo(url);
+				if (flashOnSuccess)
+				{
+					ui.flashClass(elementToFlash, 'flash-activate');
+				}
+			}
 		},
 		
 		error => {
@@ -397,6 +477,22 @@ ui._onclickCloseAll = function(event)
 {
 	fileTabs.closeAll();
 	editSessions.closeAll();
+	jsonForm.closeAll();
+	ui._switchView(undefined);
+};
+
+ui._onclickViewForm = function(event)
+{
+	editSessions.switchTo(undefined);
+	jsonForm.switchTo(fileTabs.activeUrl);
+	ui._viewSwitch('form');
+};
+
+ui._onclickViewText = function(event)
+{
+	jsonForm.deactivate();
+	editSessions.switchTo(fileTabs.activeUrl);
+	ui._viewSwitch('text');
 };
 
 window.onload = function()
@@ -407,6 +503,8 @@ window.onload = function()
 	document.getElementById('btn-shutdown').onclick = ui._onclickShutdown;
 	document.getElementById('btn-save').onclick = ui._onclickSave;
 	document.getElementById('btn-close-all').onclick = ui._onclickCloseAll;
+	document.getElementById('btn-view-form').onclick = ui._onclickViewForm;
+	document.getElementById('btn-view-text').onclick = ui._onclickViewText;
 
 	fileTabs.createCreateTab();
 

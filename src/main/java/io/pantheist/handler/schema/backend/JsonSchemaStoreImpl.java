@@ -72,7 +72,7 @@ final class JsonSchemaStoreImpl implements JsonSchemaStore
 
 	private FsPath jsonSchemaRootPath()
 	{
-		return filesystem.systemBucket().segment("json-schema");
+		return filesystem.projectBucket().segment("json-schema");
 	}
 
 	@Override

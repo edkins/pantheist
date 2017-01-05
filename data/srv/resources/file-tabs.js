@@ -26,6 +26,13 @@ fileTabs.has = function(url)
 	return fileTabs._find(url) != undefined;
 }
 
+Object.defineProperty(fileTabs, 'activeUrl', {
+	get: function()
+	{
+		return fileTabs._activeUrl;
+	}
+});
+
 Object.defineProperty(fileTabs, 'activeFile', {
 	get: function()
 	{

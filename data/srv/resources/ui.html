@@ -6,6 +6,7 @@
 <script src="/resources/file-tabs.js"></script>
 <script src="/resources/edit-sessions.js"></script>
 <script src="/resources/create-page.js"></script>
+<script src="/resources/json-form.js"></script>
 <script src="/resources/resource-tree.js"></script>
 <script src="/resources/ui.js"></script>
 <link rel="stylesheet" href="/resources/style.css">
@@ -26,11 +27,17 @@
 	</div>
 </div>
 <div class="panel-middle">
+	<div class="button-bar hidden" id="view-switcher">
+		<span class="tab" id="btn-view-form">Form</span>
+		<span class="tab" id="btn-view-text">JSON</span>
+	</div>
 	<div id="editor"></div>
 	<div class="middle-page hidden" id="create-page">
 		<h2>Select the kind of object to create</h2>
 		<div id="create-page-list">
 		</div>
+	</div>
+	<div class="middle-page hidden" id="json-form">
 	</div>
 </div>
 <div class="panel-right">

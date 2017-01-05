@@ -110,6 +110,16 @@ the item itself (as opposed to its children).
     padding: 0pt 6pt;
 	cursor: default;
 }
+.tab {
+    border: solid #ccc 1px;
+    margin-right: 4pt;
+    padding: 0pt 6pt;
+	cursor: default;
+	transition: background-color 0.0s;
+}
+.tab.active {
+	background: #0c0;
+}
 
 .hidden {
 	display: none;
