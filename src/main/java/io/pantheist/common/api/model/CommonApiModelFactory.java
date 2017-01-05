@@ -17,6 +17,7 @@ public interface CommonApiModelFactory
 	CreateAction createAction(
 			BasicContentType basicType,
 			@Assisted("mimeType") String mimeType,
+			@Nullable @Assisted("jsonSchema") String jsonSchema,
 			@Nullable @Assisted("urlTemplate") String urlTemplate,
 			@Nullable @Assisted("prototypeUrl") String prototypeUrl,
 			HttpMethod method);

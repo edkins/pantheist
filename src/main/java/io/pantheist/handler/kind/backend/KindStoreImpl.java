@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import io.pantheist.common.shared.model.CommonSharedModelFactory;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.common.util.AntiIterator;
+import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
 import io.pantheist.handler.filesystem.backend.FilesystemSnapshot;
@@ -45,11 +46,14 @@ final class KindStoreImpl implements KindStore
 	}
 
 	@Override
-	public Possible<Void> putKind(final String kindId, final Kind kind)
+	public Possible<Void> putKind(final String kindId, final Kind kind, final boolean failIfExists)
 	{
 		final JsonSnapshot<Kind> snapshot = filesystem.jsonSnapshot(path(kindId), Kind.class);
 
-		snapshot.exists(); // don't care
+		if (snapshot.exists() && failIfExists)
+		{
+			return FailureReason.ALREADY_EXISTS.happened();
+		}
 		snapshot.write(kind);
 		return View.noContent();
 	}

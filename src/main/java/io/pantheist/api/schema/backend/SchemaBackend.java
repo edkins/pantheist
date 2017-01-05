@@ -6,7 +6,7 @@ import io.pantheist.common.util.Possible;
 
 public interface SchemaBackend
 {
-	Possible<Void> putJsonSchema(String schemaId, String schemaText);
+	Possible<Void> putJsonSchema(String schemaId, String schemaText, boolean failIfExists);
 
 	Possible<String> getJsonSchema(String schemaId);
 
@@ -17,4 +17,6 @@ public interface SchemaBackend
 	Possible<ApiSchema> describeJsonSchema(String schemaId);
 
 	Possible<Void> deleteJsonSchema(String schemaId);
+
+	Possible<String> postJsonSchema(String data);
 }

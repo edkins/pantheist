@@ -18,5 +18,5 @@ public interface ApiSchemaModelFactory
 			@Assisted("url") String url,
 			@Assisted("kindUrl") String kindUrl);
 
-	ApiSchema apiSchema(DataAction dataAction, DeleteAction deleteAction);
+	ApiSchema apiSchema(DataAction dataAction, DeleteAction deleteAction, @Assisted("kindUrl") String kindUrl);
 }

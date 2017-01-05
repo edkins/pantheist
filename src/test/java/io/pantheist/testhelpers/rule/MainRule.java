@@ -140,4 +140,9 @@ public class MainRule implements TestRule
 		kind.data().putResource("/kind-schema/" + name, "application/json");
 		return kind;
 	}
+
+	public int nginxPort()
+	{
+		return session.nginxPort();
+	}
 }

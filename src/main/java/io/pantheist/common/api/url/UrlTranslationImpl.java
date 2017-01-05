@@ -170,7 +170,12 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public CreateAction javaPkgCreateAction()
 	{
-		return modelFactory.createAction(BasicContentType.java, TEXT_PLAIN, javaFileData.template(), null,
+		return modelFactory.createAction(
+				BasicContentType.java,
+				TEXT_PLAIN,
+				null,
+				javaFileData.template(),
+				null,
 				HttpMethod.put);
 	}
 
@@ -190,7 +195,12 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public CreateAction jsonSchemaCreateAction()
 	{
-		return modelFactory.createAction(BasicContentType.json, JSON_SCHEMA_MIME, jsonSchemaData.template(), null,
+		return modelFactory.createAction(
+				BasicContentType.json,
+				JSON_SCHEMA_MIME,
+				jsonSchemaToUrl("json-schema"),
+				jsonSchemaData.template(),
+				null,
 				HttpMethod.put);
 	}
 
@@ -235,7 +245,12 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public CreateAction kindCreateAction()
 	{
-		return modelFactory.createAction(BasicContentType.json, APPLICATION_JSON, kind.template(), null,
+		return modelFactory.createAction(
+				BasicContentType.json,
+				APPLICATION_JSON,
+				jsonSchemaToUrl("kind"),
+				kind.template(),
+				null,
 				HttpMethod.put);
 	}
 
@@ -288,6 +303,12 @@ final class UrlTranslationImpl implements UrlTranslation
 	{
 		return modelFactory.dataAction(BasicContentType.json, APPLICATION_JSON, true,
 				kindData.generate(ImmutableMap.of("kindId", kindId)));
+	}
+
+	@Override
+	public String jsonSchemaFromDataUrl(final String url)
+	{
+		return jsonSchemaData.getVar("schemaId", url);
 	}
 
 }

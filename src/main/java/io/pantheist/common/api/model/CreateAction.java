@@ -17,6 +17,10 @@ public interface CreateAction
 	@JsonProperty("mimeType")
 	String mimeType();
 
+	@Nullable
+	@JsonProperty("jsonSchema")
+	String jsonSchema();
+
 	/**
 	 * Returns a url template for creating instances of this kind.
 	 *

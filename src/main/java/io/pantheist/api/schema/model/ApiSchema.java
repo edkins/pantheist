@@ -14,4 +14,7 @@ public interface ApiSchema
 
 	@JsonProperty("deleteAction")
 	DeleteAction deleteAction();
+
+	@JsonProperty("kindUrl")
+	String kindUrl();
 }

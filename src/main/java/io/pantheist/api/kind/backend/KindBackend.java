@@ -12,7 +12,9 @@ public interface KindBackend
 
 	Possible<Kind> getKindData(String kindId);
 
-	Possible<Void> putKindData(String kindId, Kind kind);
+	Possible<Void> putKindData(String kindId, Kind kind, boolean failIfExists);
+
+	Possible<String> postKind(Kind kind);
 
 	Possible<ListEntityResponse> listEntitiesWithKind(String kindId);
 

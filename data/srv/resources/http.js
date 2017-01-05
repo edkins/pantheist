@@ -135,7 +135,7 @@ http.post = function(url,contentType,data)
 			xmlhttp.open('POST', url, true);
 			if (contentType !== undefined)
 			{
-				xmlhttp.setRequestHeader('ContentType', contentType);
+				xmlhttp.setRequestHeader('Content-Type', contentType);
 			}
 			xmlhttp.onload = function()
 				{

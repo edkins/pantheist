@@ -231,4 +231,27 @@ public class KindTest
 		assertThat(javaSugar.describeJavaFile().kindUrl(), is(baseKind.url()));
 		assertThat(javaButterSugar.describeJavaFile().kindUrl(), is(butterSugarKind.url()));
 	}
+
+	@Test
+	public void kind_canPost_andReadBack() throws Exception
+	{
+		manage.kind("kind").postCreate(mainRule.resource(KIND_EXAMPLE_CORRECT_ID_RES), APPLICATION_JSON);
+
+		final ApiKind kind = manage.kind("my-kind").getKind();
+
+		assertThat(kind.kindId(), is("my-kind"));
+		assertThat(kind.schema().identification().get("parentKind").textValue(), is("java-file"));
+	}
+
+	@Test
+	public void kind_postTwice_sameId_secondOneFails() throws Exception
+	{
+		final ResponseType response1 = manage.kind("kind")
+				.postCreateResponseType(mainRule.resource(KIND_EXAMPLE_CORRECT_ID_RES), APPLICATION_JSON);
+		final ResponseType response2 = manage.kind("kind")
+				.postCreateResponseType(mainRule.resource(KIND_EXAMPLE_CORRECT_ID_RES), APPLICATION_JSON);
+
+		assertThat(response1, is(ResponseType.CREATED));
+		assertThat(response2, is(ResponseType.CONFLICT));
+	}
 }

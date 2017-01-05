@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -75,7 +76,7 @@ public class KindResource implements ResourceTag
 		{
 			return resp.possibleEmpty(
 					resp.request(data, Kind.class)
-							.posMap(kind -> backend.putKindData(kindId, kind)));
+							.posMap(kind -> backend.putKindData(kindId, kind, false)));
 		}
 		catch (final RuntimeException ex)
 		{
@@ -139,6 +140,26 @@ public class KindResource implements ResourceTag
 		{
 			final Possible<ListEntityResponse> result = backend.listEntitiesWithKind(kindId);
 			return resp.possibleToJson(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles creating a new kind (POST)
+	 */
+	@POST
+	@Path("kind/kind/create")
+	@Consumes("application/json")
+	public Response postKind(final String data)
+	{
+		LOGGER.info("PUT kind/kind/create");
+		try
+		{
+			return resp.possibleLocation(
+					resp.request(data, Kind.class).posMap(backend::postKind));
 		}
 		catch (final RuntimeException ex)
 		{

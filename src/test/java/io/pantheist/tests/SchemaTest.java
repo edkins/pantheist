@@ -32,6 +32,7 @@ public class SchemaTest
 
 	private static final String JSON_SCHEMA_MIME = "application/schema+json";
 	private static final String JSON_SCHEMA_COFFEE_RES = "/json-schema/coffee";
+	private static final String JSON_SCHEMA_COFFEE_WITH_ID_RES = "/json-schema/coffee-with-id";
 	private static final String JSON_SCHEMA_INTLIST_RES = "/json-schema/nonempty_nonnegative_int_list";
 
 	@Before
@@ -114,5 +115,41 @@ public class SchemaTest
 		final ResponseType responseType = schema.validate(mainRule.resource("/json-example/coffee-invalid"),
 				"application/json");
 		assertEquals(ResponseType.BAD_REQUEST, responseType);
+	}
+
+	@Test
+	public void schema_canPost_andReadItBack() throws Exception
+	{
+		// We don't know ahead of time what the port will be, so need to substitute it here
+		// in order to provide a valid url for the id.
+		final String originalText = mainRule.resource(JSON_SCHEMA_COFFEE_WITH_ID_RES)
+				.replace("{{PORT}}", String.valueOf(mainRule.nginxPort()));
+
+		final String url = manage.kind("json-schema").postCreate(originalText, JSON_SCHEMA_MIME);
+
+		final ManagementPathSchema newSchema = manage.jsonSchema("coffee-with-id");
+
+		assertThat(url, is(newSchema.url()));
+
+		final String data = newSchema.data().getString(JSON_SCHEMA_MIME);
+
+		JSONAssert.assertEquals(data, originalText, true);
+	}
+
+	@Test
+	public void schema_postTwice_samePlace_secondOneFails() throws Exception
+	{
+		// We don't know ahead of time what the port will be, so need to substitute it here
+		// in order to provide a valid url for the id.
+		final String originalText = mainRule.resource(JSON_SCHEMA_COFFEE_WITH_ID_RES)
+				.replace("{{PORT}}", String.valueOf(mainRule.nginxPort()));
+
+		final ResponseType response1 = manage.kind("json-schema").postCreateResponseType(originalText,
+				JSON_SCHEMA_MIME);
+		final ResponseType response2 = manage.kind("json-schema").postCreateResponseType(originalText,
+				JSON_SCHEMA_MIME);
+
+		assertThat(response1, is(ResponseType.CREATED));
+		assertThat(response2, is(ResponseType.CONFLICT));
 	}
 }

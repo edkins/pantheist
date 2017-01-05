@@ -22,6 +22,8 @@ public interface UrlTranslation
 
 	String jsonSchemaFromUrl(String url);
 
+	String jsonSchemaFromDataUrl(String url);
+
 	String javaPkgToUrl(String pkg);
 
 	String javaToUrl(JavaFileId javaFileId);

@@ -9,7 +9,7 @@ import io.pantheist.handler.sql.model.SqlProperty;
 
 public interface KindStore
 {
-	Possible<Void> putKind(String kindId, Kind kind);
+	Possible<Void> putKind(String kindId, Kind kind, boolean failIfExists);
 
 	/**
 	 * Returns the kind with the given id, or empty if missing.

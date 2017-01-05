@@ -391,7 +391,13 @@ ui.save = function()
 ui._onclickSave = function(event)
 {
 	ui.save();
-}
+};
+
+ui._onclickCloseAll = function(event)
+{
+	fileTabs.closeAll();
+	editSessions.closeAll();
+};
 
 window.onload = function()
 {
@@ -400,7 +406,7 @@ window.onload = function()
 	document.getElementById('btn-reload').onclick = ui._onclickReload;
 	document.getElementById('btn-shutdown').onclick = ui._onclickShutdown;
 	document.getElementById('btn-save').onclick = ui._onclickSave;
-	document.getElementById('btn-close-all').onclick = fileTabs.onclickCloseAll;
+	document.getElementById('btn-close-all').onclick = ui._onclickCloseAll;
 
 	fileTabs.createCreateTab();
 

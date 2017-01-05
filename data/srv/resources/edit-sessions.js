@@ -69,6 +69,13 @@ editSessions.scratch = function(text)
 	document.getElementById('editor').classList.remove('hidden');
 };
 
+editSessions.closeAll = function()
+{
+	editSessions._sessions = {};
+	editSessions._currentUrl = undefined;
+	document.getElementById('editor').classList.add('hidden');
+};
+
 /*
 ui.setEditorText = function(text)
 {

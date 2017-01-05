@@ -188,10 +188,10 @@ fileTabs.createCreateTab = function()
 
 fileTabs._mustKeep = function(file)
 {
-	return file.url === 'about:create' || file.currentText !== file.originalText;
+	return file.url === 'about:create';
 };
 
-fileTabs.onclickCloseAll = function(url)
+fileTabs.closeAll = function(url)
 {
 	var remainingFiles = [];
 	for (var file of fileTabs._openFiles)
@@ -206,7 +206,6 @@ fileTabs.onclickCloseAll = function(url)
 			if (file.url === fileTabs._activeUrl)
 			{
 				fileTabs._activeUrl = undefined;
-				ui.setEditorText('');
 			}
 		}
 	}

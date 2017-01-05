@@ -88,7 +88,7 @@ final class KindBackendImpl implements KindBackend
 	}
 
 	@Override
-	public Possible<Void> putKindData(final String kindId, final Kind kind)
+	public Possible<Void> putKindData(final String kindId, final Kind kind, final boolean failIfExists)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
 		checkNotNull(kind);
@@ -96,7 +96,7 @@ final class KindBackendImpl implements KindBackend
 		{
 			return FailureReason.WRONG_LOCATION.happened();
 		}
-		return kindStore.putKind(kindId, supplyKindId(kindId, kind));
+		return kindStore.putKind(kindId, supplyKindId(kindId, kind), failIfExists);
 	}
 
 	private ListEntityItem toListEntityItem(final ObjectNode entity)
@@ -130,5 +130,15 @@ final class KindBackendImpl implements KindBackend
 				.map(this::toApiKind)
 				.toSortedList((k1, k2) -> k1.url().compareTo(k2.url()));
 		return modelFactory.listKindResponse(list, urlTranslation.kindCreateAction());
+	}
+
+	@Override
+	public Possible<String> postKind(final Kind kind)
+	{
+		if (kind.kindId() == null)
+		{
+			return FailureReason.WRONG_LOCATION.happened();
+		}
+		return kindStore.putKind(kind.kindId(), kind, true).map(x -> urlTranslation.kindToUrl(kind.kindId()));
 	}
 }

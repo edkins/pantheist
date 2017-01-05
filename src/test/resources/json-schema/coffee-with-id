@@ -1,0 +1,21 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"id": "http://127.0.0.1:{{PORT}}/json-schema/coffee-with-id/data",
+	"title": "Coffee",
+    "description": "A nice cup of hot steaming coffee, with schema id specified. Note that the port will be filled in by the test before submitting this.",
+    "type": "object",
+    "properties": {
+    	"vendor": {
+    		"type": "string",
+    		"enum": ["Starbucks", "Timmy's"]
+    	},
+    	"roast": {
+    		"type": "string",
+    		"enum": ["dark", "light", "medium"]
+    	},
+    	"tasty": {
+    		"type": "boolean"
+    	}
+    },
+    "required": ["roast"]
+}

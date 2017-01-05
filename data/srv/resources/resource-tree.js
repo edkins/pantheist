@@ -175,13 +175,7 @@ resourceTree._onclickTreeItem = function(event)
 		return;
 	}
 	
-	if (event.ctrlKey)
-	{
-		ui.visitScratch( JSON.stringify(item.data, null, '    ') );
-		return;
-	}
-	
-	if (item.expanded)
+	if (item.expanded && !event.ctrlKey)
 	{
 		resourceTree._unexpand(item);
 		return;
@@ -191,7 +185,11 @@ resourceTree._onclickTreeItem = function(event)
 		data => {
 			item.data = data;
 			
-			if (item.data.dataAction != undefined)
+			if (event.ctrlKey)
+			{
+				ui.visitScratch( JSON.stringify(item.data, null, '    ') );
+			}
+			else if (item.data.dataAction != undefined)
 			{
 				return ui.visit(url,
 					item.data.kindUrl,

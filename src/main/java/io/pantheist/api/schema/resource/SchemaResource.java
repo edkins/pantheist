@@ -69,7 +69,7 @@ public final class SchemaResource implements ResourceTag
 		LOGGER.info("PUT json-schema/{}/data", schemaId);
 		try
 		{
-			final Possible<Void> result = backend.putJsonSchema(schemaId, data);
+			final Possible<Void> result = backend.putJsonSchema(schemaId, data, false);
 
 			return resp.possibleEmpty(result);
 		}
@@ -156,6 +156,27 @@ public final class SchemaResource implements ResourceTag
 		{
 			final Possible<Void> result = backend.validateAgainstJsonSchema(schemaId, data);
 			return resp.possibleEmpty(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles creating a new json schema based on id (POST)
+	 */
+	@POST
+	@Path("kind/json-schema/create")
+	@Consumes("application/schema+json")
+	public Response postJsonSchema(final String data)
+	{
+		LOGGER.info("POST kind/json-schema/create");
+		try
+		{
+			final Possible<String> result = backend.postJsonSchema(data);
+
+			return resp.possibleLocation(result);
 		}
 		catch (final RuntimeException ex)
 		{
