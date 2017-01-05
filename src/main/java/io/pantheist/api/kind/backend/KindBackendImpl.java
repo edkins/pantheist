@@ -8,11 +8,13 @@ import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import io.pantheist.api.kind.model.ApiKind;
 import io.pantheist.api.kind.model.ApiKindModelFactory;
 import io.pantheist.api.kind.model.ListEntityItem;
 import io.pantheist.api.kind.model.ListEntityResponse;
+import io.pantheist.api.kind.model.ListKindItem;
 import io.pantheist.api.kind.model.ListKindResponse;
+import io.pantheist.common.api.model.Kinded;
+import io.pantheist.common.api.model.KindedImpl;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.OtherPreconditions;
@@ -46,35 +48,29 @@ final class KindBackendImpl implements KindBackend
 		this.urlTranslation = checkNotNull(urlTranslation);
 	}
 
-	private ApiKind toApiKind(final Kind k)
+	private ListKindItem toListKindItem(final Kind k)
 	{
 		final String kindId = k.kindId();
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
 		final String url = urlTranslation.kindToUrl(kindId);
-		final String kindUrl = urlTranslation.kindToUrl("kind"); // this is the meta-kind
-		return modelFactory.kind(
+		final String kindUrl = metakind();
+		return modelFactory.listKindItem(
 				url,
 				kindUrl,
-				urlTranslation.listKindClassifiers(kindId),
-				urlTranslation.kindDataAction(kindId),
-				kindId, k.schema(), k.partOfSystem(), k.presentation(), k.createAction(),
-				k.deleteAction());
+				k.kindId());
+	}
+
+	private String metakind()
+	{
+		return urlTranslation.kindToUrl("kind");
 	}
 
 	@Override
-	public Possible<ApiKind> getKindInfo(final String kindId)
+	public Possible<Kinded<Kind>> getKind(final String kindId)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
 		return kindStore.getKind(kindId)
-				.map(k -> View.ok(toApiKind(k)))
-				.orElse(FailureReason.DOES_NOT_EXIST.happened());
-	}
-
-	@Override
-	public Possible<Kind> getKindData(final String kindId)
-	{
-		OtherPreconditions.checkNotNullOrEmpty(kindId);
-		return kindStore.getKind(kindId)
+				.map(k -> KindedImpl.of(metakind(), k))
 				.map(View::ok)
 				.orElse(FailureReason.DOES_NOT_EXIST.happened());
 	}
@@ -125,8 +121,8 @@ final class KindBackendImpl implements KindBackend
 	@Override
 	public ListKindResponse listKinds()
 	{
-		final List<ApiKind> list = kindStore.listAllKinds()
-				.map(this::toApiKind)
+		final List<ListKindItem> list = kindStore.listAllKinds()
+				.map(this::toListKindItem)
 				.toSortedList((k1, k2) -> k1.url().compareTo(k2.url()));
 		return modelFactory.listKindResponse(list, urlTranslation.kindCreateAction());
 	}

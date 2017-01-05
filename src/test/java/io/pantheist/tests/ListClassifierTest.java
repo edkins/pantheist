@@ -6,7 +6,6 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -26,7 +25,6 @@ import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.testclient.api.ManagementFlatDirPath;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathJavaPackage;
-import io.pantheist.testclient.api.ManagementPathKind;
 import io.pantheist.testclient.api.ManagementPathRoot;
 import io.pantheist.testclient.api.ManagementPathSchema;
 import io.pantheist.testclient.api.ResponseType;
@@ -47,7 +45,6 @@ public class ListClassifierTest
 	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
-	private static final String KIND_SCHEMA_RES = "/kind-schema/kind-test-example";
 	private static final String JSON_SCHEMA_MIME = "application/schema+json";
 	private static final String JSON_SCHEMA_COFFEE_RES = "/json-schema/coffee";
 
@@ -118,21 +115,6 @@ public class ListClassifierTest
 
 		assertThat(response1, is(ResponseType.OK));
 		assertThat(response2, is(ResponseType.NOT_FOUND));
-	}
-
-	@Test
-	public void kind_classifiers() throws Exception
-	{
-		final ManagementPathKind kind = manage.kind("my-kind");
-		kind.data().putResource(KIND_SCHEMA_RES, APPLICATION_JSON);
-
-		final List<? extends ListClassifierItem> list = kind.listClassifiers().childResources();
-
-		final List<String> urls = Lists.transform(list, ListClassifierItem::url);
-		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
-
-		assertThat(urls, containsInAnyOrder(kind.urlOfService("entity")));
-		assertThat(segs, containsInAnyOrder("entity"));
 	}
 
 	@Test
@@ -242,19 +224,5 @@ public class ListClassifierTest
 		assertThat(createAction.basicType(), is(BasicContentType.json));
 		assertThat(createAction.mimeType(), is(APPLICATION_JSON));
 		assertThat(createAction.urlTemplate(), containsString("kind/{kindId}"));
-	}
-
-	@Test
-	public void kind_dataAction() throws Exception
-	{
-		final ManagementPathKind kind = manage.kind("my-kind");
-		kind.data().putResource(KIND_SCHEMA_RES, APPLICATION_JSON);
-
-		final DataAction dataAction = kind.getKind().dataAction();
-
-		assertThat(dataAction, notNullValue());
-		assertThat(dataAction.basicType(), is(BasicContentType.json));
-		assertThat(dataAction.mimeType(), is(APPLICATION_JSON));
-		assertTrue("Kinds are puttable", dataAction.canPut());
 	}
 }

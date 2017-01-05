@@ -13,12 +13,12 @@ import io.pantheist.common.api.model.CreateAction;
 
 final class ListKindResponseImpl implements ListKindResponse
 {
-	private final List<ApiKind> childResources;
+	private final List<ListKindItem> childResources;
 	private final CreateAction createAction;
 
 	@Inject
 	private ListKindResponseImpl(
-			@Assisted @JsonProperty("childResources") final List<ApiKind> childResources,
+			@Assisted @JsonProperty("childResources") final List<ListKindItem> childResources,
 			@Assisted @JsonProperty("createAction") final CreateAction createAction)
 	{
 		this.childResources = checkNotNull(childResources);
@@ -26,7 +26,7 @@ final class ListKindResponseImpl implements ListKindResponse
 	}
 
 	@Override
-	public List<ApiKind> childResources()
+	public List<ListKindItem> childResources()
 	{
 		return childResources;
 	}

@@ -1,20 +1,19 @@
 package io.pantheist.testclient.api;
 
-import io.pantheist.api.kind.model.ApiKind;
 import io.pantheist.api.kind.model.ListEntityResponse;
-import io.pantheist.common.api.model.ListClassifierResponse;
+import io.pantheist.handler.kind.model.Kind;
 
 public interface ManagementPathKind
 {
-	ApiKind getKind();
+	Kind getKind();
 
-	ManagementData data();
+	void putKindResource(String resourcePath);
+
+	ResponseType putKindResourceResponseType(String resourcePath);
 
 	String url();
 
 	ListEntityResponse listEntities();
-
-	ListClassifierResponse listClassifiers();
 
 	String urlOfService(String classifierSegment);
 
@@ -26,4 +25,6 @@ public interface ManagementPathKind
 	String postCreate(String data, String contentType);
 
 	ResponseType postCreateResponseType(String data, String contentType);
+
+	String headKindUrl();
 }

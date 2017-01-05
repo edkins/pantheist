@@ -11,7 +11,7 @@ import io.pantheist.common.api.model.CreateAction;
 public interface ListKindResponse
 {
 	@JsonProperty("childResources")
-	List<ApiKind> childResources();
+	List<ListKindItem> childResources();
 
 	@JsonProperty("createAction")
 	CreateAction createAction();

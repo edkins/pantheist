@@ -142,4 +142,26 @@ public final class RespImpl implements Resp
 			return failure(kindedData.failure());
 		}
 	}
+
+	@Override
+	public <T> Response possibleKindedJson(final Possible<Kinded<T>> kindedData)
+	{
+		if (kindedData.isPresent())
+		{
+			final String text;
+			try
+			{
+				text = objectMapper.writeValueAsString(kindedData.get().data());
+			}
+			catch (final JsonProcessingException e)
+			{
+				return unexpectedError(e);
+			}
+			return Response.ok(text).link(kindedData.get().kindUrl(), "type").build();
+		}
+		else
+		{
+			return failure(kindedData.failure());
+		}
+	}
 }

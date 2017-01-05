@@ -25,4 +25,6 @@ public interface Resp
 	Response possibleLocation(Possible<String> result);
 
 	Response possibleKindedData(Possible<Kinded<String>> kindedData);
+
+	<T> Response possibleKindedJson(Possible<Kinded<T>> kindedData);
 }

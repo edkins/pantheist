@@ -137,7 +137,7 @@ public class MainRule implements TestRule
 	public ManagementPathKind putKindResource(final String name)
 	{
 		final ManagementPathKind kind = actions().manage().kind(name);
-		kind.data().putResource("/kind-schema/" + name, "application/json");
+		kind.putKindResource("/kind-schema/" + name);
 		return kind;
 	}
 

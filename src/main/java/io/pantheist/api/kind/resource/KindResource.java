@@ -18,9 +18,9 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.pantheist.api.kind.backend.KindBackend;
-import io.pantheist.api.kind.model.ApiKind;
 import io.pantheist.api.kind.model.ListEntityResponse;
 import io.pantheist.common.annotations.ResourceTag;
+import io.pantheist.common.api.model.Kinded;
 import io.pantheist.common.http.Resp;
 import io.pantheist.common.util.Possible;
 import io.pantheist.handler.kind.model.Kind;
@@ -65,13 +65,13 @@ public class KindResource implements ResourceTag
 	 * Handles kind data (PUT)
 	 */
 	@PUT
-	@Path("kind/{kindId}/data")
+	@Path("kind/{kindId}")
 	@Consumes("application/json")
 	public Response putKind(
 			@PathParam("kindId") final String kindId,
 			final String data)
 	{
-		LOGGER.info("PUT kind/{}/data", kindId);
+		LOGGER.info("PUT kind/{}", kindId);
 		try
 		{
 			return resp.possibleEmpty(
@@ -86,39 +86,20 @@ public class KindResource implements ResourceTag
 
 	/**
 	 * Handles kind data (GET)
-	 */
-	@GET
-	@Path("kind/{kindId}/data")
-	@Produces("application/json")
-	public Response getKindData(
-			@PathParam("kindId") final String kindId)
-	{
-		LOGGER.info("GET kind/{}/data", kindId);
-		try
-		{
-			final Possible<Kind> result = backend.getKindData(kindId);
-			return resp.possibleToJson(result);
-		}
-		catch (final RuntimeException ex)
-		{
-			return resp.unexpectedError(ex);
-		}
-	}
-
-	/**
-	 * Handles kind information (GET)
+	 *
+	 * Also returns kind url in the 'type' link header. This is the meta-kind, which currently can only take one value here.
 	 */
 	@GET
 	@Path("kind/{kindId}")
 	@Produces("application/json")
-	public Response getKindInfo(
+	public Response getKindData(
 			@PathParam("kindId") final String kindId)
 	{
 		LOGGER.info("GET kind/{}", kindId);
 		try
 		{
-			final Possible<ApiKind> result = backend.getKindInfo(kindId);
-			return resp.possibleToJson(result);
+			final Possible<Kinded<Kind>> result = backend.getKind(kindId);
+			return resp.possibleKindedJson(result);
 		}
 		catch (final RuntimeException ex)
 		{

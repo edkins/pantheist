@@ -14,8 +14,9 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import io.pantheist.api.java.model.ListJavaFileItem;
-import io.pantheist.api.kind.model.ApiKind;
 import io.pantheist.api.kind.model.ListEntityItem;
+import io.pantheist.api.kind.model.ListKindItem;
+import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathJavaPackage;
 import io.pantheist.testclient.api.ManagementPathKind;
@@ -63,9 +64,9 @@ public class KindTest
 	@Test
 	public void kind_canReadBack() throws Exception
 	{
-		manage.kind("my-kind").data().putResource(KIND_SCHEMA_RES, APPLICATION_JSON);
+		manage.kind("my-kind").putKindResource(KIND_SCHEMA_RES);
 
-		final ApiKind kind = manage.kind("my-kind").getKind();
+		final Kind kind = manage.kind("my-kind").getKind();
 
 		assertThat(kind.kindId(), is("my-kind"));
 		assertThat(kind.presentation().iconUrl(), is("http://example.com/icon.png"));
@@ -74,11 +75,19 @@ public class KindTest
 	}
 
 	@Test
+	public void kind_getMetaKind() throws Exception
+	{
+		manage.kind("my-kind").putKindResource(KIND_SCHEMA_RES);
+
+		assertThat(manage.kind("my-kind").headKindUrl(), is(manage.kind("kind").url()));
+	}
+
+	@Test
 	public void kind_canBeTaggedAsSystem() throws Exception
 	{
-		manage.kind("my-kind").data().putResource(KIND_SCHEMA_SYSTEM_RES, APPLICATION_JSON);
+		manage.kind("my-kind").putKindResource(KIND_SCHEMA_SYSTEM_RES);
 
-		final ApiKind kind = manage.kind("my-kind").getKind();
+		final Kind kind = manage.kind("my-kind").getKind();
 
 		assertTrue("This kind should be part of system", kind.partOfSystem());
 	}
@@ -87,22 +96,21 @@ public class KindTest
 	public void kind_isListed() throws Exception
 	{
 		final ManagementPathKind kind = manage.kind("my-kind");
-		kind.data().putResource(KIND_SCHEMA_RES, APPLICATION_JSON);
+		kind.putKindResource(KIND_SCHEMA_RES);
 
-		final List<ApiKind> list = manage.listKinds().childResources();
+		final List<ListKindItem> list = manage.listKinds().childResources();
 
-		final ApiKind item = list.stream().filter(k -> k.url().equals(kind.url())).findFirst().get();
+		final ListKindItem item = list.stream().filter(k -> k.url().equals(kind.url())).findFirst().get();
 		assertThat(item.url(), is(kind.url()));
-		assertThat(item.presentation().iconUrl(), is("http://example.com/icon.png"));
 	}
 
 	@Test
 	public void kind_withWrongId_rejected() throws Exception
 	{
-		final ResponseType response1 = manage.kind("my-kind").data()
-				.putResourceResponseType(KIND_EXAMPLE_GARBAGE_ID_RES, APPLICATION_JSON);
-		final ResponseType response2 = manage.kind("my-kind").data()
-				.putResourceResponseType(KIND_EXAMPLE_CORRECT_ID_RES, APPLICATION_JSON);
+		final ResponseType response1 = manage.kind("my-kind")
+				.putKindResourceResponseType(KIND_EXAMPLE_GARBAGE_ID_RES);
+		final ResponseType response2 = manage.kind("my-kind")
+				.putKindResourceResponseType(KIND_EXAMPLE_CORRECT_ID_RES);
 
 		assertThat(response1, is(ResponseType.BAD_REQUEST));
 		assertThat(response2, is(ResponseType.NO_CONTENT));
@@ -112,7 +120,7 @@ public class KindTest
 	public void discoveredJavaEntity_isListed_underKind() throws Exception
 	{
 		final ManagementPathKind kind = manage.kind("java-interface-file");
-		kind.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
+		kind.putKindResource(KIND_INTERFACE_RES);
 
 		final ManagementPathJavaFile jclass = manage.javaPackage(JAVA_PKG).file("EmptyClass");
 		jclass.putJavaResource(JAVA_EMPTY_CLASS_RES);
@@ -138,7 +146,7 @@ public class KindTest
 
 		assertThat(java.headKindUrl(), is(baseKind.url()));
 
-		kind.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
+		kind.putKindResource(KIND_INTERFACE_RES);
 
 		assertThat(java.headKindUrl(), is(kind.url()));
 	}
@@ -150,7 +158,7 @@ public class KindTest
 		final ManagementPathJavaPackage pkg = manage.javaPackage(JAVA_PKG);
 		final ManagementPathJavaFile java = pkg.file(JAVA_INTLIST_NAME);
 		java.putJavaResource(JAVA_INTLIST_RES);
-		kind.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
+		kind.putKindResource(KIND_INTERFACE_RES);
 
 		final List<ListJavaFileItem> list = pkg.listJavaFiles().childResources();
 		assertThat(list.size(), is(1));
@@ -180,7 +188,7 @@ public class KindTest
 		butteryJava.putJavaResource(JAVA_BUTTER_RES);
 		final ManagementPathJavaFile otherJava = pkg.file(JAVA_INTLIST_NAME);
 		otherJava.putJavaResource(JAVA_INTLIST_RES);
-		butteryKind.data().putResource("/kind-schema/java-interface-with-butter-annotation", APPLICATION_JSON);
+		butteryKind.putKindResource("/kind-schema/java-interface-with-butter-annotation");
 
 		assertThat(butteryJava.headKindUrl(), is(butteryKind.url()));
 		assertThat(otherJava.headKindUrl(), is(baseKind.url()));
@@ -196,7 +204,7 @@ public class KindTest
 		butteryJava.putJavaResource(JAVA_CONSTRUCTOR_BUTTER_NAME_RES);
 		final ManagementPathJavaFile otherJava = pkg.file(JAVA_CONSTRUCTOR_NON_BUTTER_NAME);
 		otherJava.putJavaResource(JAVA_CONSTRUCTOR_NON_BUTTER_RES);
-		butteryKind.data().putResource("/kind-schema/java-constructor-arg-with-butter-annotation", APPLICATION_JSON);
+		butteryKind.putKindResource("/kind-schema/java-constructor-arg-with-butter-annotation");
 
 		assertThat(otherJava.headKindUrl(), is(baseKind.url()));
 		assertThat(butteryJava.headKindUrl(), is(butteryKind.url()));
@@ -206,9 +214,9 @@ public class KindTest
 	public void conflictingKinds_oneIsChosen() throws Exception
 	{
 		final ManagementPathKind kind1 = manage.kind("interface1");
-		kind1.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
+		kind1.putKindResource(KIND_INTERFACE_RES);
 		final ManagementPathKind kind2 = manage.kind("interface2");
-		kind2.data().putResource(KIND_INTERFACE_RES, APPLICATION_JSON);
+		kind2.putKindResource(KIND_INTERFACE_RES);
 
 		final ManagementPathJavaFile java = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
 		java.putJavaResource(JAVA_INTLIST_RES);
@@ -236,7 +244,7 @@ public class KindTest
 	{
 		manage.kind("kind").postCreate(mainRule.resource(KIND_EXAMPLE_CORRECT_ID_RES), APPLICATION_JSON);
 
-		final ApiKind kind = manage.kind("my-kind").getKind();
+		final Kind kind = manage.kind("my-kind").getKind();
 
 		assertThat(kind.kindId(), is("my-kind"));
 		assertThat(kind.schema().identification().get("parentKind").textValue(), is("java-file"));

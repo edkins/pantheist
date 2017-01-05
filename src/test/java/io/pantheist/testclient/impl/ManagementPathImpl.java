@@ -12,7 +12,6 @@ import io.pantheist.api.flatdir.model.ListFlatDirResponse;
 import io.pantheist.api.java.model.ApiJavaBinding;
 import io.pantheist.api.java.model.ListJavaFileResponse;
 import io.pantheist.api.java.model.ListJavaPkgResponse;
-import io.pantheist.api.kind.model.ApiKind;
 import io.pantheist.api.kind.model.ListEntityResponse;
 import io.pantheist.api.kind.model.ListKindResponse;
 import io.pantheist.api.management.model.ListConfigItem;
@@ -23,6 +22,7 @@ import io.pantheist.api.sql.model.ApiSqlRow;
 import io.pantheist.api.sql.model.ListRowResponse;
 import io.pantheist.api.sql.model.ListSqlTableResponse;
 import io.pantheist.common.api.model.ListClassifierResponse;
+import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.testclient.api.ManagementData;
 import io.pantheist.testclient.api.ManagementFlatDirFilePath;
 import io.pantheist.testclient.api.ManagementFlatDirPath;
@@ -160,9 +160,9 @@ final class ManagementPathImpl implements
 	}
 
 	@Override
-	public ApiKind getKind()
+	public Kind getKind()
 	{
-		return target.getJson(ApiKind.class);
+		return target.getJson(Kind.class);
 	}
 
 	@Override
@@ -381,5 +381,17 @@ final class ManagementPathImpl implements
 	public ResponseType putJavaResourceResponseType(final String resourcePath)
 	{
 		return target.putResourceResponseType(resourcePath, TEXT_PLAIN);
+	}
+
+	@Override
+	public void putKindResource(final String resourcePath)
+	{
+		target.putResource(resourcePath, APPLICATION_JSON);
+	}
+
+	@Override
+	public ResponseType putKindResourceResponseType(final String resourcePath)
+	{
+		return target.putResourceResponseType(resourcePath, APPLICATION_JSON);
 	}
 }
