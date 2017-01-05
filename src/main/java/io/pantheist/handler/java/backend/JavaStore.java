@@ -23,6 +23,12 @@ public interface JavaStore
 	Possible<Void> putJava(JavaFileId fileId, String code, boolean failIfExists);
 
 	/**
+	 * Detect package and filename from the code itself. Create it at that location,
+	 * and return the id representing the package and filename.
+	 */
+	Possible<JavaFileId> postJava(String code, boolean failIfExists);
+
+	/**
 	 * Return a java file
 	 */
 	Possible<String> getJava(JavaFileId fileId);

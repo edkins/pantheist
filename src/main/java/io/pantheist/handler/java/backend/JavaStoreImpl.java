@@ -89,8 +89,21 @@ final class JavaStoreImpl implements JavaStore
 	{
 		checkNotNull(javaFileId);
 		checkNotNull(code);
-		final String pkg = javaFileId.pkg();
-		final String file = javaFileId.file();
+		return putOrPost(Optional.of(javaFileId), code, failIfExists).map(x -> null);
+	}
+
+	@Override
+	public Possible<JavaFileId> postJava(final String code, final boolean failIfExists)
+	{
+		checkNotNull(code);
+		return putOrPost(Optional.empty(), code, failIfExists);
+	}
+
+	private Possible<JavaFileId> putOrPost(
+			final Optional<JavaFileId> javaFileIdOpt,
+			final String code,
+			final boolean failIfExists)
+	{
 		final CompilationUnit compilationUnit;
 
 		if (code.isEmpty())
@@ -125,16 +138,19 @@ final class JavaStoreImpl implements JavaStore
 			return FailureReason.REQUEST_FAILED_SCHEMA.happened();
 		}
 
-		if (!pkg.equals(packageDeclaration.get().getPackageName()))
+		final JavaFileId javaFileId = modelFactory.fileId(
+				packageDeclaration.get().getPackageName(),
+				types.get(0).getNameAsString());
+
+		if (javaFileIdOpt.isPresent())
 		{
-			LOGGER.warn("Wrong package. Request said " + pkg + ", java code said " + packageDeclaration.get());
-			return FailureReason.REQUEST_FAILED_SCHEMA.happened();
-		}
-		if (!file.equals(types.get(0).getNameAsString()))
-		{
-			LOGGER.warn(
-					"Wrong type name. Request said " + file + ", java code said " + types.get(0).getNameAsString());
-			return FailureReason.REQUEST_FAILED_SCHEMA.happened();
+			if (!javaFileId.equals(javaFileIdOpt.get()))
+			{
+				LOGGER.warn(
+						"Wrong package or type. Request said " + javaFileIdOpt.get() + ", java code said "
+								+ javaFileId);
+				return FailureReason.REQUEST_FAILED_SCHEMA.happened();
+			}
 		}
 
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
@@ -160,7 +176,7 @@ final class JavaStoreImpl implements JavaStore
 
 		javaSqlLogic.update(AntiIt.single(Pair.of(javaFileId, code)));
 
-		return View.noContent();
+		return View.ok(javaFileId);
 	}
 
 	@Override

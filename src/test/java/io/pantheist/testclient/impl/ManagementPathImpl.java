@@ -352,4 +352,16 @@ final class ManagementPathImpl implements
 	{
 		return target.getResponseType(APPLICATION_JSON);
 	}
+
+	@Override
+	public String postCreate(final String data, final String contentType)
+	{
+		return target.withSegment("create").post(data, contentType);
+	}
+
+	@Override
+	public ResponseType postCreateResponseType(final String data, final String contentType)
+	{
+		return target.withSegment("create").postResponseType(data, contentType);
+	}
 }

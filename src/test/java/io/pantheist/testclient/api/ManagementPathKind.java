@@ -17,4 +17,13 @@ public interface ManagementPathKind
 	ListClassifierResponse listClassifiers();
 
 	String urlOfService(String classifierSegment);
+
+	/**
+	 * Posts the given string to the "create" action, with the given mime type.
+	 *
+	 * Returns the Location header, representing the url of the created resource.
+	 */
+	String postCreate(String data, String contentType);
+
+	ResponseType postCreateResponseType(String data, String contentType);
 }

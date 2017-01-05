@@ -136,4 +136,27 @@ public class JavaTest
 		manage.javaBinding().setJavaBinding("system/java");
 		assertThat(file.data().getResponseTypeForContentType(TEXT_PLAIN), is(ResponseType.OK));
 	}
+
+	@Test
+	public void java_post_discoversPackage_andClass() throws Exception
+	{
+		final String code = mainRule.resource(JAVA_EMPTY_CLASS_RES);
+		final String url = manage.kind("java-file").postCreate(code, TEXT_PLAIN);
+
+		final ManagementPathJavaFile file = manage.javaPackage(JAVA_PKG).file(JAVA_EMPTY_CLASS_NAME);
+		assertThat(url, is(file.url()));
+		assertThat(file.data().getString(TEXT_PLAIN), is(code));
+	}
+
+	@Test
+	public void java_post_failsIfExists() throws Exception
+	{
+		final ResponseType response1 = manage.kind("java-file")
+				.postCreateResponseType(mainRule.resource(JAVA_EMPTY_CLASS_RES), TEXT_PLAIN);
+		final ResponseType response2 = manage.kind("java-file")
+				.postCreateResponseType(mainRule.resource(JAVA_EMPTY_CLASS_RES), TEXT_PLAIN);
+
+		assertThat(response1, is(ResponseType.CREATED));
+		assertThat(response2, is(ResponseType.CONFLICT));
+	}
 }

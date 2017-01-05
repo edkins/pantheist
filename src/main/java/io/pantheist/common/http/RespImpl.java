@@ -3,6 +3,8 @@ package io.pantheist.common.http;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
@@ -104,6 +106,26 @@ public final class RespImpl implements Resp
 		{
 			LOGGER.catching(e);
 			return FailureReason.REQUEST_HAS_INVALID_SYNTAX.happened();
+		}
+	}
+
+	@Override
+	public Response possibleLocation(final Possible<String> result)
+	{
+		try
+		{
+			if (result.isPresent())
+			{
+				return Response.created(new URI(result.get())).build();
+			}
+			else
+			{
+				return failure(result.failure());
+			}
+		}
+		catch (final URISyntaxException e)
+		{
+			return unexpectedError(e);
 		}
 	}
 }

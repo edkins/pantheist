@@ -118,3 +118,16 @@ uri.splitTemplate = function(template)
 	}
 	return result;
 };
+
+uri.templateHasParameters = function(template)
+{
+	var segments = uri.splitTemplate(template);
+	for (var seg of segments)
+	{
+		if (!seg.literal)
+		{
+			return true;
+		}
+	}
+	return false;
+};

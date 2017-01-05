@@ -45,12 +45,17 @@ body {
 	padding: 2pt;
 }
 
+.file-list li {
+	transition: background-color 0.0s;
+}
+
 .file-list li.active {
     background: #f80;
 }
 
 .file-list li.untitled {
     color: #bbb;
+    font-style: italic;
 }
 
 .file-list li.active.untitled {

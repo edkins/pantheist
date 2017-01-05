@@ -18,7 +18,8 @@ public interface CommonApiModelFactory
 			BasicContentType basicType,
 			@Assisted("mimeType") String mimeType,
 			@Nullable @Assisted("urlTemplate") String urlTemplate,
-			@Nullable @Assisted("prototypeUrl") String prototypeUrl);
+			@Nullable @Assisted("prototypeUrl") String prototypeUrl,
+			HttpMethod method);
 
 	DataAction dataAction(
 			BasicContentType basicType,

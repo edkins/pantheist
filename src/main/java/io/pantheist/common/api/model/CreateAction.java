@@ -37,4 +37,15 @@ public interface CreateAction
 	@Nullable
 	@JsonProperty("prototypeUrl")
 	String prototypeUrl();
+
+	/**
+	 * Whether to use PUT or POST for creating these items.
+	 *
+	 * If you use POST it's assumed that certain parts of the path will be missing, e.g. an id.
+	 * This will instead either be generated automatically or inferred from the contents of what
+	 * you're posting (such as java package and class name). POST will return 201 Created, with
+	 * the location of the new resource in a Location header.
+	 */
+	@JsonProperty("method")
+	HttpMethod method();
 }

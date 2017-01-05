@@ -16,18 +16,21 @@ final class CreateActionImpl implements CreateAction
 	private final String mimeType;
 	private final String urlTemplate;
 	private final String prototypeUrl;
+	private final HttpMethod method;
 
 	@Inject
 	private CreateActionImpl(
 			@Assisted @JsonProperty("basicType") final BasicContentType basicType,
 			@Assisted("mimeType") @JsonProperty("mimeType") final String mimeType,
 			@Nullable @Assisted("urlTemplate") @JsonProperty("urlTemplate") final String urlTemplate,
-			@Nullable @Assisted("prototypeUrl") @JsonProperty("prototypeUrl") final String prototypeUrl)
+			@Nullable @Assisted("prototypeUrl") @JsonProperty("prototypeUrl") final String prototypeUrl,
+			@Assisted @JsonProperty("method") final HttpMethod method)
 	{
 		this.basicType = checkNotNull(basicType);
 		this.mimeType = OtherPreconditions.checkNotNullOrEmpty(mimeType);
 		this.urlTemplate = OtherPreconditions.checkNotNullOrEmpty(urlTemplate);
 		this.prototypeUrl = prototypeUrl;
+		this.method = checkNotNull(method);
 	}
 
 	@Override
@@ -52,6 +55,12 @@ final class CreateActionImpl implements CreateAction
 	public String urlTemplate()
 	{
 		return urlTemplate;
+	}
+
+	@Override
+	public HttpMethod method()
+	{
+		return method;
 	}
 
 }

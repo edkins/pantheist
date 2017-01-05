@@ -6,6 +6,7 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -211,6 +212,7 @@ public final class JavaResource implements ResourceTag
 	 */
 	@PUT
 	@Path("java-binding")
+	@Consumes("application/json")
 	public Response putJavaBinding(final String data)
 	{
 		LOGGER.info("PUT java-binding");
@@ -220,6 +222,28 @@ public final class JavaResource implements ResourceTag
 				return backend.putJavaBinding(request);
 			});
 			return resp.possibleEmpty(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles creating a new java file, detecting the package and filename automatically (POST)
+	 *
+	 * Note that this is included in the kind resource path.
+	 */
+	@POST
+	@Path("kind/java-file/create")
+	@Consumes("text/plain")
+	public Response createJavaFile(final String data)
+	{
+		LOGGER.info("POST kind/java-file/create");
+		try
+		{
+			final Possible<String> result = backend.postJava(data);
+			return resp.possibleLocation(result);
 		}
 		catch (final RuntimeException ex)
 		{

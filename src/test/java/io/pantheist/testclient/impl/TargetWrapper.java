@@ -185,6 +185,8 @@ public final class TargetWrapper
 		switch (response.getStatus()) {
 		case 200:
 			return ResponseType.OK;
+		case 201:
+			return ResponseType.CREATED;
 		case 204:
 			return ResponseType.NO_CONTENT;
 		case 404:
@@ -193,6 +195,8 @@ public final class TargetWrapper
 			return ResponseType.NOT_IMPLEMENTED;
 		case 400: // bad request
 			return ResponseType.BAD_REQUEST;
+		case 409: // conflict
+			return ResponseType.CONFLICT;
 		case 405: // method not allowed
 		default:
 			return ResponseType.UNEXPECTED;
@@ -304,5 +308,11 @@ public final class TargetWrapper
 	{
 		final Response response = target.request().delete();
 		return responseType(response);
+	}
+
+	public String post(final String data, final String contentType)
+	{
+		final Response response = target.request().post(Entity.entity(data, contentType));
+		return expectCreated(response, "POST");
 	}
 }

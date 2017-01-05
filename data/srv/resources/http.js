@@ -139,9 +139,13 @@ http.post = function(url,contentType,data)
 			}
 			xmlhttp.onload = function()
 				{
-					if (xmlhttp.status == 202 || xmlhttp.status == 204)
+					if (xmlhttp.status === 202 || xmlhttp.status === 204)
 					{
 						resolve(undefined);
+					}
+					else if (xmlhttp.status === 201)
+					{
+						resolve(xmlhttp.getResponseHeader('Location'));
 					}
 					else
 					{

@@ -215,4 +215,10 @@ final class JavaBackendImpl implements JavaBackend
 		return modelFactory.javaBinding(javaBinding.location());
 	}
 
+	@Override
+	public Possible<String> postJava(final String code)
+	{
+		return javaStore.postJava(code, true).map(urlTranslation::javaToUrl);
+	}
+
 }

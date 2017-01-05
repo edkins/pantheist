@@ -1,19 +1,105 @@
 'use strict';
 
 var resourceTree = {};
-resourceTree.expandedNodes = {};
+resourceTree._info = {};
 
-resourceTree.invertExpansion = function(url)
+/*
+
+Structure:
+
+  <li class="tree-node">
+  	<div class="tree-item" data-url="...">
+  		<span class="tree-item-icon" style="background-image:url(...)"></span>
+  		Name of the thing
+  	</div>
+  	
+  	<!-- only if expanded -->
+    <ul>
+    	<li ... />
+    	<li ... />
+    	<li ... />
+    </ul>
+  </li>
+
+
+The exception is the root node, which instead of being contained in <li/> is contained
+in the <div class="panel-right-div" id="resource-list" /> that you see in the html.
+*/
+
+// Recursively delete all the dom elements and associated info
+// Note this means when you collapse a node it will forget any nested
+// expansion info.
+// This is arguably useful as it lets you tidy up your view of
+// the tree easily.
+resourceTree._unexpand = function(parent)
 {
-	if (url in resourceTree.expandedNodes)
+	if (parent == undefined || !parent.expanded || parent.ulElement == undefined)
 	{
-		delete resourceTree.expandedNodes[url];
+		throw new Error('_unexpand: parent not in expanded state');
 	}
-	else
+	
+	for (var childResource of parent.data.childResources)
 	{
-		resourceTree.expandedNodes[url] = '';
+		var child = resourceTree._info[childResource.url];
+		if (child.expanded)
+		{
+			resourceTree._unexpand(child);
+		}
+		
+		// Don't call parent.ulElement.removeChild(child)
+		// instead we'll remove the entire ul
+		
+		delete resourceTree._info[childResource.url];
 	}
-	resourceTree._listThings();
+	
+	parent.liElement.removeChild(parent.ulElement);
+	parent.ulElement = undefined;
+	parent.expanded = false;
+};
+
+resourceTree._expand = function(parent)
+{
+	if (parent == undefined)
+	{
+		throw new Error('_expand: url is not known');
+	}
+	if (parent.data.childResources == undefined)
+	{
+		throw new Error('_expand: leaf node can\'t be expanded');
+	}
+
+	if (parent.expanded)
+	{
+		throw new Error('_expand: already expanded');
+	}
+
+	if (parent.ulElement != undefined)
+	{
+		throw new Error('_expand: not expecting to have ulElement for unexpanded node');
+	}
+		
+	parent.ulElement = document.createElement('ul');
+	parent.liElement.append(parent.ulElement);
+	parent.expanded = true;
+
+	for (var resource of parent.data.childResources)
+	{
+		var child = resourceTree._info[resource.url];
+		if (child === undefined)
+		{
+			var name = decodeURIComponent(uri.lastSegment(resource.url));
+			var li = resourceTree._createTreeLi(resource.kindUrl, false, resource.url, name);
+			child = {
+				liElement: li,
+				ulElement: undefined,
+				expanded: false,
+			};
+			
+			resourceTree._info[resource.url] = child;
+		}
+		
+		parent.ulElement.append(child.liElement);
+	}
 };
 
 resourceTree._createTreeItem = function(kindUrl,expanded,url,name)
@@ -36,175 +122,93 @@ resourceTree._createTreeItem = function(kindUrl,expanded,url,name)
 	return item;
 };
 
-resourceTree._createUl = function(parentUrl)
+resourceTree._createTreeLi = function(kindUrl,expanded,url,name)
 {
-	var ul = document.createElement('ul');
-	return resourceTree._createListElements(parentUrl).then(
-		elements => {
-			for (var element of elements)
-			{
-				ul.append(element);
-			}
-			return ul;
-		}
-	);
-};
-
-resourceTree._createTreeNode = function(kindUrl,url)
-{
-	var name = decodeURIComponent(uri.lastSegment(url));
-	
 	var li = document.createElement('li');
-	
-	var expanded = (url in resourceTree.expandedNodes);
 	
 	var item = resourceTree._createTreeItem(kindUrl,expanded,url,name);
 	li.append(item);
 
 	li.classList.add('tree-node');
-	if (expanded)
-	{
-		return resourceTree._createUl(url).then( cul => {
-			li.append(cul);
-			return li;
-		} );
-	}
 	
-	return Promise.resolve(li);
-};
-
-resourceTree._createListElements = function(parentUrl)
-{
-	return http.getJson(parentUrl).then(
-		data => {
-			if (data.childResources.length === 0)
-			{
-				var li = document.createElement('li');
-				li.append('empty');
-				li.classList.add('tree-node');
-				li.classList.add('notice');
-				return [li];
-			}
-		
-			var elements = [];
-			return resourceTree._processList(0, data.childResources, child =>
-				{
-					if (child.suggestHiding)
-					{
-						return resourceTree._createListElements(child.url).then(
-							els => {
-								for (var el of els)
-								{
-									elements.push(el);
-								}
-							}
-						);
-					}
-					else
-					{
-						return resourceTree._createTreeNode(child.kindUrl, child.url).then(
-							li => elements.push(li)
-						);
-					}
-				}
-			).then( x => elements );
-		}
-	).catch(
-		error => {
-			var li = document.createElement('li');
-			li.append(''+error);
-			li.classList.add('tree-node');
-			li.classList.add('error');
-			return [li];
-		}
-	);
-};
-
-resourceTree._listThings = function()
-{
-	var rootItem = resourceTree._createTreeItem(ui.rootKindUrl,true,http.home,'root'); 
-	return resourceTree._createUl(http.home).then(
-		ul => {
-			var panel = document.getElementById('resource-list');
-			ui.removeChildren(panel);
-			panel.append(rootItem);
-			panel.append(ul);
-		}
-	);
-};
-
-resourceTree._processList = function(i,array,fn)
-{
-	if (i >= array.length)
-	{
-		return Promise.resolve(undefined);
-	}
-	else
-	{
-		return Promise.resolve(fn(array[i])).then( x => resourceTree._processList(i+1,array,fn) );
-	}
+	return li;
 };
 
 resourceTree.initialize = function()
 {
-	return resourceTree._listThings();
+	var rootElement = document.getElementById('resource-list');
+	ui.removeChildren(rootElement);
+	resourceTree._info = {};
+	
+	var rootUrl = http.home;
+	var rootKind = http.home + '/kind/pantheist-root';
+	
+	rootElement.append(resourceTree._createTreeItem(rootKind, false, rootUrl, 'root'));
+	
+	var rootItem = {
+		liElement: rootElement,
+		ulElement: undefined,
+		expanded: false
+	};
+	
+	resourceTree._info[rootUrl] = rootItem;
 };
-
-resourceTree._flashUrl = function(url,cssClass)
-{
-	var treeItems = document.getElementById('resource-list').getElementsByTagName('div');
-	for (var i = 0; i < treeItems.length; i++)
-	{
-		if (treeItems.item(i).dataset.url === url)
-		{
-			ui.flashClass(treeItems.item(i), cssClass);
-		}
-	}
-}
 
 resourceTree._onclickTreeItem = function(event)
 {
 	var url = event.currentTarget.dataset.url;
+	var elementToFlash = event.currentTarget;
 	
 	if (url == undefined)
 	{
 		console.error('No url defined for this element');
-		ui.flashClass(event.currentTarget, 'flash-client-error');
+		ui.flashClass(elementToFlash, 'flash-client-error');
+		return;
+	}
+	
+	var item = resourceTree._info[url];
+	
+	if (item == undefined)
+	{
+		console.error('No information for url ' + url);
+		ui.flashClass(elementToFlash, 'flash-client-error');
 		return;
 	}
 	
 	if (event.ctrlKey)
 	{
-		ui.visitInfo(url);
+		ui.visitScratch( JSON.stringify(item.data, null, '    ') );
+		return;
 	}
-	else
+	
+	if (item.expanded)
 	{
-		//resourceTree._flashUrl(url,'flash-loading');
-		ui.visit(url).then( result => {
-			if (result.visitSuccess === 'success')
-			{
-				resourceTree._flashUrl(url,'flash-activate');
-			}
-			else if (result.visitSuccess === 'already')
-			{
-				resourceTree._flashUrl(url,'flash-neutral');
-			}
-			else if (result.visitSuccess === 'server-error')
-			{
-				resourceTree._flashUrl(url,'flash-server-error');
-			}
-			else if (result.visitSuccess === 'no-data-action' && result.visitInfo != undefined && result.visitInfo.childResources != undefined)
-			{
-				resourceTree.invertExpansion(url);
-				resourceTree._flashUrl(url,'flash-expand');
-			}
-			else if (result.visitSuccess === 'client-error' || true)
-			{
-				resourceTree._flashUrl(url,'flash-client-error');
-			}
-		} ).catch( error => {
-			console.error('Unexpected error: ' + error); 
-			resourceTree._flashUrl(url,'flash-client-error');
-		} );
+		resourceTree._unexpand(item);
+		return;
 	}
+	
+	http.getJson( url ).then (
+		data => {
+			item.data = data;
+			
+			if (item.data.dataAction != undefined)
+			{
+				return ui.visit(url,
+					item.data.kindUrl,
+					item.data.dataAction.url,
+					item.data.dataAction.mimeType,
+					elementToFlash,
+					true);
+			}
+			else
+			{
+				resourceTree._expand(item);
+			}
+		},
+		
+		error => {
+			console.error('Fetching info: ' + error);
+			ui.flashClass(event.currentTarget, 'flash-server-error');
+		}
+	);
 };

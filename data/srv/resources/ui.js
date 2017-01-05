@@ -58,14 +58,6 @@ Object.defineProperty(ui, 'rootKindUrl', {
 	}
 });
 
-ui.setEditorText = function(text)
-{
-	editor.setValue(''+text);
-	editor.selection.clearSelection();
-	document.getElementById('editor').classList.remove('hidden');
-	document.getElementById('create-page').classList.add('hidden');
-}
-
 ui._setupAce = function()
 {
     editor = ace.edit("editor");
@@ -88,27 +80,6 @@ ui.refreshCache = function() {
 			ui._absorbKindInfo(kindInfo);
 		});
 };
-
-function setEditorMode(basicType)
-{
-	switch(basicType)
-	{
-	case 'text':
-	case 'unknown':
-	    editor.getSession().setMode('ace/mode/text');
-		break;
-	case 'json':
-	    editor.getSession().setMode('ace/mode/json');
-		break;
-	case 'java':
-	    editor.getSession().setMode('ace/mode/java');
-		break;
-	default:
-		console.log('Unrecognized basic type: ' + basicType);
-	    editor.getSession().setMode('ace/mode/text');
-		break;
-	}
-}
 /*
 function constructCreateUrl(t)
 {
@@ -166,50 +137,11 @@ ui._kindDisplayName = function(kind)
 	}
 };
 
-ui._visitCreate = function(pseudoUrl)
-{
-	document.getElementById('editor').classList.add('hidden');
-	document.getElementById('create-page').classList.remove('hidden');
-	fileTabs.switchTo(pseudoUrl);
-	var panel = document.getElementById('create-page-list');
-	ui.removeChildren(panel);
-	for (var kind of ui._sortedKindList)
-	{
-		if (kind.createAction != undefined)
-		{
-			var background = document.createElement('div');
-			var button = document.createElement('div');
-			var icon = document.createElement('span');
-			var textSpan = document.createElement('span');
-			var iconUrl = ui.getKindIcon(kind.url, true);
-			var displayName = ui._kindDisplayName(kind);
-			
-			background.classList.add('create-kind-background');
-			
-			button.classList.add('create-kind');
-			button.dataset.kindUrl = kind.url;
-			button.onclick = ui._onclickCreateItem;
-			
-			icon.classList.add('create-kind-icon');
-			icon.style['background-image'] = "url('" + iconUrl + "')";
-			
-			textSpan.textContent = displayName;
-			textSpan.classList.add('create-kind-name');
-			
-			button.append(icon);
-			button.append(textSpan);
-			background.append(button);
-			panel.append(background);
-		}
-	}
-	return {visitSuccess: 'success'};
-};
-
 ui._visitUntitled = function(pseudoUrl)
 {
 	fileTabs.switchTo(pseudoUrl);
 	
-	var kind = ui._kinds[fileTabs.activeKindUrl];
+	var kind = ui._kinds[fileTabs.activeFile.kindUrl];
 	
 	if (kind === undefined || kind.createAction === undefined || kind.createAction.prototypeUrl === undefined)
 	{
@@ -232,6 +164,35 @@ ui._visitUntitled = function(pseudoUrl)
 
 };
 
+ui.openNew = function(kindUrl, dataUrl, elementToFlash)
+{
+	var kind = ui._kinds[kindUrl];
+	var displayName = ui._kindDisplayName(kind);
+	var mimeType = kind.createAction.mimeType;
+	var method = kind.createAction.method;
+	var pseudoUrl = fileTabs.openNew(kindUrl, displayName, dataUrl, mimeType, method)
+	
+	if (kind === undefined || kind.createAction === undefined || kind.createAction.prototypeUrl === undefined)
+	{
+		editSessions.create(pseudoUrl,'');
+		ui.flashClass(elementToFlash, 'flash-activate');
+		return undefined;
+	}
+	else
+	{
+		return http.getString('text/plain', kind.createAction.prototypeUrl).then(
+			text => {
+				editSessions.create(pseudoUrl,text);
+				ui.flashClass(elementToFlash, 'flash-activate');
+			},
+			error => {
+				console.log('Fetching prototype: ' + error);
+				ui.flashClass(elementToFlash, 'flash-server-error');
+			}
+		);
+	}
+};
+
 ui._visitAbout = function(pseudoUrl)
 {
 	if (pseudoUrl === 'about:create')
@@ -249,68 +210,88 @@ ui._visitAbout = function(pseudoUrl)
 	}
 };
 
-ui.visit = function(url)
+ui.loadIfNotAlready = function(url)
 {
-	if (typeof url !== 'string')
+	if (fileTabs.has(url))
 	{
-		console.error('visiting invalid value: ' + url);
-		return {
-			visitSuccess: 'client-error'
-		}
+		return Promise.resolve(undefined);
 	}
-
-	if (url.startsWith('about:'))
-	{
-		return ui._visitAbout(url);
-	}
-
-	return http.getJson(url).then( data => {
-		if (data.dataAction != undefined)
-		{
-			var success = fileTabs.openIfNotAlready(url, data.kindUrl, data.dataAction.url);
-			fileTabs.switchTo(url);
-			
-			return http.getString(data.dataAction.mimeType, data.dataAction.url).then( text => {
-				ui.setEditorText(text);
-				return {
-					visitSuccess: success,
-					visitInfo: data
-				};
-			}).catch(error => {
-				console.error('Data fetch: ' + error);
-				return {
-					visitSuccess: 'server-error',
-					visitInfo: error
-				};
-			});
-		}
-		else
-		{
-			return {
-				visitSuccess: 'no-data-action',
-				visitInfo: data
-			};
-		}
-	}, error => {
-		console.error('Info fetch: ' + error);
-		return {
-			visitSuccess: 'server-error',
-			visitInfo: error
-		};
-	} );
+	
+	
 };
 
-ui._visitScratch = function(text)
+ui.switchTo = function(url)
+{
+	fileTabs.switchTo(url);
+	if (url === 'about:create')
+	{
+		editSessions.switchTo(undefined);
+		createPage.showCreatePage();
+	}
+	else
+	{
+		createPage.hideCreatePage();
+		editSessions.switchTo(url);
+	}
+};
+
+ui.visit = function(url, kindUrl, dataUrl, mimeType, elementToFlash, flashOnSuccess)
+{
+	if (typeof url !== 'string' || typeof kindUrl !== 'string' || typeof dataUrl !== 'string' || typeof mimeType !== 'string')
+	{
+		console.error('visiting invalid value: ' + url + ' ' + kindUrl + ' ' + dataUrl + ' ' + mimeType);
+		ui.flashClass(elementToFlash, 'flash-client-error');
+		return undefined;
+	}
+	
+	if (fileTabs.has(url) !== editSessions.has(url))
+	{
+		console.error('fileTabs and editSessions disagree on whether url exists: ' + url + ' ' + fileTabs.has(url) + ' ' + editSessions.has(url));
+		ui.flashClass(elementToFlash, 'flash-client-error');
+		return undefined;
+	}
+
+	if (fileTabs.has(url))
+	{
+		// Already loaded, just need to switch to it.
+		fileTabs.switchTo(url);
+		editSessions.switchTo(url);
+		
+		if (flashOnSuccess)
+		{
+			ui.flashClass(elementToFlash, 'flash-neutral');
+		}
+		return undefined;
+	}
+
+	return http.getString(mimeType, dataUrl).then(
+		text => {
+			var displayName = uri.lastSegment(url);
+			fileTabs.open(url, kindUrl, dataUrl, mimeType)
+			editSessions.create(url, text);
+
+			fileTabs.switchTo(url);
+			editSessions.switchTo(url);
+			
+			if (flashOnSuccess)
+			{
+				ui.flashClass(elementToFlash, 'flash-activate');
+			}
+			return undefined;
+		},
+		
+		error => {
+			console.error('fetching data: ' + error);
+			ui.flashClass(elementToFlash, 'flash-server-error');
+			return undefined;
+		}
+	);
+};
+
+ui.visitScratch = function(text)
 {
 	fileTabs.switchTo(undefined);
-	ui.setEditorText(text);
-};
-
-ui.visitInfo = function(url)
-{
-	return http.getString('application/json', url)
-		.then( text => ui._visitScratch(text) )
-		.catch( error => ui._visitScratch(error) );
+	editSessions.scratch(text);
 };
 
 ui._onclickReload = function(event)
@@ -318,7 +299,7 @@ ui._onclickReload = function(event)
 	var button = document.getElementById('btn-reload');
 	http.post(http.home + '/system/reload', undefined, undefined).then( () => {
 		ui.flashClass(button, 'flash-activate');
-		ui._visitScratch('Server has reloaded configuration');
+		ui.visitScratch('Server has reloaded configuration');
 	}).catch( error => {
 		console.error(''+error);
 		ui.flashClass(button, 'flash-server-error');
@@ -330,17 +311,34 @@ ui._onclickShutdown = function(event)
 	var button = document.getElementById('btn-shutdown');
 	http.post(http.home + '/system/terminate', undefined, undefined).then( () => {
 		ui.flashClass(button, 'flash-activate');
-		ui._visitScratch('Terminated');
+		ui.visitScratch('Terminated');
 	}).catch( error => {
 		console.error(''+error);
 		ui.flashClass(button, 'flash-server-error');
 	});
 };
 
-ui._onclickSave = function(event)
+ui.save = function()
 {
 	var button = document.getElementById('btn-save');
-	var url = fileTabs.activeDataUrl;
+	if (fileTabs.activeFile === undefined)
+	{
+		console.error('no active file');
+		ui.flashClass(button, 'flash-client-error');
+		return;
+	}
+	
+	var url = fileTabs.activeFile.dataUrl;
+	var mimeType = fileTabs.activeFile.mimeType;
+	var method = fileTabs.activeFile.method;
+	var text = editSessions.textForUrl(fileTabs.activeFile.url);
+	
+	if (text == undefined)
+	{
+		console.error('text is undefined');
+		ui.flashClass(button, 'flash-client-error');
+		return;
+	}
 	
 	if (url == undefined)
 	{
@@ -348,77 +346,52 @@ ui._onclickSave = function(event)
 		ui.flashClass(button, 'flash-client-error');
 		return;
 	}
-	
-	var kindUrl = fileTabs.activeKindUrl;
-	if (kindUrl == undefined)
+
+	if (mimeType == undefined)
 	{
-		console.error('kindUrl is undefined');
+		console.error('mime type is undefined');
 		ui.flashClass(button, 'flash-client-error');
 		return;
 	}
 
-	var kind = ui._kinds[kindUrl];
-	if (kind == undefined)
+	if (method == undefined)
 	{
-		console.error('unknown kind: ' + kindUrl);
+		console.error('method is undefined');
 		ui.flashClass(button, 'flash-client-error');
 		return;
 	}
-	
-	if (kind.dataAction == undefined)
-	{
-		console.error('no data action for kind: ' + kindUrl);
-		ui.flashClass(saveButton, 'flash-client-error');
-		return;
-	}
-	
-	if (!kind.dataAction.canPut)
-	{
-		console.error('read-only kind: ' + kindUrl);
-		ui.flashClass(saveButton, 'flash-client-error');
-		return;
-	}
 
-	if (document.getElementById('editor').classList.contains('hidden'))
+	switch(method)
 	{
-		console.error('editor is hidden');
-		ui.flashClass(saveButton, 'flash-client-error');
+	case 'put':
+		return http.putString(url, mimeType, text).then(
+			ok => {
+				ui.flashClass(button, 'flash-activate');
+			},
+			error => {
+				console.error('putting data: ' + error);
+				ui.flashClass(button, 'flash-server-error');
+			} );
+	case 'post':
+		return http.post(url, mimeType, text).then(
+			url => {
+				ui.flashClass(button, 'flash-activate');
+			},
+			error => {
+				console.error('posting data: ' + error);
+				ui.flashClass(button, 'flash-server-error');
+			} );
+	default:
+		console.error('unrecognized method: ' + method);
+		ui.flashClass(button, 'flash-client-error');
 		return;
 	}
-
-	http.putString(url, kind.dataAction.mimeType, editor.getValue()).then(
-		ok => {
-			ui.flashClass(saveButton, 'flash-activate');
-		},
-		error => {
-			console.error('sending data: ' + error);
-			ui.flashClass(saveButton, 'flash-server-error');
-		}
-	);
 };
 
-ui._onclickCreateItem = function(event)
+ui._onclickSave = function(event)
 {
-	var button = event.currentTarget;
-	var kindUrl = event.currentTarget.dataset.kindUrl;
-	var kind = ui._kinds[kindUrl];
-	if (kind == undefined)
-	{
-		console.error('unknown kind: ' + kindUrl);
-		ui.flashClass(button, 'flash-client-error');
-		return;
-	}
-
-	if (kind.createAction == undefined)
-	{
-		console.error('no create action for kind: ' + kindUrl);
-		ui.flashClass(button, 'flash-client-error');
-		return;
-	}
-	
-	fileTabs.openNew(kindUrl, ui._kindDisplayName(kind));
-	ui.flashClass(button, 'flash-activate');
-};
+	ui.save();
+}
 
 window.onload = function()
 {

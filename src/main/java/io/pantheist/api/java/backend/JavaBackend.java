@@ -9,7 +9,7 @@ import io.pantheist.common.util.Possible;
 
 public interface JavaBackend
 {
-	Possible<Void> putJavaFile(String pkg, String file, String data);
+	Possible<Void> putJavaFile(String pkg, String file, String code);
 
 	Possible<String> getJavaFile(String pkg, String file);
 
@@ -26,4 +26,6 @@ public interface JavaBackend
 	Possible<Void> putJavaBinding(ApiJavaBinding request);
 
 	ApiJavaBinding getJavaBinding();
+
+	Possible<String> postJava(String code);
 }

@@ -21,27 +21,16 @@ fileTabs._find = function(url)
 	return undefined;
 }
 
-Object.defineProperty(fileTabs, 'activeDataUrl', {
-	get: function()
-	{
-		var file = fileTabs._find(fileTabs._activeUrl);
-		if (file === undefined)
-		{
-			return undefined;
-		}
-		return file.dataUrl;
-	}
-});
+fileTabs.has = function(url)
+{
+	return fileTabs._find(url) != undefined;
+}
 
-Object.defineProperty(fileTabs, 'activeKindUrl', {
+Object.defineProperty(fileTabs, 'activeFile', {
 	get: function()
 	{
 		var file = fileTabs._find(fileTabs._activeUrl);
-		if (file === undefined)
-		{
-			return undefined;
-		}
-		return file.kindUrl;
+		return file;
 	}
 });
 
@@ -57,27 +46,32 @@ fileTabs.hasUrlOpen = function(url)
 	return fileTabs._find(url) !== undefined;
 };
 
-fileTabs.openIfNotAlready = function(url, kindUrl, dataUrl)
+fileTabs.open = function(url, kindUrl, dataUrl, mimeType, elementToFlash)
 {
 	if (url == undefined || kindUrl == undefined)
 	{
 		// do nothing: bad url
 		console.error('opening invalid values: ' + url + ' ' + kindUrl);
-		return 'client-error';
+		ui.flashClass(elementToFlash, 'client-error');
+		return;
 	}
 
 	var file = fileTabs._find(url);
 	if (file != undefined)
 	{
 		// do nothing: already open.
-		return 'already';
+		console.error('already open: ' + url);
+		ui.flashClass(elementToFlash, 'client-error');
+		return;
 	}
 
 	var newFile = {
 		url: url,
 		domElement: document.createElement('li'),
 		kindUrl: kindUrl,
-		dataUrl: dataUrl
+		dataUrl: dataUrl,
+		mimeType: mimeType,
+		method: 'put'
 	};
 	
 	newFile.domElement.textContent = uri.lastSegment(url);
@@ -93,8 +87,6 @@ fileTabs.openIfNotAlready = function(url, kindUrl, dataUrl)
 		// isn't open, we don't want to think that we've already switched to it.
 		fileTabs._activeUrl = undefined;
 	}
-	
-	return 'success';
 };
 
 fileTabs._nextUntitledPseudoUrl = function()
@@ -109,12 +101,15 @@ fileTabs._nextUntitledPseudoUrl = function()
 	}
 };
 
-fileTabs.openNew = function(kindUrl, displayName)
+fileTabs.openNew = function(kindUrl, displayName, dataUrl, mimeType, method)
 {
 	var newFile = {
 		url: fileTabs._nextUntitledPseudoUrl(),
 		domElement: document.createElement('li'),
-		kindUrl: kindUrl
+		kindUrl: kindUrl,
+		dataUrl: dataUrl,
+		mimeType: mimeType,
+		method: method
 	};
 	
 	newFile.domElement.dataset.url = newFile.url;
@@ -124,6 +119,8 @@ fileTabs.openNew = function(kindUrl, displayName)
 	
 	fileTabs._panel.append(newFile.domElement);
 	fileTabs._openFiles.push(newFile);
+	
+	return newFile.url;
 };
 
 fileTabs.switchTo = function(url)
@@ -154,7 +151,23 @@ fileTabs.switchTo = function(url)
 
 fileTabs._onclickTab = function(event)
 {
-	ui.visit(event.currentTarget.dataset.url);
+	var url = event.currentTarget.dataset.url;
+	if (event.ctrlKey)
+	{
+		var file = fileTabs._find(url);
+		if (file === undefined)
+		{
+			file = {url: url};
+		}
+		else
+		{
+			ui.visitScratch(JSON.stringify(file, null, '    '));
+		}
+	}
+	else
+	{
+		ui.switchTo(url);
+	}
 };
 
 fileTabs.createCreateTab = function()
@@ -175,7 +188,7 @@ fileTabs.createCreateTab = function()
 
 fileTabs._mustKeep = function(file)
 {
-	return file.url === 'about:create';
+	return file.url === 'about:create' || file.currentText !== file.originalText;
 };
 
 fileTabs.onclickCloseAll = function(url)

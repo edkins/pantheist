@@ -20,4 +20,6 @@ public interface Resp
 	Response failure(FailureReason fail);
 
 	<T> Possible<T> request(String requestJson, Class<T> clazz);
+
+	Response possibleLocation(Possible<String> result);
 }

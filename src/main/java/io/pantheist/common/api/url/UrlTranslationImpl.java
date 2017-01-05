@@ -18,6 +18,7 @@ import io.pantheist.common.api.model.CommonApiModelFactory;
 import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.DataAction;
 import io.pantheist.common.api.model.DeleteAction;
+import io.pantheist.common.api.model.HttpMethod;
 import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.common.util.AntiIt;
 import io.pantheist.handler.java.model.JavaFileId;
@@ -169,7 +170,8 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public CreateAction javaPkgCreateAction()
 	{
-		return modelFactory.createAction(BasicContentType.java, TEXT_PLAIN, javaFileData.template(), null);
+		return modelFactory.createAction(BasicContentType.java, TEXT_PLAIN, javaFileData.template(), null,
+				HttpMethod.put);
 	}
 
 	@Override
@@ -188,7 +190,8 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public CreateAction jsonSchemaCreateAction()
 	{
-		return modelFactory.createAction(BasicContentType.json, JSON_SCHEMA_MIME, jsonSchemaData.template(), null);
+		return modelFactory.createAction(BasicContentType.json, JSON_SCHEMA_MIME, jsonSchemaData.template(), null,
+				HttpMethod.put);
 	}
 
 	@Override
@@ -232,7 +235,8 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public CreateAction kindCreateAction()
 	{
-		return modelFactory.createAction(BasicContentType.json, APPLICATION_JSON, kind.template(), null);
+		return modelFactory.createAction(BasicContentType.json, APPLICATION_JSON, kind.template(), null,
+				HttpMethod.put);
 	}
 
 	@Override
