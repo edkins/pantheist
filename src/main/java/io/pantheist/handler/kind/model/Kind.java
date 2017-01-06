@@ -1,5 +1,6 @@
 package io.pantheist.handler.kind.model;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
@@ -8,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import io.pantheist.common.annotations.NotNullableOnTheWayOut;
@@ -31,6 +33,10 @@ public interface Kind
 	KindSchema schema();
 
 	@Nullable
+	@JsonProperty("jsonSchema")
+	JsonNode jsonSchema();
+
+	@Nullable
 	@JsonProperty("presentation")
 	KindPresentation presentation();
 
@@ -43,6 +49,10 @@ public interface Kind
 
 	@JsonProperty("listable")
 	boolean listable();
+
+	@Nullable
+	@JsonProperty("affordances")
+	List<Affordance> affordances();
 
 	/**
 	 * Convenience method for obtaining the parent kind ID specified in the schema, if any.
@@ -65,4 +75,10 @@ public interface Kind
 	 */
 	@JsonIgnore
 	boolean shouldRegisterInSql();
+
+	/**
+	 * The only mutable thing. Only allows you to set from null to something non-null.
+	 */
+	@JsonIgnore
+	void setKindId(String kindId);
 }

@@ -210,6 +210,12 @@ public final class TargetWrapper
 		expectNoContent(response, "PUT");
 	}
 
+	public void putString(final String text, final String contentType)
+	{
+		final Response response = target.request().put(Entity.entity(text, contentType));
+		expectNoContent(response, "PUT");
+	}
+
 	public void putResource(final String resourcePath, final String contentType)
 	{
 		try (InputStream input = TargetWrapper.class.getResourceAsStream(resourcePath))
@@ -311,10 +317,11 @@ public final class TargetWrapper
 		return responseType(response);
 	}
 
-	public String post(final String data, final String contentType)
+	public TargetWrapper postAndGetPath(final String data, final String contentType)
 	{
 		final Response response = target.request().post(Entity.entity(data, contentType));
-		return expectCreated(response, "POST");
+		final String url = expectCreated(response, "POST");
+		return targetRoot.forUri(url);
 	}
 
 	public String headLink(final String string)

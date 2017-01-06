@@ -2,9 +2,11 @@ package io.pantheist.handler.kind.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -146,5 +148,40 @@ final class KindStoreImpl implements KindStore
 				.properties()
 				.entrySet())
 				.map(this::toSqlProperty);
+	}
+
+	@Override
+	public boolean derivesFrom(final Kind kind, final String ancestorKindId)
+	{
+		return derivesFromRecursive(kind, ancestorKindId, new HashSet<>());
+	}
+
+	private boolean derivesFromRecursive(final Kind kind, final String ancestorKindId, final Set<String> alreadyVisited)
+	{
+		final String kindId = kind.kindId();
+		if (alreadyVisited.contains(kindId))
+		{
+			// Kind cycle. Shouldn't happen if you've set them up right.
+			return false;
+		}
+		alreadyVisited.add(kindId);
+
+		if (kindId.equals(ancestorKindId))
+		{
+			return true;
+		}
+
+		if (!kind.parent().isPresent())
+		{
+			return false;
+		}
+
+		final Optional<Kind> parentKind = getKind(kind.parent().get());
+		if (!parentKind.isPresent())
+		{
+			return false;
+		}
+
+		return derivesFromRecursive(parentKind.get(), ancestorKindId, alreadyVisited);
 	}
 }

@@ -3,6 +3,7 @@ package io.pantheist.api.kind.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -15,37 +16,38 @@ import io.pantheist.api.kind.model.ListKindItem;
 import io.pantheist.api.kind.model.ListKindResponse;
 import io.pantheist.common.api.model.Kinded;
 import io.pantheist.common.api.model.KindedImpl;
+import io.pantheist.common.api.model.KindedMime;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
+import io.pantheist.handler.filekind.backend.FileKindHandler;
 import io.pantheist.handler.kind.backend.KindStore;
 import io.pantheist.handler.kind.backend.KindValidation;
 import io.pantheist.handler.kind.model.Kind;
-import io.pantheist.handler.kind.model.KindModelFactory;
 
 final class KindBackendImpl implements KindBackend
 {
 	private final KindStore kindStore;
-	private final KindModelFactory kindFactory;
 	private final KindValidation kindValidation;
 	private final ApiKindModelFactory modelFactory;
 	private final UrlTranslation urlTranslation;
+	private final FileKindHandler fileKindHandler;
 
 	@Inject
 	private KindBackendImpl(
 			final KindStore kindStore,
-			final KindModelFactory kindFactory,
 			final KindValidation kindValidation,
 			final ApiKindModelFactory modelFactory,
-			final UrlTranslation urlTranslation)
+			final UrlTranslation urlTranslation,
+			final FileKindHandler fileKindHandler)
 	{
 		this.kindStore = checkNotNull(kindStore);
-		this.kindFactory = checkNotNull(kindFactory);
 		this.kindValidation = checkNotNull(kindValidation);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.urlTranslation = checkNotNull(urlTranslation);
+		this.fileKindHandler = checkNotNull(fileKindHandler);
 	}
 
 	private ListKindItem toListKindItem(final Kind k)
@@ -75,23 +77,20 @@ final class KindBackendImpl implements KindBackend
 				.orElse(FailureReason.DOES_NOT_EXIST.happened());
 	}
 
-	private Kind supplyKindId(final String kindId, final Kind kind)
-	{
-		OtherPreconditions.checkNotNullOrEmpty(kindId);
-		return kindFactory.kind(kindId, kind.schema(), kind.partOfSystem(), kind.presentation(),
-				kind.createAction(), kind.deleteAction(), kind.listable());
-	}
-
 	@Override
 	public Possible<Void> putKindData(final String kindId, final Kind kind, final boolean failIfExists)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
 		checkNotNull(kind);
-		if (kind.kindId() != null && !kind.kindId().equals(kindId))
+		if (kind.kindId() == null)
+		{
+			kind.setKindId(kindId);
+		}
+		else if (!kind.kindId().equals(kindId))
 		{
 			return FailureReason.WRONG_LOCATION.happened();
 		}
-		return kindStore.putKind(kindId, supplyKindId(kindId, kind), failIfExists);
+		return kindStore.putKind(kindId, kind, failIfExists);
 	}
 
 	private ListEntityItem toListEntityItem(final ObjectNode entity)
@@ -135,5 +134,47 @@ final class KindBackendImpl implements KindBackend
 			return FailureReason.WRONG_LOCATION.happened();
 		}
 		return kindStore.putKind(kind.kindId(), kind, true).map(x -> urlTranslation.kindToUrl(kind.kindId()));
+	}
+
+	@Override
+	public Possible<String> newInstanceOfKind(final String kindId)
+	{
+		final Optional<Kind> kind = kindStore.getKind(kindId);
+		if (kind.isPresent())
+		{
+			if (kind.get().hasParent("file"))
+			{
+				return View.ok(fileKindHandler.newInstanceOfKind(kind.get()));
+			}
+			else
+			{
+				return FailureReason.HANDLER_DOES_NOT_SUPPORT.happened();
+			}
+		}
+		else
+		{
+			return FailureReason.PARENT_DOES_NOT_EXIST.happened();
+		}
+	}
+
+	@Override
+	public Possible<KindedMime> getEntity(final String kindId, final String entityId)
+	{
+		final Optional<Kind> kind = kindStore.getKind(kindId);
+		if (kind.isPresent())
+		{
+			if (kindStore.derivesFrom(kind.get(), "file"))
+			{
+				return fileKindHandler.getEntity(kind.get(), entityId);
+			}
+			else
+			{
+				return FailureReason.HANDLER_DOES_NOT_SUPPORT.happened();
+			}
+		}
+		else
+		{
+			return FailureReason.PARENT_DOES_NOT_EXIST.happened();
+		}
 	}
 }

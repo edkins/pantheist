@@ -29,4 +29,6 @@ public interface KindStore
 	 * the base kinds defining sql properties. (Subkinds are no good here).
 	 */
 	AntiIterator<SqlProperty> listSqlPropertiesOfKind(String kindId);
+
+	boolean derivesFrom(Kind kind, String ancestorKindId);
 }

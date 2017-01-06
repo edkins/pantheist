@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import io.pantheist.common.util.EmptyFilterableObjectStream;
 import io.pantheist.common.util.FilterableObjectStream;
 import io.pantheist.common.util.OtherPreconditions;
+import io.pantheist.handler.filekind.backend.FileKindHandler;
 import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.handler.sql.backend.SqlService;
 import io.pantheist.handler.sql.model.SqlProperty;
@@ -31,16 +32,19 @@ final class KindValidationImpl implements KindValidation
 	private final KindStore kindStore;
 	private final SqlService sqlService;
 	private final ObjectMapper objectMapper;
+	private final FileKindHandler fileKindHandler;
 
 	@Inject
 	private KindValidationImpl(
 			final KindStore kindStore,
 			final SqlService sqlService,
-			final ObjectMapper objectMapper)
+			final ObjectMapper objectMapper,
+			final FileKindHandler fileKindHandler)
 	{
 		this.kindStore = checkNotNull(kindStore);
 		this.sqlService = checkNotNull(sqlService);
 		this.objectMapper = checkNotNull(objectMapper);
+		this.fileKindHandler = checkNotNull(fileKindHandler);
 	}
 
 	@Override
@@ -99,6 +103,10 @@ final class KindValidationImpl implements KindValidation
 		}
 
 		final Kind kind = optKind.get();
+		if (kind.hasParent("file"))
+		{
+			return discoverFileEntities(kind);
+		}
 		if (kind.partOfSystem())
 		{
 			return discoverEntitiesWithBuiltinKind(kind);
@@ -294,5 +302,10 @@ final class KindValidationImpl implements KindValidation
 			// Not listing other things for now.
 			return EmptyFilterableObjectStream.empty();
 		}
+	}
+
+	private FilterableObjectStream discoverFileEntities(final Kind kind)
+	{
+		return fileKindHandler.discoverFileEntities(kind);
 	}
 }

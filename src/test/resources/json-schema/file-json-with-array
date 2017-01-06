@@ -1,0 +1,13 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"id": "http://127.0.0.1:{{PORT}}/json-schema/file-json-with-array",
+	"title": "JSON example with array",
+    "description": "This object just wraps a single array, and is here to demonstrate the 'add' action",
+    "type": "object",
+    "properties": {
+    	"stuff": {
+    		"type": "array"
+    	}
+    },
+    "required": ["stuff"]
+}

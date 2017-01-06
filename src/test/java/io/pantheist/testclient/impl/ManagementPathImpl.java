@@ -35,6 +35,7 @@ import io.pantheist.testclient.api.ManagementPathSchema;
 import io.pantheist.testclient.api.ManagementPathServer;
 import io.pantheist.testclient.api.ManagementPathSqlRow;
 import io.pantheist.testclient.api.ManagementPathSqlTable;
+import io.pantheist.testclient.api.ManagementPathUnknownEntity;
 import io.pantheist.testclient.api.ResponseType;
 
 final class ManagementPathImpl implements
@@ -49,7 +50,8 @@ final class ManagementPathImpl implements
 		ManagementFlatDirPath,
 		ManagementPathSqlTable,
 		ManagementPathSqlRow,
-		ManagementFlatDirFilePath
+		ManagementFlatDirFilePath,
+		ManagementPathUnknownEntity
 {
 	// Path segments
 	private static final String JAVA_PKG = "java-pkg";
@@ -350,7 +352,7 @@ final class ManagementPathImpl implements
 	@Override
 	public String postCreate(final String data, final String contentType)
 	{
-		return target.withSegment("create").post(data, contentType);
+		return target.withSegment("create").postAndGetPath(data, contentType).url();
 	}
 
 	@Override
@@ -405,5 +407,29 @@ final class ManagementPathImpl implements
 	public ResponseType putJsonSchemaResourceResponseType(final String resourcePath)
 	{
 		return target.putResourceResponseType(resourcePath, JSON_SCHEMA_MIME);
+	}
+
+	@Override
+	public void putJsonSchemaString(final String text)
+	{
+		target.putString(text, JSON_SCHEMA_MIME);
+	}
+
+	@Override
+	public void putKindString(final String text)
+	{
+		target.putString(text, APPLICATION_JSON);
+	}
+
+	@Override
+	public ManagementPathUnknownEntity postNew()
+	{
+		return new ManagementPathImpl(target.withSegment("new").postAndGetPath("", TEXT_PLAIN));
+	}
+
+	@Override
+	public ResponseType getResponseTypeForContentType(final String mimeType)
+	{
+		return target.getResponseType(mimeType);
 	}
 }

@@ -113,7 +113,7 @@ final class SchemaBackendImpl implements SchemaBackend
 		final String schemaId;
 		try
 		{
-			schemaId = urlTranslation.jsonSchemaFromDataUrl(justId.id());
+			schemaId = urlTranslation.jsonSchemaFromUrl(justId.id());
 		}
 		catch (final UrlPatternMismatchException e)
 		{

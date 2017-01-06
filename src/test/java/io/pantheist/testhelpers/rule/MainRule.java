@@ -22,6 +22,7 @@ import com.google.common.base.Throwables;
 import io.pantheist.testclient.api.ManagementClient;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathKind;
+import io.pantheist.testclient.api.ManagementPathSchema;
 import io.pantheist.testhelpers.classrule.TestSession;
 import io.pantheist.testhelpers.selenium.NavigateToHomeRule;
 import io.pantheist.testhelpers.selenium.ScreenshotRule;
@@ -79,6 +80,11 @@ public class MainRule implements TestRule
 	public ManagementClient actions()
 	{
 		return session.client();
+	}
+
+	public int nginxPort()
+	{
+		return session.nginxPort();
 	}
 
 	@Override
@@ -141,8 +147,19 @@ public class MainRule implements TestRule
 		return kind;
 	}
 
-	public int nginxPort()
+	public ManagementPathKind putKindResourceWithPort(final String name)
 	{
-		return session.nginxPort();
+		final ManagementPathKind kind = actions().manage().kind(name);
+		final String text = resource("/kind-schema/" + name).replace("{{PORT}}", String.valueOf(nginxPort()));
+		kind.putKindString(text);
+		return kind;
+	}
+
+	public ManagementPathSchema putJsonSchemaResourceWithPort(final String name)
+	{
+		final ManagementPathSchema schema = actions().manage().jsonSchema(name);
+		final String text = resource("/json-schema/" + name).replace("{{PORT}}", String.valueOf(nginxPort()));
+		schema.putJsonSchemaString(text);
+		return schema;
 	}
 }

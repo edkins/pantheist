@@ -34,4 +34,8 @@ public interface CommonApiModelFactory
 	DeleteAction deleteAction();
 
 	BindingAction bindingAction(@Assisted("url") String url);
+
+	KindedMime kindedMime(@Assisted("kindUrl") String kindUrl,
+			@Assisted("mimeType") String mimeType,
+			@Assisted("text") String text);
 }

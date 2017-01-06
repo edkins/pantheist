@@ -1,0 +1,17 @@
+{
+  "schema": {
+    "identification": {
+      "parentKind": "file",
+      "locationInProjectDir": "json-with-array"
+    }
+  },
+  "jsonSchema": {"$ref": "http://127.0.0.1:{{PORT}}/json-schema/file-json-with-array"},
+  "affordances": [
+    {
+      "type": "add",
+      "name": "Add stuff",
+      "location": "/stuff",
+      "prototypeValue": "This is the new item."
+    }
+  ]
+}

@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.pantheist.common.api.model.Kinded;
+import io.pantheist.common.api.model.KindedMime;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
@@ -158,6 +159,21 @@ public final class RespImpl implements Resp
 				return unexpectedError(e);
 			}
 			return Response.ok(text).link(kindedData.get().kindUrl(), "type").build();
+		}
+		else
+		{
+			return failure(kindedData.failure());
+		}
+	}
+
+	@Override
+	public Response possibleKindedMime(final Possible<KindedMime> kindedData)
+	{
+		if (kindedData.isPresent())
+		{
+			return Response.ok(kindedData.get().text(), kindedData.get().mimeType())
+					.link(kindedData.get().kindUrl(), "type")
+					.build();
 		}
 		else
 		{

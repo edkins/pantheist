@@ -35,14 +35,11 @@ final class UrlTranslationImpl implements UrlTranslation
 
 	private final UriPattern managementRoot;
 	private final UriPattern kind;
-	private final UriPattern kindData;
 	private final UriPattern kindEntity;
 	private final UriPattern jsonSchema;
-	private final UriPattern jsonSchemaData;
 	private final UriPattern javaBinding;
 	private final UriPattern javaPkg;
 	private final UriPattern javaFile;
-	private final UriPattern javaFileData;
 	private final UriPattern location;
 	private final UriPattern flatDir;
 	private final UriPattern flatDirFile;
@@ -66,14 +63,11 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.javaFactory = checkNotNull(javaFactory);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.kind = root.segment("kind").var("kindId");
-		this.kindData = kind.segment("data");
 		this.kindEntity = kind.segment("entity").var("entityId");
 		this.jsonSchema = root.segment("json-schema").var("schemaId");
-		this.jsonSchemaData = jsonSchema.segment("data");
 		this.javaBinding = root.segment("java-binding");
 		this.javaPkg = root.segment("java-pkg").var("pkg");
 		this.javaFile = javaPkg.segment("file").var("file");
-		this.javaFileData = javaFile.segment("data");
 		this.location = root.segment("server").var("serverId").segment("location").var("locationId");
 		this.flatDir = root.segment("flat-dir").var("dir");
 		this.flatDirFile = flatDir.segment("file").var("file");
@@ -174,16 +168,9 @@ final class UrlTranslationImpl implements UrlTranslation
 				BasicContentType.java,
 				TEXT_PLAIN,
 				null,
-				javaFileData.template(),
+				javaFile.template(),
 				null,
 				HttpMethod.put);
-	}
-
-	@Override
-	public DataAction javaFileDataAction(final JavaFileId javaFileId)
-	{
-		return modelFactory.dataAction(BasicContentType.java, TEXT_PLAIN, true,
-				javaFileData.generate(ImmutableMap.of("pkg", javaFileId.pkg(), "file", javaFileId.file())));
 	}
 
 	@Override
@@ -199,16 +186,9 @@ final class UrlTranslationImpl implements UrlTranslation
 				BasicContentType.json,
 				JSON_SCHEMA_MIME,
 				jsonSchemaToUrl("json-schema"),
-				jsonSchemaData.template(),
+				jsonSchema.template(),
 				null,
 				HttpMethod.put);
-	}
-
-	@Override
-	public DataAction jsonSchemaDataAction(final String schemaId)
-	{
-		return modelFactory.dataAction(BasicContentType.json, JSON_SCHEMA_MIME, true,
-				jsonSchemaData.generate(ImmutableMap.of("schemaId", schemaId)));
 	}
 
 	@Override
@@ -297,18 +277,4 @@ final class UrlTranslationImpl implements UrlTranslation
 		return modelFactory.dataAction(BasicContentType.text, "text/plain", true,
 				flatDirFileData.generate(ImmutableMap.of("dir", dir, "file", file)));
 	}
-
-	@Override
-	public DataAction kindDataAction(final String kindId)
-	{
-		return modelFactory.dataAction(BasicContentType.json, APPLICATION_JSON, true,
-				kindData.generate(ImmutableMap.of("kindId", kindId)));
-	}
-
-	@Override
-	public String jsonSchemaFromDataUrl(final String url)
-	{
-		return jsonSchemaData.getVar("schemaId", url);
-	}
-
 }

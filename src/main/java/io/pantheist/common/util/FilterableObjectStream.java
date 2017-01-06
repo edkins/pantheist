@@ -25,7 +25,7 @@ public interface FilterableObjectStream
 	 * since it's hard to know whether the function would have used one of the fields
 	 * you're deleting
 	 */
-	FilterableObjectStream fields(Collection<String> fieldsNames);
+	FilterableObjectStream fields(Collection<String> fieldNames);
 
 	/**
 	 * Restrict results to those where the given field has the given value.

@@ -8,6 +8,8 @@ public interface ManagementPathSchema
 
 	void putJsonSchemaResource(String resourcePath);
 
+	void putJsonSchemaString(String text);
+
 	ResponseType putJsonSchemaResourceResponseType(String resourcePath);
 
 	String getJsonSchemaString();

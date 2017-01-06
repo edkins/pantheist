@@ -2,46 +2,52 @@ package io.pantheist.handler.kind.model;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.inject.assistedinject.Assisted;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.DeleteAction;
 import io.pantheist.common.api.model.KindPresentation;
+import io.pantheist.common.util.OtherPreconditions;
 
 final class KindImpl implements Kind
 {
 	private static final String PARENT_KIND = "parentKind";
-	private final String kindId;
+	private String kindId;
 	private final boolean partOfSystem;
 	private final KindSchema schema;
 	private final KindPresentation presentation;
 	private final CreateAction createAction;
 	private final DeleteAction deleteAction;
 	private final boolean listable;
+	private final JsonNode jsonSchema;
+	private final List<Affordance> affordances;
 
-	@Inject
 	private KindImpl(
-			@Nullable @Assisted("kindId") @JsonProperty("kindId") final String kindId,
-			@Assisted("partOfSystem") @JsonProperty("partOfSystem") final boolean partOfSystem,
-			@Nullable @Assisted @JsonProperty("presentation") final KindPresentation presentation,
-			@Assisted @JsonProperty("schema") final KindSchema schema,
-			@Nullable @Assisted @JsonProperty("createAction") final CreateAction createAction,
-			@Nullable @Assisted @JsonProperty("deleteAction") final DeleteAction deleteAction,
-			@Assisted("listable") @JsonProperty("listable") final boolean listable)
+			@Nullable @JsonProperty("kindId") final String kindId,
+			@JsonProperty("partOfSystem") final boolean partOfSystem,
+			@Nullable @JsonProperty("presentation") final KindPresentation presentation,
+			@JsonProperty("schema") final KindSchema schema,
+			@Nullable @JsonProperty("jsonSchema") final JsonNode jsonSchema,
+			@Nullable @JsonProperty("createAction") final CreateAction createAction,
+			@Nullable @JsonProperty("deleteAction") final DeleteAction deleteAction,
+			@JsonProperty("listable") final boolean listable,
+			@Nullable @JsonProperty("affordances") final List<Affordance> affordances)
 	{
 		this.kindId = kindId;
 		this.partOfSystem = partOfSystem;
 		this.schema = checkNotNull(schema);
+		this.jsonSchema = jsonSchema;
 		this.presentation = presentation;
 		this.createAction = createAction;
 		this.deleteAction = deleteAction;
 		this.listable = listable;
+		this.affordances = affordances;
 	}
 
 	@Override
@@ -141,5 +147,28 @@ final class KindImpl implements Kind
 	public boolean listable()
 	{
 		return listable;
+	}
+
+	@Override
+	public JsonNode jsonSchema()
+	{
+		return jsonSchema;
+	}
+
+	@Override
+	public void setKindId(final String kindId)
+	{
+		OtherPreconditions.checkNotNullOrEmpty(kindId);
+		if (this.kindId != null)
+		{
+			throw new IllegalStateException("setKindId can only be used to set null kindId");
+		}
+		this.kindId = kindId;
+	}
+
+	@Override
+	public List<Affordance> affordances()
+	{
+		return affordances;
 	}
 }

@@ -22,8 +22,6 @@ public interface UrlTranslation
 
 	String jsonSchemaFromUrl(String url);
 
-	String jsonSchemaFromDataUrl(String url);
-
 	String javaPkgToUrl(String pkg);
 
 	String javaToUrl(JavaFileId javaFileId);
@@ -56,13 +54,9 @@ public interface UrlTranslation
 	// Obtaining actions
 	CreateAction javaPkgCreateAction();
 
-	DataAction javaFileDataAction(JavaFileId javaFileId);
-
 	DeleteAction javaFileDeleteAction(JavaFileId javaFileId);
 
 	CreateAction jsonSchemaCreateAction();
-
-	DataAction jsonSchemaDataAction(String schemaId);
 
 	DeleteAction jsonSchemaDeleteAction();
 
@@ -73,7 +67,5 @@ public interface UrlTranslation
 	DataAction sqlRowDataAction(String table, String column, String row);
 
 	DataAction flatDirFileDataAction(String dir, String file);
-
-	DataAction kindDataAction(String kindId);
 
 }

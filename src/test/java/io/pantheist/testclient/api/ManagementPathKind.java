@@ -9,6 +9,8 @@ public interface ManagementPathKind
 
 	void putKindResource(String resourcePath);
 
+	void putKindString(String text);
+
 	ResponseType putKindResourceResponseType(String resourcePath);
 
 	String url();
@@ -27,4 +29,13 @@ public interface ManagementPathKind
 	ResponseType postCreateResponseType(String data, String contentType);
 
 	String headKindUrl();
+
+	/**
+	 * Posts an empty request to the "new" action, which is like the create action
+	 * but does not require data.
+	 *
+	 * This action responds with a url, which we wrap in a ManagementPathUnknownEntity
+	 * since we don't know at compile time what kind of entity this is referring to.
+	 */
+	ManagementPathUnknownEntity postNew();
 }

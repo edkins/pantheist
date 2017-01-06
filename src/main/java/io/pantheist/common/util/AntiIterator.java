@@ -15,6 +15,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -316,5 +317,18 @@ public interface AntiIterator<T>
 		final ImmutableMap.Builder<K, T> builder = ImmutableMap.builder();
 		forEach(x -> builder.put(keyGetter.apply(x), x));
 		return builder.build();
+	}
+
+	/**
+	 * Returns this as a FilterableObjectStream, for use with interfaces that are expecting that.
+	 *
+	 * But the filtering will still be done the dumb way, by reading through everything and discarding the
+	 * things we don't need.
+	 *
+	 * This only works if T is ObjectNode.
+	 */
+	default FilterableObjectStream toDumbFilterableStream()
+	{
+		return DumbFilterableObjectStream.of(map(x -> (ObjectNode) x));
 	}
 }

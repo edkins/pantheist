@@ -119,7 +119,7 @@ public class ListClassifierTest
 	{
 		final CreateAction createAction = manage.listJavaPackages().createAction();
 
-		assertThat(createAction.urlTemplate(), containsString("java-pkg/{pkg}/file/{file}/data"));
+		assertThat(createAction.urlTemplate(), containsString("java-pkg/{pkg}/file/{file}"));
 	}
 
 	@Test
@@ -143,7 +143,7 @@ public class ListClassifierTest
 
 		assertThat(createAction.basicType(), is(BasicContentType.json));
 		assertThat(createAction.mimeType(), is(JSON_SCHEMA_MIME));
-		assertThat(createAction.urlTemplate(), containsString("json-schema/{schemaId}/data"));
+		assertThat(createAction.urlTemplate(), containsString("json-schema/{schemaId}"));
 	}
 
 	@Test
