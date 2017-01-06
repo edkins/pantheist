@@ -16,7 +16,6 @@ import io.pantheist.api.kind.model.ListEntityResponse;
 import io.pantheist.api.kind.model.ListKindResponse;
 import io.pantheist.api.management.model.ListConfigItem;
 import io.pantheist.api.management.model.ListConfigResponse;
-import io.pantheist.api.schema.model.ApiSchema;
 import io.pantheist.api.schema.model.ListSchemaResponse;
 import io.pantheist.api.sql.model.ApiSqlRow;
 import io.pantheist.api.sql.model.ListRowResponse;
@@ -69,6 +68,7 @@ final class ManagementPathImpl implements
 	// Content types
 	private static final String APPLICATION_JSON = "application/json";
 	private static final String TEXT_PLAIN = "text/plain";
+	private static final String JSON_SCHEMA_MIME = "application/schema+json";
 
 	// Collaborators
 	private final TargetWrapper target;
@@ -238,15 +238,15 @@ final class ManagementPathImpl implements
 	}
 
 	@Override
-	public ApiSchema describeSchema()
+	public String getJsonSchemaString()
 	{
-		return target.getJson(ApiSchema.class);
+		return target.getString(JSON_SCHEMA_MIME);
 	}
 
 	@Override
-	public ResponseType describeSchemaResponseType()
+	public ResponseType getJsonSchemaResponseType()
 	{
-		return target.getResponseType(APPLICATION_JSON);
+		return target.getResponseType(JSON_SCHEMA_MIME);
 	}
 
 	@Override
@@ -393,5 +393,17 @@ final class ManagementPathImpl implements
 	public ResponseType putKindResourceResponseType(final String resourcePath)
 	{
 		return target.putResourceResponseType(resourcePath, APPLICATION_JSON);
+	}
+
+	@Override
+	public void putJsonSchemaResource(final String resourcePath)
+	{
+		target.putResource(resourcePath, JSON_SCHEMA_MIME);
+	}
+
+	@Override
+	public ResponseType putJsonSchemaResourceResponseType(final String resourcePath)
+	{
+		return target.putResourceResponseType(resourcePath, JSON_SCHEMA_MIME);
 	}
 }

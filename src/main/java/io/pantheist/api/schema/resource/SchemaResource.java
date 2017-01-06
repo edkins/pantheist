@@ -18,8 +18,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import io.pantheist.api.schema.backend.SchemaBackend;
-import io.pantheist.api.schema.model.ApiSchema;
 import io.pantheist.common.annotations.ResourceTag;
+import io.pantheist.common.api.model.Kinded;
 import io.pantheist.common.http.Resp;
 import io.pantheist.common.util.Possible;
 
@@ -60,13 +60,13 @@ public final class SchemaResource implements ResourceTag
 	 * Handles the schema management function (PUT)
 	 */
 	@PUT
-	@Path("json-schema/{schemaId}/data")
+	@Path("json-schema/{schemaId}")
 	@Consumes("application/schema+json")
 	public Response putJsonSchema(
 			@PathParam("schemaId") final String schemaId,
 			final String data)
 	{
-		LOGGER.info("PUT json-schema/{}/data", schemaId);
+		LOGGER.info("PUT json-schema/{}", schemaId);
 		try
 		{
 			final Possible<Void> result = backend.putJsonSchema(schemaId, data, false);
@@ -84,36 +84,15 @@ public final class SchemaResource implements ResourceTag
 	 */
 	@GET
 	@Produces("application/schema+json")
-	@Path("json-schema/{schemaId}/data")
-	public Response getJsonSchema(
-			@PathParam("schemaId") final String schemaId)
-	{
-		LOGGER.info("GET json-schema/{}/data", schemaId);
-		try
-		{
-			final Possible<String> data = backend.getJsonSchema(schemaId);
-			return resp.possibleData(data);
-		}
-		catch (final RuntimeException ex)
-		{
-			return resp.unexpectedError(ex);
-		}
-	}
-
-	/**
-	 * Handles retrieving schema information (GET)
-	 */
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
 	@Path("json-schema/{schemaId}")
-	public Response describeJsonSchema(
+	public Response getJsonSchema(
 			@PathParam("schemaId") final String schemaId)
 	{
 		LOGGER.info("GET json-schema/{}", schemaId);
 		try
 		{
-			final Possible<ApiSchema> data = backend.describeJsonSchema(schemaId);
-			return resp.possibleToJson(data);
+			final Possible<Kinded<String>> data = backend.getJsonSchema(schemaId);
+			return resp.possibleKindedData(data);
 		}
 		catch (final RuntimeException ex)
 		{

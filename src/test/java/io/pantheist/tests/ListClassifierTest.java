@@ -20,13 +20,11 @@ import io.pantheist.api.java.model.ListJavaPkgItem;
 import io.pantheist.common.api.model.BasicContentType;
 import io.pantheist.common.api.model.BindingAction;
 import io.pantheist.common.api.model.CreateAction;
-import io.pantheist.common.api.model.DataAction;
 import io.pantheist.common.api.model.ListClassifierItem;
 import io.pantheist.testclient.api.ManagementFlatDirPath;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathJavaPackage;
 import io.pantheist.testclient.api.ManagementPathRoot;
-import io.pantheist.testclient.api.ManagementPathSchema;
 import io.pantheist.testclient.api.ResponseType;
 import io.pantheist.testhelpers.classrule.TestSessionImpl;
 import io.pantheist.testhelpers.rule.MainRule;
@@ -46,7 +44,6 @@ public class ListClassifierTest
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
 	private static final String JSON_SCHEMA_MIME = "application/schema+json";
-	private static final String JSON_SCHEMA_COFFEE_RES = "/json-schema/coffee";
 
 	@Before
 	public void setup()
@@ -147,41 +144,6 @@ public class ListClassifierTest
 		assertThat(createAction.basicType(), is(BasicContentType.json));
 		assertThat(createAction.mimeType(), is(JSON_SCHEMA_MIME));
 		assertThat(createAction.urlTemplate(), containsString("json-schema/{schemaId}/data"));
-	}
-
-	@Test
-	public void jsonSchema_dataAction() throws Exception
-	{
-		final ManagementPathSchema schema = mainRule.actions().manage().jsonSchema("coffee");
-		schema.data().putResource(JSON_SCHEMA_COFFEE_RES, JSON_SCHEMA_MIME);
-
-		final DataAction dataAction = schema.describeSchema().dataAction();
-
-		assertThat(dataAction.basicType(), is(BasicContentType.json));
-		assertThat(dataAction.mimeType(), is(JSON_SCHEMA_MIME));
-		assertThat(dataAction.canPut(), is(true));
-	}
-
-	@Test
-	public void jsonSchema_deleteAction() throws Exception
-	{
-		final ManagementPathSchema schema = mainRule.actions().manage().jsonSchema("coffee");
-		schema.data().putResource(JSON_SCHEMA_COFFEE_RES, JSON_SCHEMA_MIME);
-
-		assertThat(schema.describeSchema().deleteAction(), notNullValue());
-	}
-
-	@Test
-	public void jsonSchema_ifMissing_noDataAction() throws Exception
-	{
-		final ManagementPathSchema schema = mainRule.actions().manage().jsonSchema("coffee");
-		final ManagementPathSchema bad = mainRule.actions().manage().jsonSchema("mud");
-		schema.data().putResource(JSON_SCHEMA_COFFEE_RES, JSON_SCHEMA_MIME);
-
-		final ResponseType response1 = schema.describeSchemaResponseType();
-		final ResponseType response2 = bad.describeSchemaResponseType();
-		assertThat(response1, is(ResponseType.OK));
-		assertThat(response2, is(ResponseType.NOT_FOUND));
 	}
 
 	@Test

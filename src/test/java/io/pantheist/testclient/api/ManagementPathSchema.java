@@ -1,20 +1,22 @@
 package io.pantheist.testclient.api;
 
-import io.pantheist.api.schema.model.ApiSchema;
-
 public interface ManagementPathSchema
 {
 	ResponseType validate(String data, String contentType);
 
 	String url();
 
-	ManagementData data();
+	void putJsonSchemaResource(String resourcePath);
 
-	ApiSchema describeSchema();
+	ResponseType putJsonSchemaResourceResponseType(String resourcePath);
 
-	ResponseType describeSchemaResponseType();
+	String getJsonSchemaString();
+
+	ResponseType getJsonSchemaResponseType();
 
 	void delete();
 
 	ResponseType deleteResponseType();
+
+	String headKindUrl();
 }

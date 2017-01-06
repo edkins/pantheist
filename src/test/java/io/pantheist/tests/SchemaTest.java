@@ -45,17 +45,25 @@ public class SchemaTest
 	@Test
 	public void schema_canReadItBack() throws Exception
 	{
-		schema.data().putResource(JSON_SCHEMA_COFFEE_RES, JSON_SCHEMA_MIME);
+		schema.putJsonSchemaResource(JSON_SCHEMA_COFFEE_RES);
 
-		final String data = schema.data().getString(JSON_SCHEMA_MIME);
+		final String data = schema.getJsonSchemaString();
 
 		JSONAssert.assertEquals(data, mainRule.resource(JSON_SCHEMA_COFFEE_RES), true);
 	}
 
 	@Test
+	public void schema_kindUrl() throws Exception
+	{
+		schema.putJsonSchemaResource(JSON_SCHEMA_COFFEE_RES);
+
+		assertThat(schema.headKindUrl(), is(manage.kind("json-schema").url()));
+	}
+
+	@Test
 	public void schema_canList() throws Exception
 	{
-		schema.data().putResource(JSON_SCHEMA_COFFEE_RES, JSON_SCHEMA_MIME);
+		schema.putJsonSchemaResource(JSON_SCHEMA_COFFEE_RES);
 
 		final List<ListSchemaItem> list = manage.listJsonSchemas().childResources();
 
@@ -66,26 +74,26 @@ public class SchemaTest
 	@Test
 	public void schema_canPutTwice() throws Exception
 	{
-		schema.data().putResource(JSON_SCHEMA_COFFEE_RES, JSON_SCHEMA_MIME);
-		schema.data().putResource(JSON_SCHEMA_INTLIST_RES, JSON_SCHEMA_MIME);
+		schema.putJsonSchemaResource(JSON_SCHEMA_COFFEE_RES);
+		schema.putJsonSchemaResource(JSON_SCHEMA_INTLIST_RES);
 	}
 
 	@Test
 	public void schema_canDelete() throws Exception
 	{
-		schema.data().putResource(JSON_SCHEMA_COFFEE_RES, JSON_SCHEMA_MIME);
+		schema.putJsonSchemaResource(JSON_SCHEMA_COFFEE_RES);
 
-		assertThat(schema.data().getResponseTypeForContentType(JSON_SCHEMA_MIME), is(ResponseType.OK));
+		assertThat(schema.getJsonSchemaResponseType(), is(ResponseType.OK));
 
 		schema.delete();
 
-		assertThat(schema.data().getResponseTypeForContentType(JSON_SCHEMA_MIME), is(ResponseType.NOT_FOUND));
+		assertThat(schema.getJsonSchemaResponseType(), is(ResponseType.NOT_FOUND));
 	}
 
 	@Test
 	public void schema_ifMissing_deleteReturnsNotFound() throws Exception
 	{
-		schema.data().putResource(JSON_SCHEMA_COFFEE_RES, JSON_SCHEMA_MIME);
+		schema.putJsonSchemaResource(JSON_SCHEMA_COFFEE_RES);
 
 		assertThat(schema.deleteResponseType(), is(ResponseType.NO_CONTENT));
 	}
@@ -93,8 +101,7 @@ public class SchemaTest
 	@Test
 	public void invalidSchema_rejected() throws Exception
 	{
-		final ResponseType responseType = schema.data()
-				.putResourceResponseType("/json-schema/invalid", JSON_SCHEMA_MIME);
+		final ResponseType responseType = schema.putJsonSchemaResourceResponseType("/json-schema/invalid");
 
 		assertEquals(ResponseType.BAD_REQUEST, responseType);
 	}
@@ -102,7 +109,7 @@ public class SchemaTest
 	@Test
 	public void schema_validData_allowed() throws Exception
 	{
-		schema.data().putResource(JSON_SCHEMA_COFFEE_RES, JSON_SCHEMA_MIME);
+		schema.putJsonSchemaResource(JSON_SCHEMA_COFFEE_RES);
 		final ResponseType responseType = schema.validate(mainRule.resource("/json-example/coffee-valid"),
 				"application/json");
 		assertEquals(ResponseType.NO_CONTENT, responseType);
@@ -111,7 +118,7 @@ public class SchemaTest
 	@Test
 	public void schema_invalidData_notAllowed() throws Exception
 	{
-		schema.data().putResource(JSON_SCHEMA_COFFEE_RES, JSON_SCHEMA_MIME);
+		schema.putJsonSchemaResource(JSON_SCHEMA_COFFEE_RES);
 		final ResponseType responseType = schema.validate(mainRule.resource("/json-example/coffee-invalid"),
 				"application/json");
 		assertEquals(ResponseType.BAD_REQUEST, responseType);
@@ -131,7 +138,7 @@ public class SchemaTest
 
 		assertThat(url, is(newSchema.url()));
 
-		final String data = newSchema.data().getString(JSON_SCHEMA_MIME);
+		final String data = newSchema.getJsonSchemaString();
 
 		JSONAssert.assertEquals(data, originalText, true);
 	}

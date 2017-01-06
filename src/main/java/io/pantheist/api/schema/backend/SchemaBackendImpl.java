@@ -12,11 +12,12 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.pantheist.api.management.backend.UrlPatternMismatchException;
-import io.pantheist.api.schema.model.ApiSchema;
 import io.pantheist.api.schema.model.ApiSchemaModelFactory;
 import io.pantheist.api.schema.model.JustSchemaId;
 import io.pantheist.api.schema.model.ListSchemaItem;
 import io.pantheist.api.schema.model.ListSchemaResponse;
+import io.pantheist.common.api.model.Kinded;
+import io.pantheist.common.api.model.KindedImpl;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.Possible;
@@ -52,9 +53,9 @@ final class SchemaBackendImpl implements SchemaBackend
 	}
 
 	@Override
-	public Possible<String> getJsonSchema(final String schemaId)
+	public Possible<Kinded<String>> getJsonSchema(final String schemaId)
 	{
-		return schemaStore.getJsonSchema(schemaId);
+		return schemaStore.getJsonSchema(schemaId).map(s -> KindedImpl.of(urlTranslation.kindToUrl(JSON_SCHEMA), s));
 	}
 
 	@Override
@@ -75,22 +76,6 @@ final class SchemaBackendImpl implements SchemaBackend
 				.map(urlTranslation::jsonSchemaToUrl)
 				.map(this::toListSchemaItem)
 				.wrap(xs -> modelFactory.listSchemaResponse(xs, urlTranslation.jsonSchemaCreateAction()));
-	}
-
-	@Override
-	public Possible<ApiSchema> describeJsonSchema(final String schemaId)
-	{
-		if (schemaStore.jsonSchemaExists(schemaId))
-		{
-			return View.ok(modelFactory.apiSchema(
-					urlTranslation.jsonSchemaDataAction(schemaId),
-					urlTranslation.jsonSchemaDeleteAction(),
-					urlTranslation.kindToUrl(JSON_SCHEMA)));
-		}
-		else
-		{
-			return FailureReason.DOES_NOT_EXIST.happened();
-		}
 	}
 
 	@Override
