@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonInclude(Include.NON_NULL)
-@JsonDeserialize(as = ApiPresentationImpl.class)
+@JsonDeserialize(as = KindPresentationImpl.class)
 public interface KindPresentation
 {
 	@Nullable
@@ -25,4 +25,8 @@ public interface KindPresentation
 	@Nullable
 	@JsonProperty("displayName")
 	String displayName();
+
+	@Nullable
+	@JsonProperty("schemaHint")
+	String schemaHint();
 }

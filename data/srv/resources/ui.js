@@ -11,7 +11,7 @@ ui.removeChildren = function(element)
 	{
     	element.removeChild(element.firstChild);
 	}
-}
+};
 
 ui.flashClass = function(element,cssClass)
 {
@@ -27,27 +27,27 @@ ui.flashClass = function(element,cssClass)
 			element.classList.remove(cssClass);
 		}, 50 );
 	}
-}
+};
 
-ui.getKindIcon = function(kindUrl, expanded)
+ui.getKindUrlIcon = function(kindUrl, expanded)
 {
-	var result = undefined;
-	if (kindUrl !== undefined && ui._kinds[kindUrl] != undefined)
+	return ui.getKindIcon(ui._kinds[kindUrl], expanded);
+};
+
+ui.getKindIcon = function(kind, expanded)
+{
+	var urlPres = kind && kind.presentation;
+	if (urlPres !== undefined)
 	{
-		var urlPres = ui._kinds[kindUrl].presentation;
-		if (urlPres !== undefined)
+		if (expanded && urlPres.openIconUrl != undefined)
 		{
-			if (expanded && urlPres.openIconUrl != undefined)
-			{
-				return urlPres.openIconUrl;
-			}
-			if (urlPres.iconUrl != undefined)
-			{
-				return urlPres.iconUrl;
-			}
+			return urlPres.openIconUrl;
+		}
+		if (urlPres.iconUrl != undefined)
+		{
+			return urlPres.iconUrl;
 		}
 	}
-	
 	return '/resources/images/red-ball.png';
 };
 
@@ -126,20 +126,19 @@ function constructCreateUrl(t)
 }
 */
 
-Object.defineProperty(ui, '_sortedKindList', {
+Object.defineProperty(ui, 'allKindUrls', {
 	get: function()
 	{
-		var result = [];
-		for (var kindUrl in ui._kinds)
-		{
-			result.push(ui._kinds[kindUrl]);
-		}
-		result.sort((a,b) => ui._kindDisplayName(a).localeCompare(ui._kindDisplayName(b)));
-		return result;
+		return Array.from(Object.keys(ui._kinds));
 	}
 });
 
-ui._kindDisplayName = function(kind)
+ui.getKind = function(kindUrl)
+{
+	return ui._kinds[kindUrl];
+};
+
+ui.kindDisplayName = function(kind)
 {
 	if (kind.presentation != undefined && kind.presentation.displayName != undefined)
 	{
@@ -181,10 +180,11 @@ ui._visitUntitled = function(pseudoUrl)
 ui.openNew = function(kindUrl, dataUrl, elementToFlash)
 {
 	var kind = ui._kinds[kindUrl];
-	var displayName = ui._kindDisplayName(kind);
+	var displayName = ui.kindDisplayName(kind);
 	var mimeType = kind.createAction.mimeType;
 	var method = kind.createAction.method;
 	var schemaUrl = kind.createAction.jsonSchema;
+	var schemaHintUrl = kind.presentation && kind.presentation.schemaHint;
 	var pseudoUrl = fileTabs.openNew(kindUrl, displayName, dataUrl, mimeType, method)
 	
 	if (kind === undefined || kind.createAction === undefined || kind.createAction.prototypeUrl === undefined)
@@ -198,9 +198,9 @@ ui.openNew = function(kindUrl, dataUrl, elementToFlash)
 		return http.getString('text/plain', kind.createAction.prototypeUrl).then(
 			text => {
 				editSessions.create(pseudoUrl,text);
-				if (schemaUrl != undefined)
+				if (schemaUrl != undefined && false)  // hidden this for now because it's difficult to get right
 				{
-					return jsonForm.create(pseudoUrl, schemaUrl, elementToFlash, true);
+					return jsonForm.create(pseudoUrl, schemaUrl, schemaHintUrl, elementToFlash, true);
 				}
 				else
 				{
@@ -360,6 +360,8 @@ ui.visit = function(url, kindUrl, elementToFlash, flashOnSuccess)
 		ui.flashClass(elementToFlash, 'flash-client-error');
 		return undefined;
 	}
+	
+	var schemaHintUrl = kind.presentation && kind.presentation.schemaHint;
 
 	return http.getString(mimeType, url).then(
 		text => {
@@ -367,11 +369,12 @@ ui.visit = function(url, kindUrl, elementToFlash, flashOnSuccess)
 			fileTabs.open(url, kindUrl, mimeType);
 
 			editSessions.create(url, text);
-			if (schemaUrl != undefined)
+			if (schemaUrl != undefined && false)   // hidden this for now because it's difficult to get right
 			{
-				jsonForm.create(url, schemaUrl, elementToFlash, flashOnSuccess).then( () => {
-					ui.switchTo(url);
-				} );
+				return jsonForm.create(url, schemaUrl, schemaHintUrl, elementToFlash, flashOnSuccess)
+					.then( () => {
+						ui.switchTo(url);
+					} );
 			}
 			else
 			{

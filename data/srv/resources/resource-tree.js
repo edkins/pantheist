@@ -108,7 +108,7 @@ resourceTree._createTreeItem = function(kindUrl,expanded,url,name)
 	var item = document.createElement('div');
 	var icon = document.createElement('span');
 	
-	var iconUrl = ui.getKindIcon(kindUrl,expanded);
+	var iconUrl = ui.getKindUrlIcon(kindUrl,expanded);
 	
 	icon.style['background-image'] = "url('" + iconUrl + "')";
 	icon.classList.add('tree-item-icon');

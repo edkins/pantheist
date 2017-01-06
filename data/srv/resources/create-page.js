@@ -7,21 +7,25 @@ createPage.showCreatePage = function()
 	document.getElementById('create-page').classList.remove('hidden');
 	var panel = document.getElementById('create-page-list');
 	ui.removeChildren(panel);
-	for (var kind of ui._sortedKindList)
+	
+	var itemList = [];
+	
+	for (var kindUrl of ui.allKindUrls)
 	{
+		var kind = ui.getKind(kindUrl);
 		if (kind.createAction != undefined)
 		{
 			var background = document.createElement('div');
 			var button = document.createElement('div');
 			var icon = document.createElement('span');
 			var textSpan = document.createElement('span');
-			var iconUrl = ui.getKindIcon(kind.url, true);
-			var displayName = ui._kindDisplayName(kind);
+			var iconUrl = ui.getKindIcon(kind, true);
+			var displayName = ui.kindDisplayName(kind);
 			
 			background.classList.add('create-kind-background');
 			
 			button.classList.add('create-kind');
-			button.dataset.kindUrl = kind.url;
+			button.dataset.kindUrl = kindUrl;
 			button.onclick = createPage._onclickCreateItem;
 			
 			icon.classList.add('create-kind-icon');
@@ -33,8 +37,15 @@ createPage.showCreatePage = function()
 			button.append(icon);
 			button.append(textSpan);
 			background.append(button);
-			panel.append(background);
+			
+			itemList.push([displayName.toLowerCase(), background]);
 		}
+	}
+
+	itemList.sort();
+	for (var pair of itemList)
+	{
+		panel.append(pair[1]);
 	}
 };
 

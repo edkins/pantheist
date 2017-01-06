@@ -4,6 +4,7 @@ var jsonForm = {};
 
 jsonForm._sessions = {};
 jsonForm._schemas = {};
+jsonForm._schemaHints = {};
 jsonForm._currentUrl = undefined;
 
 jsonForm.has = function(url)
@@ -32,7 +33,41 @@ jsonForm.deactivate = function()
 	document.getElementById('json-form').classList.add('hidden');
 };
 
-jsonForm.create = function(url, schemaUrl, elementToFlash, flashOnSuccess)
+jsonForm._loadSchema = function(schemaUrl)
+{
+	if (schemaUrl in jsonForm._schemas)
+	{
+		return Promise.resolve(undefined);
+	}
+	else
+	{
+		return http.getString('application/schema+json', schemaUrl).then(
+			schemaText => {
+				var schema = JSON.parse(schemaText);
+				jsonForm._schemas[schemaUrl] = schema;
+			}
+		);
+	}
+};
+
+jsonForm._loadSchemaHint = function(schemaHintUrl)
+{
+	if (schemaHintUrl == undefined || schemaHintUrl in jsonForm._schemaHints)
+	{
+		return Promise.resolve(undefined);
+	}
+	else
+	{
+		return http.getString('text/plain', schemaHintUrl).then(
+			schemaHintText => {
+				var schemaHint = JSON.parse(schemaHintText);
+				jsonForm._schemaHints[schemaHintUrl] = schemaHint;
+			}
+		);
+	}
+};
+
+jsonForm.create = function(url, schemaUrl, schemaHintUrl, elementToFlash, flashOnSuccess)
 {
 	if (typeof url !== 'string')
 	{
@@ -53,44 +88,26 @@ jsonForm.create = function(url, schemaUrl, elementToFlash, flashOnSuccess)
 		return Promise.resolve(undefined);
 	}
 	
-	if (schemaUrl in jsonForm._schemas)
-	{
-		jsonForm._sessions[url] = {
-			schemaUrl: schemaUrl,
-			value: {},
-			active: true
-		};
-		if (flashOnSuccess)
-		{
-			ui.flashClass(elementToFlash, 'flash-activate');
-		}
-		return Promise.resolve(undefined);
-	}
-	else
-	{
-		return http.getString('application/schema+json', schemaUrl).then(
-			schemaText => {
-				var schema = JSON.parse(schemaText);
-				jsonForm._schemas[schemaUrl] = {
-					schema: schema,
-					layout: jsonForm._generateLayout(schema)
-				};
-				jsonForm._sessions[url] = {
+	return jsonForm._loadSchema(schemaUrl)
+		.then( () => jsonForm._loadSchemaHint(schemaHintUrl) )
+		.then( () => {
+			jsonForm._sessions[url] = {
 					schemaUrl: schemaUrl,
+					schemaHintUrl: schemaHintUrl,
 					value: {},
 					active: true
 				};
-				if (flashOnSuccess)
-				{
-					ui.flashClass(elementToFlash, 'flash-activate');
-				}
-			},
-			error => {
+			if (flashOnSuccess)
+			{
+				ui.flashClass(elementToFlash, 'flash-activate');
+			}
+		})
+		.catch( error =>
+			{
 				console.error('Fetching json schema: ' + error);
 				ui.flashClass(elementToFlash, 'flash-server-error');
 			}
 		);
-	}
 };
 
 jsonForm._persist = function()
@@ -115,70 +132,123 @@ jsonForm.switchTo = function(url)
 	document.getElementById('json-form').classList.remove('hidden');
 	
 	var schemaUrl = jsonForm._sessions[url].schemaUrl;
+	var schemaHintUrl = jsonForm._sessions[url].schemaHintUrl;
 	
 	if (jsonForm._schemas[schemaUrl] == undefined)
 	{
 		throw new Error('jsonForm unknown schema: ' + schemaUrl);
 	}
 	
+	var panel = document.getElementById('json-form');
+	ui.removeChildren(panel);
+	
 	jsonForm._sessions[url].active = true;
-	jsonForm._replayLayout( jsonForm._schemas[schemaUrl].layout );
 	jsonForm._currentUrl = url;
+
+	jsonForm._layout(
+		panel,
+		jsonForm._schemas[schemaUrl],
+		jsonForm._schemaHints[schemaHintUrl] || {} );
 };
 
-jsonForm._generateLayout = function(schema)
+jsonForm._layout = function(panel, schema, hint)
 {
-	var layout = [];
+	var el;
 	
-	layout.push( {
-		type: 'h2',
-		text: schema.title || uri.lastSegment(schema.id)
-	});
+	el = document.createElement('h2');
+	el.textContent = schema.title || uri.lastSegment(schema.id);
+	panel.append(el);
+	
+	var properties = [];
+	if ('/properties' in hint && 'order' in hint['/properties'])
+	{
+		for (var p of hint['/properties'].order)
+		{
+			if (properties.indexOf(p) === -1)
+			{
+				properties.push(p);
+			}
+		}
+	}
 	
 	if (schema.properties != undefined)
 	{
-		for (var key in schema.properties)
+		var moreProps = Array.from( Object.keys( schema.properties ) );
+		moreProps.sort();
+		for (var p of moreProps)
 		{
-			layout.push( {
-				type: 'h4',
-				text: key
-			} );
-			layout.push( {
-				type: 'input'
-			} );
+			if (properties.indexOf(p) === -1)
+			{
+				properties.push(p);
+			}
 		}
 	}
-	return layout;
+	for (var key of properties)
+	{
+		el = document.createElement('span');
+		el.textContent = key;
+		el.classList.add('form-key');
+		panel.append(el);
+		
+		el = jsonForm._formControl(schema.properties[key]);
+		panel.append(el);
+		
+		panel.append(document.createElement('br'));
+	}
 };
 
-jsonForm._replayLayout = function(layout)
+jsonForm._formControl = function(subschema)
 {
-	if (layout == undefined)
+	var el;
+	var el2;
+	if (subschema.enum != undefined)
 	{
-		throw new Error('layout is undefined');
+		el = jsonForm._dropdown(subschema.enum.map(x => JSON.stringify(x)));
 	}
-	var panel = document.getElementById('json-form');
-	ui.removeChildren(panel);
-	for (var item of layout)
+	else if (subschema.type === 'string' || subschema.type === 'integer' || subschema.type === 'number')
 	{
-		var element;
-		switch(item.type)
+		el = document.createElement('input');
+		el.type = 'text';
+		if (subschema.format == undefined)
 		{
-		case 'h2':
-		case 'h3':
-		case 'h4':
-		case 'p':
-			element = document.createElement(item.type);
-			element.textContent = item.text;
-			break;
-		case 'input':
-			element = document.createElement('input');
-			element.type = 'text';
-			break;
-		default:
-			throw new Error('Unrecognized form element type: ' + item.type);
+			el.placeholder = subschema.type;
 		}
-		
-		panel.append(element);
+		else
+		{
+			el.placeholder = '' + subschema.format;
+		}
 	}
+	else if (subschema.type === 'boolean')
+	{
+		el = jsonForm._dropdown(['true','false','unspecified']);
+	}
+	else if (typeof subschema.type === 'string')
+	{
+		el = jsonForm._dropdown([subschema.type, 'unspecified']);
+	}
+	else if (subschema.type != undefined)
+	{
+		el = JSON.stringify(subschema.type);
+	}
+	else
+	{
+		el = 'any';
+	}
+	return el;
+};
+
+jsonForm._dropdown = function(options)
+{
+	var bar = document.createElement('span');
+	bar.classList.add('button-bar');
+
+	for (var option of options)
+	{
+		var el = document.createElement('span');
+		el.classList.add('tab');
+		el.textContent = option;
+		bar.append(el);
+	}
+
+	return bar;
 };

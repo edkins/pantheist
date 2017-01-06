@@ -181,3 +181,10 @@ the item itself (as opposed to its children).
 	vertical-align: middle;
 	font-size: x-large;
 }
+
+
+
+.form-key {
+	width: 150pt;
+	display: inline-block;
+}
