@@ -184,4 +184,13 @@ final class KindStoreImpl implements KindStore
 
 		return derivesFromRecursive(parentKind.get(), ancestorKindId, alreadyVisited);
 	}
+
+	/**
+	 * Clearly this one needs some tidying up
+	 */
+	@Override
+	public boolean isEntityKind(final Kind kind)
+	{
+		return kind.hasParent("file") || derivesFrom(kind, "java-file");
+	}
 }

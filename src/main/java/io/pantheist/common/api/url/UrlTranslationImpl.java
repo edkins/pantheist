@@ -35,7 +35,8 @@ final class UrlTranslationImpl implements UrlTranslation
 
 	private final UriPattern managementRoot;
 	private final UriPattern kind;
-	private final UriPattern kindEntity;
+	private final UriPattern entities;
+	private final UriPattern entity;
 	private final UriPattern jsonSchema;
 	private final UriPattern javaBinding;
 	private final UriPattern javaPkg;
@@ -63,7 +64,8 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.javaFactory = checkNotNull(javaFactory);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.kind = root.segment("kind").var("kindId");
-		this.kindEntity = kind.segment("entity").var("entityId");
+		this.entities = root.segment("entity").var("kindId");
+		this.entity = root.segment("entity").var("kindId").var("entityId");
 		this.jsonSchema = root.segment("json-schema").var("schemaId");
 		this.javaBinding = root.segment("java-binding");
 		this.javaPkg = root.segment("java-pkg").var("pkg");
@@ -140,7 +142,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	public List<ListClassifierItem> listRootClassifiers()
 	{
 		return classifiers(managementRoot, ImmutableMap.of(), false,
-				"kind", "java-pkg", "json-schema", "server", "data", "flat-dir", "sql-table");
+				"kind", "entity", "java-pkg", "json-schema", "server", "data", "flat-dir", "sql-table");
 	}
 
 	@Override
@@ -255,7 +257,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	@Override
 	public String entityToUrl(final String kindId, final String entityId)
 	{
-		return kindEntity.generate(ImmutableMap.of("kindId", kindId, "entityId", entityId));
+		return entity.generate(ImmutableMap.of("kindId", kindId, "entityId", entityId));
 	}
 
 	@Override
@@ -276,5 +278,11 @@ final class UrlTranslationImpl implements UrlTranslation
 	{
 		return modelFactory.dataAction(BasicContentType.text, "text/plain", true,
 				flatDirFileData.generate(ImmutableMap.of("dir", dir, "file", file)));
+	}
+
+	@Override
+	public String entitiesUrl(final String kindId)
+	{
+		return entities.generate(ImmutableMap.of("kindId", kindId));
 	}
 }

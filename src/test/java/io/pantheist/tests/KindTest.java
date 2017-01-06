@@ -128,7 +128,9 @@ public class KindTest
 		final ManagementPathJavaFile jinterface = manage.javaPackage(JAVA_PKG).file(JAVA_INTLIST_NAME);
 		jinterface.putJavaResource(JAVA_INTLIST_RES);
 
-		final List<ListEntityItem> list = kind.listEntities().childResources();
+		final List<ListEntityItem> list = manage.entitiesWithKind("java-interface-file")
+				.listEntities()
+				.childResources();
 
 		assertThat(list.size(), is(1));
 

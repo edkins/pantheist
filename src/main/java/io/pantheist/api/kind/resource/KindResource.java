@@ -18,10 +18,8 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.pantheist.api.kind.backend.KindBackend;
-import io.pantheist.api.kind.model.ListEntityResponse;
 import io.pantheist.common.annotations.ResourceTag;
 import io.pantheist.common.api.model.Kinded;
-import io.pantheist.common.api.model.KindedMime;
 import io.pantheist.common.http.Resp;
 import io.pantheist.common.util.Possible;
 import io.pantheist.handler.kind.model.Kind;
@@ -109,27 +107,6 @@ public class KindResource implements ResourceTag
 	}
 
 	/**
-	 * Handles listing entities by kind (GET)
-	 */
-	@GET
-	@Path("kind/{kindId}/entity")
-	@Produces("application/json")
-	public Response listEntitiesWithKind(
-			@PathParam("kindId") final String kindId)
-	{
-		LOGGER.info("GET kind/{}/entity", kindId);
-		try
-		{
-			final Possible<ListEntityResponse> result = backend.listEntitiesWithKind(kindId);
-			return resp.possibleToJson(result);
-		}
-		catch (final RuntimeException ex)
-		{
-			return resp.unexpectedError(ex);
-		}
-	}
-
-	/**
 	 * Handles creating a new kind (POST)
 	 */
 	@POST
@@ -162,29 +139,6 @@ public class KindResource implements ResourceTag
 		try
 		{
 			return resp.possibleLocation(backend.newInstanceOfKind(kindId));
-		}
-		catch (final RuntimeException ex)
-		{
-			return resp.unexpectedError(ex);
-		}
-	}
-
-	/**
-	 * Handles fetching a particular entity (GET)
-	 *
-	 * The mime type is unknown at compile time because it will be different for different kinds.
-	 */
-	@GET
-	@Path("kind/{kindId}/entity/{entityId}")
-	public Response getEntity(
-			@PathParam("kindId") final String kindId,
-			@PathParam("entityId") final String entityId)
-	{
-		LOGGER.info("GET kind/{}/entity/{entityId}", kindId, entityId);
-		try
-		{
-			final Possible<KindedMime> result = backend.getEntity(kindId, entityId);
-			return resp.possibleKindedMime(result);
 		}
 		catch (final RuntimeException ex)
 		{

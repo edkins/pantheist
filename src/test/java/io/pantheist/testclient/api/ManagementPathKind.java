@@ -1,6 +1,5 @@
 package io.pantheist.testclient.api;
 
-import io.pantheist.api.kind.model.ListEntityResponse;
 import io.pantheist.handler.kind.model.Kind;
 
 public interface ManagementPathKind
@@ -14,8 +13,6 @@ public interface ManagementPathKind
 	ResponseType putKindResourceResponseType(String resourcePath);
 
 	String url();
-
-	ListEntityResponse listEntities();
 
 	String urlOfService(String classifierSegment);
 

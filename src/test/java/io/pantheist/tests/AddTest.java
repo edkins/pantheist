@@ -11,6 +11,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import io.pantheist.api.kind.model.ListEntityItem;
+import io.pantheist.testclient.api.ManagementPathEntities;
 import io.pantheist.testclient.api.ManagementPathKind;
 import io.pantheist.testclient.api.ManagementPathRoot;
 import io.pantheist.testclient.api.ManagementPathUnknownEntity;
@@ -44,10 +45,14 @@ public class AddTest
 
 		final ManagementPathUnknownEntity entity = kind.postNew();
 
-		final List<ListEntityItem> list = kind.listEntities().childResources();
+		final ManagementPathEntities entities = manage.entitiesWithKind("file-json-with-array");
+		final List<ListEntityItem> list = entities
+				.listEntities()
+				.childResources();
 
 		assertThat(list.size(), is(1));
 		assertThat(list.get(0).url(), is(entity.url()));
+		assertThat(list.get(0).url(), is(entities.entity("new1").url()));
 	}
 
 	@Test

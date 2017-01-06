@@ -68,4 +68,6 @@ public interface UrlTranslation
 
 	DataAction flatDirFileDataAction(String dir, String file);
 
+	String entitiesUrl(String kindId);
+
 }

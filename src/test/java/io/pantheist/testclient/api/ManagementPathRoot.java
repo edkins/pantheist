@@ -73,4 +73,8 @@ public interface ManagementPathRoot
 	ManagementPathSqlTable sqlTable(String tableName);
 
 	ListSqlTableResponse listSqlTables();
+
+	ManagementPathEntities entitiesWithKind(String kindId);
+
+	ListClassifierResponse listEntityClassifiers();
 }

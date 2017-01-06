@@ -60,8 +60,42 @@ public class ListClassifierTest
 		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
 
 		assertThat(segs,
-				containsInAnyOrder("data", "server", "java-pkg", "json-schema", "kind", "flat-dir", "sql-table"));
+				containsInAnyOrder("data", "server", "java-pkg", "json-schema", "kind", "flat-dir", "sql-table",
+						"entity"));
 		assertThat(urls, hasItem(manage.urlOfService("java-pkg")));
+	}
+
+	@Test
+	public void entity_classifiers() throws Exception
+	{
+		final List<? extends ListClassifierItem> list = manage.listEntityClassifiers().childResources();
+
+		final List<String> urls = Lists.transform(list, ListClassifierItem::url);
+		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
+
+		assertThat(segs, containsInAnyOrder("java-file"));
+		assertThat(urls, hasItem(manage.entitiesWithKind("java-file").url()));
+	}
+
+	@Test
+	public void entity_classifiers_custom_file() throws Exception
+	{
+		mainRule.putKindResourceWithPort("file-json-with-array");
+		mainRule.putJsonSchemaResourceWithPort("file-json-with-array");
+
+		final List<? extends ListClassifierItem> list = manage.listEntityClassifiers().childResources();
+		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
+		assertThat(segs, containsInAnyOrder("java-file", "file-json-with-array"));
+	}
+
+	@Test
+	public void entity_classifiers_custom_javaFile() throws Exception
+	{
+		mainRule.putKindResource("java-interface-sugar");
+
+		final List<? extends ListClassifierItem> list = manage.listEntityClassifiers().childResources();
+		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
+		assertThat(segs, containsInAnyOrder("java-file", "java-interface-sugar"));
 	}
 
 	@Test

@@ -14,9 +14,12 @@ import io.pantheist.api.kind.model.ListEntityItem;
 import io.pantheist.api.kind.model.ListEntityResponse;
 import io.pantheist.api.kind.model.ListKindItem;
 import io.pantheist.api.kind.model.ListKindResponse;
+import io.pantheist.common.api.model.CommonApiModelFactory;
 import io.pantheist.common.api.model.Kinded;
 import io.pantheist.common.api.model.KindedImpl;
 import io.pantheist.common.api.model.KindedMime;
+import io.pantheist.common.api.model.ListClassifierItem;
+import io.pantheist.common.api.model.ListClassifierResponse;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.OtherPreconditions;
@@ -34,6 +37,7 @@ final class KindBackendImpl implements KindBackend
 	private final ApiKindModelFactory modelFactory;
 	private final UrlTranslation urlTranslation;
 	private final FileKindHandler fileKindHandler;
+	private final CommonApiModelFactory commonFactory;
 
 	@Inject
 	private KindBackendImpl(
@@ -41,13 +45,15 @@ final class KindBackendImpl implements KindBackend
 			final KindValidation kindValidation,
 			final ApiKindModelFactory modelFactory,
 			final UrlTranslation urlTranslation,
-			final FileKindHandler fileKindHandler)
+			final FileKindHandler fileKindHandler,
+			final CommonApiModelFactory commonFactory)
 	{
 		this.kindStore = checkNotNull(kindStore);
 		this.kindValidation = checkNotNull(kindValidation);
 		this.modelFactory = checkNotNull(modelFactory);
 		this.urlTranslation = checkNotNull(urlTranslation);
 		this.fileKindHandler = checkNotNull(fileKindHandler);
+		this.commonFactory = checkNotNull(commonFactory);
 	}
 
 	private ListKindItem toListKindItem(final Kind k)
@@ -176,5 +182,21 @@ final class KindBackendImpl implements KindBackend
 		{
 			return FailureReason.PARENT_DOES_NOT_EXIST.happened();
 		}
+	}
+
+	@Override
+	public ListClassifierResponse listEntityClassifiers()
+	{
+		return kindStore.listAllKinds()
+				.filter(kindStore::isEntityKind)
+				.map(this::toListClassifierItem)
+				.wrap(commonFactory::listClassifierResponse);
+	}
+
+	private ListClassifierItem toListClassifierItem(final Kind kind)
+	{
+		final String classifierKindUrl = urlTranslation.kindToUrl("pantheist-classifier");
+		return commonFactory.listClassifierItem(urlTranslation.entitiesUrl(kind.kindId()),
+				kind.kindId(), false, classifierKindUrl);
 	}
 }

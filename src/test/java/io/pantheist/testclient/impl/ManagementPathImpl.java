@@ -25,6 +25,7 @@ import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.testclient.api.ManagementData;
 import io.pantheist.testclient.api.ManagementFlatDirFilePath;
 import io.pantheist.testclient.api.ManagementFlatDirPath;
+import io.pantheist.testclient.api.ManagementPathEntities;
 import io.pantheist.testclient.api.ManagementPathJavaBinding;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathJavaPackage;
@@ -51,7 +52,8 @@ final class ManagementPathImpl implements
 		ManagementPathSqlTable,
 		ManagementPathSqlRow,
 		ManagementFlatDirFilePath,
-		ManagementPathUnknownEntity
+		ManagementPathUnknownEntity,
+		ManagementPathEntities
 {
 	// Path segments
 	private static final String JAVA_PKG = "java-pkg";
@@ -176,7 +178,7 @@ final class ManagementPathImpl implements
 	@Override
 	public ListEntityResponse listEntities()
 	{
-		return target.withSegment(ENTITY).getJson(ListEntityResponse.class);
+		return target.getJson(ListEntityResponse.class);
 	}
 
 	@Override
@@ -431,5 +433,23 @@ final class ManagementPathImpl implements
 	public ResponseType getResponseTypeForContentType(final String mimeType)
 	{
 		return target.getResponseType(mimeType);
+	}
+
+	@Override
+	public ManagementPathEntities entitiesWithKind(final String kindId)
+	{
+		return new ManagementPathImpl(target.withSegment(ENTITY).withSegment(kindId));
+	}
+
+	@Override
+	public ManagementPathUnknownEntity entity(final String entityId)
+	{
+		return new ManagementPathImpl(target.withSegment(entityId));
+	}
+
+	@Override
+	public ListClassifierResponse listEntityClassifiers()
+	{
+		return target.withSegment(ENTITY).getJson(ListClassifierResponse.class);
 	}
 }
