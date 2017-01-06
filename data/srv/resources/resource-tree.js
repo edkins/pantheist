@@ -93,6 +93,7 @@ resourceTree._expand = function(parent)
 				liElement: li,
 				ulElement: undefined,
 				expanded: false,
+				kindUrl: resource.kindUrl
 			};
 			
 			resourceTree._info[resource.url] = child;
@@ -148,7 +149,8 @@ resourceTree.initialize = function()
 	var rootItem = {
 		liElement: rootElement,
 		ulElement: undefined,
-		expanded: false
+		expanded: false,
+		kindUrl: rootKind
 	};
 	
 	resourceTree._info[rootUrl] = rootItem;
@@ -181,32 +183,32 @@ resourceTree._onclickTreeItem = function(event)
 		return;
 	}
 	
-	http.getJson( url ).then (
-		data => {
-			item.data = data;
+	if (ui.isKindListable(item.kindUrl))
+	{
+		http.getJson( url ).then (
+			data => {
+				item.data = data;
+				if (event.ctrlKey)
+				{
+					ui.visitScratch(JSON.stringify(data, null, '    '));
+				}
+				else
+				{
+					resourceTree._expand(item);
+				}
+			},
 			
-			if (event.ctrlKey)
-			{
-				ui.visitScratch( JSON.stringify(item.data, null, '    ') );
+			error => {
+				console.error('Fetching info: ' + error);
+				ui.flashClass(event.currentTarget, 'flash-server-error');
 			}
-			else if (item.data.dataAction != undefined)
-			{
-				return ui.visit(url,
-					item.data.kindUrl,
-					item.data.dataAction.url,
-					item.data.dataAction.mimeType,
-					elementToFlash,
-					true);
-			}
-			else
-			{
-				resourceTree._expand(item);
-			}
-		},
-		
-		error => {
-			console.error('Fetching info: ' + error);
-			ui.flashClass(event.currentTarget, 'flash-server-error');
-		}
-	);
+		);
+	}
+	else
+	{
+		return ui.visit(url,
+			item.kindUrl,
+			elementToFlash,
+			true);
+	}
 };

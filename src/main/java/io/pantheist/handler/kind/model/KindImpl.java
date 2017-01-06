@@ -23,6 +23,7 @@ final class KindImpl implements Kind
 	private final KindPresentation presentation;
 	private final CreateAction createAction;
 	private final DeleteAction deleteAction;
+	private final boolean listable;
 
 	@Inject
 	private KindImpl(
@@ -31,7 +32,8 @@ final class KindImpl implements Kind
 			@Nullable @Assisted @JsonProperty("presentation") final KindPresentation presentation,
 			@Assisted @JsonProperty("schema") final KindSchema schema,
 			@Nullable @Assisted @JsonProperty("createAction") final CreateAction createAction,
-			@Nullable @Assisted @JsonProperty("deleteAction") final DeleteAction deleteAction)
+			@Nullable @Assisted @JsonProperty("deleteAction") final DeleteAction deleteAction,
+			@Assisted("listable") @JsonProperty("listable") final boolean listable)
 	{
 		this.kindId = kindId;
 		this.partOfSystem = partOfSystem;
@@ -39,6 +41,7 @@ final class KindImpl implements Kind
 		this.presentation = presentation;
 		this.createAction = createAction;
 		this.deleteAction = deleteAction;
+		this.listable = listable;
 	}
 
 	@Override
@@ -132,5 +135,11 @@ final class KindImpl implements Kind
 	public DeleteAction deleteAction()
 	{
 		return deleteAction;
+	}
+
+	@Override
+	public boolean listable()
+	{
+		return listable;
 	}
 }

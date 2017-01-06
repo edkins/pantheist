@@ -53,7 +53,7 @@ fileTabs.hasUrlOpen = function(url)
 	return fileTabs._find(url) !== undefined;
 };
 
-fileTabs.open = function(url, kindUrl, dataUrl, mimeType, elementToFlash)
+fileTabs.open = function(url, kindUrl, mimeType, elementToFlash)
 {
 	if (url == undefined || kindUrl == undefined)
 	{
@@ -76,7 +76,6 @@ fileTabs.open = function(url, kindUrl, dataUrl, mimeType, elementToFlash)
 		url: url,
 		domElement: document.createElement('li'),
 		kindUrl: kindUrl,
-		dataUrl: dataUrl,
 		mimeType: mimeType,
 		method: 'put'
 	};
@@ -108,13 +107,13 @@ fileTabs._nextUntitledPseudoUrl = function()
 	}
 };
 
-fileTabs.openNew = function(kindUrl, displayName, dataUrl, mimeType, method)
+fileTabs.openNew = function(kindUrl, displayName, createUrl, mimeType, method)
 {
 	var newFile = {
 		url: fileTabs._nextUntitledPseudoUrl(),
 		domElement: document.createElement('li'),
 		kindUrl: kindUrl,
-		dataUrl: dataUrl,
+		createUrl: createUrl,
 		mimeType: mimeType,
 		method: method
 	};

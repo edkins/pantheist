@@ -56,8 +56,8 @@ final class KindBackendImpl implements KindBackend
 		final String kindUrl = metakind();
 		return modelFactory.listKindItem(
 				url,
-				kindUrl,
-				k.kindId());
+				k.kindId(),
+				kindUrl);
 	}
 
 	private String metakind()
@@ -79,7 +79,7 @@ final class KindBackendImpl implements KindBackend
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
 		return kindFactory.kind(kindId, kind.schema(), kind.partOfSystem(), kind.presentation(),
-				kind.createAction(), kind.deleteAction());
+				kind.createAction(), kind.deleteAction(), kind.listable());
 	}
 
 	@Override

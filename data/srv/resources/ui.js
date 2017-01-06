@@ -51,6 +51,15 @@ ui.getKindIcon = function(kindUrl, expanded)
 	return '/resources/images/red-ball.png';
 };
 
+ui.isKindListable = function(kindUrl)
+{
+	if (kindUrl !== undefined && ui._kinds[kindUrl] != undefined)
+	{
+		return ui._kinds[kindUrl].listable || false;
+	}
+	return false;
+};
+
 Object.defineProperty(ui, 'rootKindUrl', {
 	get: function()
 	{
@@ -64,21 +73,26 @@ ui._setupAce = function()
     editor.setTheme("ace/theme/chrome");
     editor.setShowPrintMargin(false);
     editor.$blockScrolling = Infinity;
-}
+};
 
-ui._absorbKindInfo = function(kindInfo)
+ui._fetchKind = function(url)
 {
-	ui._kinds = {};
-	for (var kind of kindInfo.childResources)
-	{
-		ui._kinds[kind.url] = kind;
-	}
+	return http.getJson(url).then( kind => {
+		ui._kinds[url] = kind;
+	});
 };
 
 ui.refreshCache = function() {
-	return http.getJson(http.home + '/kind').then( kindInfo => {
-			ui._absorbKindInfo(kindInfo);
-		});
+	return http.getJson(http.home + '/kind').then(
+		list => {
+			var promises = [];
+			for (var child of list.childResources)
+			{
+				promises.push( ui._fetchKind(child.url) );
+			}
+			return Promise.all(promises);
+		}
+	);
 };
 /*
 function constructCreateUrl(t)
@@ -288,11 +302,11 @@ ui.switchTo = function(url)
 	}
 };
 
-ui.visit = function(url, kindUrl, dataUrl, mimeType, elementToFlash, flashOnSuccess)
+ui.visit = function(url, kindUrl, elementToFlash, flashOnSuccess)
 {
-	if (typeof url !== 'string' || typeof kindUrl !== 'string' || typeof dataUrl !== 'string' || typeof mimeType !== 'string')
+	if (typeof url !== 'string' || typeof kindUrl !== 'string')
 	{
-		console.error('visiting invalid value: ' + url + ' ' + kindUrl + ' ' + dataUrl + ' ' + mimeType);
+		console.error('visiting invalid value: ' + url + ' ' + kindUrl);
 		ui.flashClass(elementToFlash, 'flash-client-error');
 		return undefined;
 	}
@@ -333,15 +347,24 @@ ui.visit = function(url, kindUrl, dataUrl, mimeType, elementToFlash, flashOnSucc
 	}
 	
 	var schemaUrl = undefined;
+	var mimeType = undefined;
 	if (kind.createAction != undefined)
 	{
 		schemaUrl = kind.createAction.jsonSchema;
+		mimeType = kind.createAction.mimeType;
+	}
+	
+	if (mimeType == undefined)
+	{
+		console.error('unknown mime type to fetch');
+		ui.flashClass(elementToFlash, 'flash-client-error');
+		return undefined;
 	}
 
-	return http.getString(mimeType, dataUrl).then(
+	return http.getString(mimeType, url).then(
 		text => {
 			var displayName = uri.lastSegment(url);
-			fileTabs.open(url, kindUrl, dataUrl, mimeType)
+			fileTabs.open(url, kindUrl, mimeType);
 
 			editSessions.create(url, text);
 			if (schemaUrl != undefined)
@@ -408,7 +431,7 @@ ui.save = function()
 		return;
 	}
 	
-	var url = fileTabs.activeFile.dataUrl;
+	var url = fileTabs.activeFile.url;
 	var mimeType = fileTabs.activeFile.mimeType;
 	var method = fileTabs.activeFile.method;
 	var text = editSessions.textForUrl(fileTabs.activeFile.url);
@@ -420,13 +443,6 @@ ui.save = function()
 		return;
 	}
 	
-	if (url == undefined)
-	{
-		console.error('data url is undefined');
-		ui.flashClass(button, 'flash-client-error');
-		return;
-	}
-
 	if (mimeType == undefined)
 	{
 		console.error('mime type is undefined');
@@ -453,7 +469,14 @@ ui.save = function()
 				ui.flashClass(button, 'flash-server-error');
 			} );
 	case 'post':
-		return http.post(url, mimeType, text).then(
+		if (fileTabs.activeFile.createUrl == undefined)
+		{
+			console.error('create url is undefined');
+			ui.flashClass(button, 'flash-client-error');
+			return;
+		}
+	
+		return http.post(fileTabs.activeFile.createUrl, mimeType, text).then(
 			url => {
 				ui.flashClass(button, 'flash-activate');
 			},

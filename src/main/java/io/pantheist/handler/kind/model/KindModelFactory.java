@@ -16,5 +16,6 @@ public interface KindModelFactory
 			@Assisted("partOfSystem") boolean partOfSystem,
 			@Nullable KindPresentation instancePresentation,
 			@Nullable CreateAction createAction,
-			@Nullable DeleteAction deleteAction);
+			@Nullable DeleteAction deleteAction,
+			@Assisted("listable") boolean listable);
 }

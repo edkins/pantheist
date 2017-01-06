@@ -41,6 +41,9 @@ public interface Kind
 	@JsonProperty("deleteAction")
 	DeleteAction deleteAction();
 
+	@JsonProperty("listable")
+	boolean listable();
+
 	/**
 	 * Convenience method for obtaining the parent kind ID specified in the schema, if any.
 	 */
