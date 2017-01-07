@@ -194,4 +194,11 @@ final class FsPathImpl implements FsPath
 	{
 		return Make.last(segments).toString();
 	}
+
+	@Override
+	public boolean isChildOf(final FsPath dir)
+	{
+		return segments.size() == dir.segments().size() + 1
+				&& Make.listStartsWith(segments, dir.segments());
+	}
 }

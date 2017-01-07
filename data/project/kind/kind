@@ -1,10 +1,42 @@
 {
-  "kindId": "kind",
-  "partOfSystem": true,
-  "presentation": {
-    "iconUrl": "/resources/images/kind.png",
-    "openIconUrl": null
+  "kindId" : "kind",
+  "partOfSystem" : true,
+  "presentation" : {
+    "iconUrl" : "/resources/images/kind.png",
+    "displayName" : "Kind"
   },
   "schema": {
-  }
+    "identification": {
+      "parentKind": "file",
+      "locationInProjectDir": "kind"
+    }
+  },
+  "specified": {
+    "jsonSchema" : "http://127.0.0.1:3142/entity/json-schema/kind",
+    "mimeType": "application/json",
+    "hooks": [
+      {
+        "type":"change",
+        "plugin": "kind"
+      }
+    ]
+  },
+  "computed": {
+    "handler": "file",
+    "hooks": [
+      {
+        "type":"change",
+        "plugin": "kind"
+      }
+    ]
+  },
+  "createAction" : {
+    "basicType" : "json",
+    "mimeType" : "application/json",
+    "jsonSchema" : "http://127.0.0.1:3142/entity/json-schema/kind",
+    "urlTemplate" : "http://127.0.0.1:3142/entity/kind/kind/create",
+    "prototypeUrl" : "http://127.0.0.1:3142/project/prototype/kind",
+    "method" : "post"
+  },
+  "listable" : false
 }

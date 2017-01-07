@@ -58,4 +58,14 @@ public class Make
 		}
 		return ImmutableList.copyOf(list);
 	}
+
+	@Nullable
+	public static <T> ImmutableList<T> emptyIfNullable(@Nullable final List<T> list)
+	{
+		if (list == null)
+		{
+			return ImmutableList.of();
+		}
+		return ImmutableList.copyOf(list);
+	}
 }

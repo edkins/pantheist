@@ -63,7 +63,7 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.managementRoot = root;
 		this.javaFactory = checkNotNull(javaFactory);
 		this.modelFactory = checkNotNull(modelFactory);
-		this.kind = root.segment("kind").var("kindId");
+		this.kind = root.segment("entity").segment("kind").var("kindId");
 		this.entities = root.segment("entity").var("kindId");
 		this.entity = root.segment("entity").var("kindId").var("entityId");
 		this.jsonSchema = root.segment("entity").segment("json-schema").var("schemaId");
@@ -142,7 +142,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	public List<ListClassifierItem> listRootClassifiers()
 	{
 		return classifiers(managementRoot, ImmutableMap.of(), false,
-				"kind", "entity", "java-pkg", "server", "data", "flat-dir", "sql-table");
+				"entity", "java-pkg", "server", "data", "flat-dir", "sql-table");
 	}
 
 	@Override

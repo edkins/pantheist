@@ -16,7 +16,6 @@ import io.pantheist.api.flatdir.model.ListFlatDirResponse;
 import io.pantheist.api.java.model.ApiJavaBinding;
 import io.pantheist.api.java.model.ListJavaFileResponse;
 import io.pantheist.api.java.model.ListJavaPkgResponse;
-import io.pantheist.api.kind.model.ListKindResponse;
 import io.pantheist.api.management.model.ListConfigItem;
 import io.pantheist.api.management.model.ListConfigResponse;
 import io.pantheist.api.sql.model.ApiSqlRow;
@@ -162,7 +161,7 @@ final class ManagementPathImpl implements
 	@Override
 	public ManagementPathKind kind(final String kindId)
 	{
-		return new ManagementPathImpl(target.withSegment(KIND).withSegment(kindId));
+		return new ManagementPathImpl(target.withSegment(ENTITY).withSegment(KIND).withSegment(kindId));
 	}
 
 	@Override
@@ -205,12 +204,6 @@ final class ManagementPathImpl implements
 	public ListJavaPkgResponse listJavaPackages()
 	{
 		return target.withSegment(JAVA_PKG).getJson(ListJavaPkgResponse.class);
-	}
-
-	@Override
-	public ListKindResponse listKinds()
-	{
-		return target.withSegment(KIND).getJson(ListKindResponse.class);
 	}
 
 	@Override

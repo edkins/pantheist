@@ -156,6 +156,17 @@ public interface AntiIterator<T>
 		return builder.build();
 	}
 
+	/**
+	 * The mutable version of toList.
+	 */
+	default ArrayList<T> toArrayList()
+	{
+		final ArrayList<T> list = new ArrayList<>();
+
+		forEach(list::add);
+		return list;
+	}
+
 	default <R> R snowball(final R initial, final BiFunction<R, T, R> accumulate)
 	{
 		final AtomicReference<R> item = new AtomicReference<>(initial);

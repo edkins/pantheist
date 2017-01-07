@@ -2,7 +2,6 @@ package io.pantheist.testclient.api;
 
 import io.pantheist.api.flatdir.model.ListFlatDirResponse;
 import io.pantheist.api.java.model.ListJavaPkgResponse;
-import io.pantheist.api.kind.model.ListKindResponse;
 import io.pantheist.api.sql.model.ListSqlTableResponse;
 import io.pantheist.common.api.model.ListClassifierResponse;
 
@@ -48,8 +47,6 @@ public interface ManagementPathRoot
 	String urlOfService(String classifierSegment);
 
 	ListJavaPkgResponse listJavaPackages();
-
-	ListKindResponse listKinds();
 
 	ManagementPathJavaBinding javaBinding();
 

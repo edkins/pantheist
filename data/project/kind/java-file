@@ -1,9 +1,9 @@
 {
-  "kindId": "java-file",
-  "partOfSystem": true,
-  "presentation": {
-    "iconUrl": "/resources/images/file.png",
-    "openIconUrl": null
+  "kindId" : "java-file",
+  "partOfSystem" : true,
+  "presentation" : {
+    "iconUrl" : "/resources/images/file.png",
+    "displayName" : "Java File"
   },
   "schema": {
     "properties": {

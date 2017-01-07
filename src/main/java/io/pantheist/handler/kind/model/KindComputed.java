@@ -23,6 +23,9 @@ public interface KindComputed
 	@JsonProperty("childKindIds")
 	List<String> childKindIds();
 
+	@JsonProperty("hooks")
+	List<KindHook> hooks();
+
 	/**
 	 * Not sure this concept makes sense.
 	 *
@@ -48,4 +51,10 @@ public interface KindComputed
 
 	@JsonIgnore
 	void setChildKindIds(List<String> childKindIds);
+
+	/**
+	 * Add hooks to the beginning. (The idea is that the parent kind gets in there first).
+	 */
+	@JsonIgnore
+	void addHooksToBeginning(@Nullable List<KindHook> hooks);
 }

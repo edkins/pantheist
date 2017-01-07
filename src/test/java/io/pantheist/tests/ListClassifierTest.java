@@ -17,7 +17,6 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import io.pantheist.api.java.model.ListJavaPkgItem;
-import io.pantheist.common.api.model.BasicContentType;
 import io.pantheist.common.api.model.BindingAction;
 import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.ListClassifierItem;
@@ -39,7 +38,6 @@ public class ListClassifierTest
 
 	private ManagementPathRoot manage;
 
-	private static final String APPLICATION_JSON = "application/json";
 	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
@@ -59,7 +57,7 @@ public class ListClassifierTest
 		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
 
 		assertThat(segs,
-				containsInAnyOrder("data", "server", "java-pkg", "kind", "flat-dir", "sql-table",
+				containsInAnyOrder("data", "server", "java-pkg", "flat-dir", "sql-table",
 						"entity"));
 		assertThat(urls, hasItem(manage.urlOfService("java-pkg")));
 	}
@@ -72,7 +70,7 @@ public class ListClassifierTest
 		final List<String> urls = Lists.transform(list, ListClassifierItem::url);
 		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
 
-		assertThat(segs, containsInAnyOrder("java-file", "json-schema"));
+		assertThat(segs, containsInAnyOrder("java-file", "json-schema", "kind"));
 		assertThat(urls, hasItem(manage.entitiesWithKind("java-file").url()));
 	}
 
@@ -84,7 +82,7 @@ public class ListClassifierTest
 
 		final List<? extends ListClassifierItem> list = manage.listEntityClassifiers().childResources();
 		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
-		assertThat(segs, containsInAnyOrder("java-file", "json-schema", "file-json-with-array"));
+		assertThat(segs, containsInAnyOrder("java-file", "json-schema", "file-json-with-array", "kind"));
 	}
 
 	@Test
@@ -94,7 +92,7 @@ public class ListClassifierTest
 
 		final List<? extends ListClassifierItem> list = manage.listEntityClassifiers().childResources();
 		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
-		assertThat(segs, containsInAnyOrder("java-file", "json-schema", "java-interface-sugar"));
+		assertThat(segs, containsInAnyOrder("java-file", "json-schema", "kind", "java-interface-sugar"));
 	}
 
 	@Test
@@ -198,16 +196,5 @@ public class ListClassifierTest
 
 		assertThat(flatDir.listClassifierResponseType(), is(ResponseType.OK));
 		assertThat(badDir.listClassifierResponseType(), is(ResponseType.NOT_FOUND));
-	}
-
-	@Test
-	public void kind_createAction() throws Exception
-	{
-		final CreateAction createAction = manage.listKinds().createAction();
-
-		assertThat(createAction, notNullValue());
-		assertThat(createAction.basicType(), is(BasicContentType.json));
-		assertThat(createAction.mimeType(), is(APPLICATION_JSON));
-		assertThat(createAction.urlTemplate(), containsString("kind/{kindId}"));
 	}
 }

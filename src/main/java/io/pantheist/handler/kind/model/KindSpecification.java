@@ -1,5 +1,7 @@
 package io.pantheist.handler.kind.model;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,4 +18,8 @@ public interface KindSpecification
 	@Nullable
 	@JsonProperty("mimeType")
 	String mimeType();
+
+	@Nullable
+	@JsonProperty("hooks")
+	List<KindHook> hooks();
 }

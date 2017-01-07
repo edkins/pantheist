@@ -58,7 +58,7 @@ public final class SchemaResource implements ResourceTag
 	 * Handles creating a new json schema based on id (POST)
 	 */
 	@POST
-	@Path("kind/json-schema/create")
+	@Path("entity/kind/json-schema/create")
 	@Consumes("application/schema+json")
 	public Response postJsonSchema(final String data)
 	{

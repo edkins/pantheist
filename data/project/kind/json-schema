@@ -19,7 +19,7 @@
     "basicType" : "json",
     "mimeType" : "application/schema+json",
     "jsonSchema" : "http://127.0.0.1:3142/entity/json-schema/json-schema",
-    "urlTemplate" : "http://127.0.0.1:3142/kind/json-schema/create",
+    "urlTemplate" : "http://127.0.0.1:3142/entity/kind/json-schema/create",
     "prototypeUrl" : "http://127.0.0.1:3142/project/prototype/json-schema",
     "method" : "post"
   }

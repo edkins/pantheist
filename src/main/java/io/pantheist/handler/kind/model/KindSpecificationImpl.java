@@ -1,5 +1,7 @@
 package io.pantheist.handler.kind.model;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,13 +12,16 @@ final class KindSpecificationImpl implements KindSpecification
 {
 	private final JsonNode jsonSchema;
 	private final String mimeType;
+	private final List<KindHook> hooks;
 
 	public KindSpecificationImpl(
 			@Nullable @JsonProperty("jsonSchema") final JsonNode jsonSchema,
-			@Nullable @JsonProperty("mimeType") final String mimeType)
+			@Nullable @JsonProperty("mimeType") final String mimeType,
+			@Nullable @JsonProperty("hooks") final List<KindHook> hooks)
 	{
 		this.jsonSchema = jsonSchema;
 		this.mimeType = mimeType;
+		this.hooks = hooks;
 	}
 
 	@Override
@@ -38,6 +43,12 @@ final class KindSpecificationImpl implements KindSpecification
 				.add("jsonSchema", jsonSchema)
 				.add("mimeType", mimeType)
 				.toString();
+	}
+
+	@Override
+	public List<KindHook> hooks()
+	{
+		return hooks;
 	}
 
 }

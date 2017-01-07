@@ -15,7 +15,6 @@ import org.junit.Test;
 
 import io.pantheist.api.entity.model.ListEntityItem;
 import io.pantheist.api.java.model.ListJavaFileItem;
-import io.pantheist.api.kind.model.ListKindItem;
 import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
 import io.pantheist.testclient.api.ManagementPathJavaPackage;
@@ -98,22 +97,10 @@ public class KindTest
 		final ManagementPathKind kind = manage.kind("my-kind");
 		kind.putKindResource(KIND_SCHEMA_RES);
 
-		final List<ListKindItem> list = manage.listKinds().childResources();
+		final List<ListEntityItem> list = manage.entitiesWithKind("kind").listEntities().childResources();
 
-		final ListKindItem item = list.stream().filter(k -> k.url().equals(kind.url())).findFirst().get();
+		final ListEntityItem item = list.stream().filter(k -> k.url().equals(kind.url())).findFirst().get();
 		assertThat(item.url(), is(kind.url()));
-	}
-
-	@Test
-	public void kind_withWrongId_rejected() throws Exception
-	{
-		final ResponseType response1 = manage.kind("my-kind")
-				.putKindResourceResponseType(KIND_EXAMPLE_GARBAGE_ID_RES);
-		final ResponseType response2 = manage.kind("my-kind")
-				.putKindResourceResponseType(KIND_EXAMPLE_CORRECT_ID_RES);
-
-		assertThat(response1, is(ResponseType.BAD_REQUEST));
-		assertThat(response2, is(ResponseType.NO_CONTENT));
 	}
 
 	@Test

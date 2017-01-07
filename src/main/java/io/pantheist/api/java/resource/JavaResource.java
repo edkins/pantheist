@@ -215,7 +215,7 @@ public final class JavaResource implements ResourceTag
 	 * Note that this is included in the kind resource path.
 	 */
 	@POST
-	@Path("kind/java-file/create")
+	@Path("entity/kind/java-file/create")
 	@Consumes("text/plain")
 	public Response createJavaFile(final String data)
 	{

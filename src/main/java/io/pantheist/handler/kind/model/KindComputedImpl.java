@@ -16,17 +16,20 @@ final class KindComputedImpl implements KindComputed
 	private KindHandler handler;
 	private boolean isEntityKind;
 	private ImmutableList<String> childKindIds;
+	private ImmutableList<KindHook> hooks;
 
 	private KindComputedImpl(
 			@Nullable @JsonProperty("mimeType") final String mimeType,
 			@Nullable @JsonProperty("handler") final KindHandler handler,
 			@Deprecated @JsonProperty("isEntityKind") final boolean isEntityKind,
-			@Nullable @JsonProperty("childKindIds") final List<String> childKindIds)
+			@Nullable @JsonProperty("childKindIds") final List<String> childKindIds,
+			@Nullable @JsonProperty("hooks") final List<KindHook> hooks)
 	{
 		this.mimeType = mimeType;
 		this.handler = handler;
 		this.isEntityKind = isEntityKind;
 		this.childKindIds = Make.copyOfNullable(childKindIds);
+		this.hooks = Make.emptyIfNullable(hooks);
 	}
 
 	/**
@@ -34,7 +37,7 @@ final class KindComputedImpl implements KindComputed
 	 */
 	static KindComputed arbitrary()
 	{
-		return new KindComputedImpl(null, null, false, null);
+		return new KindComputedImpl(null, null, false, null, ImmutableList.of());
 	}
 
 	@Override
@@ -89,6 +92,8 @@ final class KindComputedImpl implements KindComputed
 				.add("mimeType", mimeType)
 				.add("handler", handler)
 				.add("isEntityKind", isEntityKind)
+				.add("childKindIds", childKindIds)
+				.add("hooks", hooks)
 				.toString();
 	}
 
@@ -102,6 +107,23 @@ final class KindComputedImpl implements KindComputed
 	public void setChildKindIds(final List<String> childKindIds)
 	{
 		this.childKindIds = ImmutableList.copyOf(childKindIds);
+	}
+
+	@Override
+	public List<KindHook> hooks()
+	{
+		return hooks;
+	}
+
+	@Override
+	public void addHooksToBeginning(final List<KindHook> hooks)
+	{
+		final ImmutableList.Builder<KindHook> builder = ImmutableList.builder();
+		if (hooks != null)
+		{
+			builder.addAll(hooks);
+		}
+		this.hooks = builder.addAll(this.hooks).build();
 	}
 
 }

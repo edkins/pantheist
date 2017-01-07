@@ -90,4 +90,10 @@ public interface FsPath
 	 * @throws IllegalStateException if the path is empty
 	 */
 	String lastSegment();
+
+	/**
+	 * Returns true if this object is a direct child of the given path, i.e. the segments
+	 * are all the same but this has an extra one.
+	 */
+	boolean isChildOf(FsPath dir);
 }

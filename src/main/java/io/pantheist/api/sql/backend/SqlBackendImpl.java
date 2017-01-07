@@ -27,6 +27,7 @@ import io.pantheist.common.shared.model.TypeInfo;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
+import io.pantheist.handler.filekind.backend.FileKindHandler;
 import io.pantheist.handler.kind.backend.KindStore;
 import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.handler.sql.backend.SqlService;
@@ -40,6 +41,7 @@ final class SqlBackendImpl implements SqlBackend
 	private final CommonApiModelFactory commonFactory;
 	private final KindStore kindStore;
 	private final ObjectMapper objectMapper;
+	private final FileKindHandler fileKindHandler;
 
 	@Inject
 	private SqlBackendImpl(
@@ -48,7 +50,8 @@ final class SqlBackendImpl implements SqlBackend
 			final UrlTranslation urlTranslation,
 			final CommonApiModelFactory commonFactory,
 			final KindStore kindStore,
-			final ObjectMapper objectMapper)
+			final ObjectMapper objectMapper,
+			final FileKindHandler fileKindHandler)
 	{
 		this.sqlService = checkNotNull(sqlStore);
 		this.modelFactory = checkNotNull(modelFactory);
@@ -56,6 +59,7 @@ final class SqlBackendImpl implements SqlBackend
 		this.commonFactory = checkNotNull(commonFactory);
 		this.kindStore = checkNotNull(kindStore);
 		this.objectMapper = checkNotNull(objectMapper);
+		this.fileKindHandler = checkNotNull(fileKindHandler);
 	}
 
 	private ListSqlTableItem toListSqlTableItem(final Kind kind)
@@ -69,7 +73,7 @@ final class SqlBackendImpl implements SqlBackend
 	@Override
 	public ListSqlTableResponse listSqlTables()
 	{
-		return kindStore.listAllKinds()
+		return fileKindHandler.listAllKinds()
 				.filter(Kind::shouldRegisterInSql)
 				.map(this::toListSqlTableItem)
 				.wrap(modelFactory::listSqlTableResponse);

@@ -6,5 +6,6 @@
     "openIconUrl": null
   },
   "schema": {
-  }
+  },
+  "listable": true
 }

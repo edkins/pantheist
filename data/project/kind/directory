@@ -1,10 +1,10 @@
 {
-  "kindId": "directory",
-  "partOfSystem": true,
-  "presentation": {
-    "iconUrl": "/resources/images/directory-closed.png",
-    "openIconUrl": "/resources/images/directory-open.png"
+  "kindId" : "directory",
+  "partOfSystem" : true,
+  "presentation" : {
+    "iconUrl" : "/resources/images/directory-closed.png",
+    "openIconUrl" : "/resources/images/directory-open.png"
   },
-  "schema": {
-  }
+  "schema" : { },
+  "listable": true
 }

@@ -3,10 +3,16 @@ package io.pantheist.handler.filekind.backend;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,8 +23,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.pantheist.common.api.model.CommonApiModelFactory;
 import io.pantheist.common.api.model.KindedMime;
 import io.pantheist.common.api.url.UrlTranslation;
+import io.pantheist.common.util.AntiIterator;
 import io.pantheist.common.util.FailureReason;
-import io.pantheist.common.util.FilterableObjectStream;
 import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
@@ -28,15 +34,24 @@ import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.filesystem.backend.FsPath;
 import io.pantheist.handler.kind.model.Affordance;
 import io.pantheist.handler.kind.model.AffordanceType;
+import io.pantheist.handler.kind.model.HookType;
 import io.pantheist.handler.kind.model.Kind;
+import io.pantheist.handler.kind.model.KindHandler;
+import io.pantheist.handler.kind.model.KindHook;
+import io.pantheist.plugin.interfaces.AlteredSnapshot;
 
 final class FileKindHandlerImpl implements FileKindHandler
 {
+	private static final String KIND = "kind";
+	private static final Logger LOGGER = LogManager.getLogger(FileKindHandlerImpl.class);
 	private static final String LOCATION_IN_PROJECT_DIR = "locationInProjectDir";
 	private final FilesystemStore filesystem;
 	private final UrlTranslation urlTranslation;
 	private final ObjectMapper objectMapper;
 	private final CommonApiModelFactory commonFactory;
+
+	// State
+	private final Map<String, Consumer<AlteredSnapshot>> changeHookPlugins;
 
 	@Inject
 	private FileKindHandlerImpl(
@@ -49,6 +64,36 @@ final class FileKindHandlerImpl implements FileKindHandler
 		this.urlTranslation = checkNotNull(urlTranslation);
 		this.objectMapper = checkNotNull(objectMapper);
 		this.commonFactory = checkNotNull(commonFactory);
+		this.changeHookPlugins = new HashMap<>();
+	}
+
+	private WriteableAlteredSnapshot snapshot(final Kind kind)
+	{
+		return AlteredSnapshotImpl.of(
+				filesystem.snapshot(),
+				snap -> changeHook(kind, snap),
+				objectMapper,
+				baseDir(kind));
+	}
+
+	private void changeHook(final Kind kind, final AlteredSnapshot snapshot)
+	{
+		if (kind.computed() != null && kind.computed().hooks() != null)
+		{
+			for (final KindHook hook : kind.computed().hooks())
+			{
+				if (hook.type() == HookType.change)
+				{
+					if (!changeHookPlugins.containsKey(hook.plugin()))
+					{
+						// Don't make this fatal, otherwise the user might not be able to undo things easily
+						LOGGER.warn("No change hook plugin registered: {} for kind {}", hook.plugin(), kind.kindId());
+					}
+
+					changeHookPlugins.get(hook.plugin()).accept(snapshot);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -56,7 +101,7 @@ final class FileKindHandlerImpl implements FileKindHandler
 	{
 		final FsPath baseDir = baseDir(kind);
 
-		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final WriteableAlteredSnapshot snapshot = snapshot(kind);
 
 		final Optional<String> text = blank(kind);
 
@@ -71,7 +116,8 @@ final class FileKindHandlerImpl implements FileKindHandler
 			final FsPath candidate = baseDir.segment(candidateName);
 			if (snapshot.checkFileState(candidate) == FileState.DOES_NOT_EXIST)
 			{
-				snapshot.writeSingleText(candidate, text.get());
+				snapshot.writeText(candidate, text.get());
+				snapshot.writeOutEverything();
 				return View.ok(urlTranslation.entityToUrl(kind.kindId(), candidateName));
 			}
 		}
@@ -98,36 +144,68 @@ final class FileKindHandlerImpl implements FileKindHandler
 		return Optional.empty();
 	}
 
-	private FsPath baseDir(final Kind kind)
+	private Optional<FsPath> optBaseDir(final Kind kind)
 	{
+		if (kind.computed() == null || kind.computed().handler() != KindHandler.file)
+		{
+			return Optional.empty();
+		}
 		if (kind.schema().identification() == null)
 		{
-			throw new FileKindException("No location specified for items of kind " + kind.kindId());
+			return Optional.empty();
 		}
 		if (!kind.schema().identification().has(LOCATION_IN_PROJECT_DIR) ||
 				!kind.schema().identification().get(LOCATION_IN_PROJECT_DIR).isTextual())
 		{
-			throw new FileKindException("No location specified for items of kind " + kind.kindId());
+			return Optional.empty();
 		}
 		final String locationInProjectDir = kind.schema().identification().get(LOCATION_IN_PROJECT_DIR).textValue();
 
 		final FsPath baseDir = filesystem.projectBucket().slashSeparatedSegments(locationInProjectDir);
-		return baseDir;
+		return Optional.of(baseDir);
+	}
+
+	private FsPath baseDir(final Kind kind)
+	{
+		return optBaseDir(kind)
+				.orElseThrow(() -> new FileKindException("No location specified for items of kind " + kind.kindId()));
 	}
 
 	@Override
-	public FilterableObjectStream discoverFileEntities(final Kind kind)
+	public AntiIterator<ObjectNode> discoverFileEntities(final Kind kind)
 	{
 		final FsPath baseDir = baseDir(kind);
-		final FilesystemSnapshot snapshot = filesystem.snapshot();
 
-		return snapshot.listFilesAndDirectories(baseDir)
-				.filter(p -> snapshot.safeIsFile(p))
-				.map(p -> toJsonNode(snapshot, p, kind))
-				.toDumbFilterableStream();
+		return consumer -> {
+			final WriteableAlteredSnapshot snapshot = snapshot(kind);
+
+			snapshot.listFilesAndDirectories(baseDir)
+					.filter(p -> snapshot.safeIsFile(p))
+					.map(p -> toJsonNode(snapshot, p, kind))
+					.forEach(consumer);
+
+			snapshot.writeOutEverything();
+		};
 	}
 
-	private ObjectNode toJsonNode(final FilesystemSnapshot snapshot, final FsPath p, final Kind kind)
+	@Override
+	public AntiIterator<String> listAllEntityTexts(final Kind kind)
+	{
+		final FsPath baseDir = baseDir(kind);
+
+		return consumer -> {
+			final WriteableAlteredSnapshot snapshot = snapshot(kind);
+
+			snapshot.listFilesAndDirectories(baseDir)
+					.filter(p -> snapshot.safeIsFile(p))
+					.map(snapshot::readText)
+					.forEach(consumer);
+
+			snapshot.writeOutEverything();
+		};
+	}
+
+	private ObjectNode toJsonNode(final AlteredSnapshot snapshot, final FsPath p, final Kind kind)
 	{
 		return objectMapper.getNodeFactory().objectNode()
 				.put("kindId", kind.kindId())
@@ -137,7 +215,7 @@ final class FileKindHandlerImpl implements FileKindHandler
 	@Override
 	public Possible<KindedMime> getEntity(final Kind kind, final String entityId)
 	{
-		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final WriteableAlteredSnapshot snapshot = snapshot(kind);
 
 		if (kind.computed().mimeType() == null)
 		{
@@ -157,7 +235,7 @@ final class FileKindHandlerImpl implements FileKindHandler
 		return baseDir(kind).segment(entityId);
 	}
 
-	private Possible<String> getText(final FilesystemSnapshot snapshot, final Kind kind, final String entityId)
+	private Possible<String> getText(final AlteredSnapshot snapshot, final Kind kind, final String entityId)
 	{
 		final FsPath path = path(kind, entityId);
 
@@ -197,7 +275,7 @@ final class FileKindHandlerImpl implements FileKindHandler
 			return FailureReason.KIND_DOES_NOT_SUPPORT.happened();
 		}
 
-		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final WriteableAlteredSnapshot snapshot = snapshot(kind);
 		final FsPath path = path(kind, entityId);
 		return getText(snapshot, kind, entityId).posMap(text -> {
 			final JsonNode node;
@@ -210,7 +288,8 @@ final class FileKindHandlerImpl implements FileKindHandler
 				return FailureReason.OPERATING_ON_INVALID_ENTITY.happened();
 			}
 			return performAdd(kind, node, aff.get()).map(x -> {
-				snapshot.writeSingle(path, snapshot.jsonWriter(node));
+				snapshot.writeJson(path, node);
+				snapshot.writeOutEverything();
 				return null;
 			});
 		});
@@ -241,13 +320,18 @@ final class FileKindHandlerImpl implements FileKindHandler
 	}
 
 	@Override
-	public Possible<Void> putEntity(final Kind kind, final String entityId, final String text)
+	public Possible<Void> putEntity(final Kind kind, final String entityId, final String text,
+			final boolean failIfExists)
 	{
 		final FsPath path = path(kind, entityId);
-		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final WriteableAlteredSnapshot snapshot = snapshot(kind);
 
-		snapshot.isFile(path);
-		snapshot.writeSingleText(path, text);
+		if (snapshot.isFile(path) && failIfExists)
+		{
+			return FailureReason.ALREADY_EXISTS.happened();
+		}
+		snapshot.writeText(path, text);
+		snapshot.writeOutEverything();
 		return View.noContent();
 	}
 
@@ -255,21 +339,115 @@ final class FileKindHandlerImpl implements FileKindHandler
 	public Possible<Void> deleteEntity(final Kind kind, final String entityId)
 	{
 		final FsPath path = path(kind, entityId);
-		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final WriteableAlteredSnapshot snapshot = snapshot(kind);
 		if (snapshot.isFile(path))
 		{
-			final AtomicBoolean success = new AtomicBoolean(false);
-			snapshot.writeSingle(path, file -> success.set(file.delete()));
-			if (!success.get())
-			{
-				return FailureReason.IO_PROBLEM.happened();
-			}
+			snapshot.deleteFile(path);
+			snapshot.writeOutEverything();
 			return View.noContent();
 		}
 		else
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
 		}
+	}
+
+	@Override
+	public void registerChangeHookPlugin(final String pluginId, final Consumer<AlteredSnapshot> pluginHook)
+	{
+		this.changeHookPlugins.put(pluginId, pluginHook);
+	}
+
+	@Override
+	public void deregisterAllPlugins()
+	{
+		this.changeHookPlugins.clear();
+	}
+
+	@Override
+	public void deregisterPlugin(final String pluginId)
+	{
+		this.changeHookPlugins.remove(pluginId);
+	}
+
+	/**
+	 * I don't really know what to do about this one. The path for kinds needs to be
+	 * hardcoded here, because otherwise it doesn't know where to look for them.
+	 * There's probably a more elegant solution.
+	 */
+	@Override
+	public Optional<Kind> getKind(final String kindId)
+	{
+		final FsPath path = filesystem.projectBucket().segment(KIND).segment(kindId);
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		if (snapshot.isFile(path))
+		{
+			final String text = snapshot.readText(path);
+			try
+			{
+				return Optional.of(objectMapper.readValue(text, Kind.class));
+			}
+			catch (final IOException e)
+			{
+				LOGGER.warn("Parse problem for kind " + kindId);
+				LOGGER.catching(e);
+				return Optional.empty();
+			}
+		}
+		else
+		{
+			return Optional.empty();
+		}
+	}
+
+	@Override
+	public AntiIterator<Kind> listAllKinds()
+	{
+		return consumer -> {
+			final WriteableAlteredSnapshot snapshot = snapshot(metakind());
+			snapshot
+					.listFilesAndDirectories(snapshot.baseDir())
+					.filter(snapshot::safeIsFile)
+					.map(path -> snapshot.readJson(path, Kind.class))
+					.forEach(consumer);
+			snapshot.writeOutEverything();
+		};
+	}
+
+	@Override
+	public Kind metakind()
+	{
+		return getKind(KIND).get();
+	}
+
+	private void sendChangeSignal(final Kind kind)
+	{
+		if (optBaseDir(kind).isPresent())
+		{
+			final WriteableAlteredSnapshot snapshot = snapshot(kind);
+			snapshot.forceChangeNotification();
+			snapshot.writeOutEverything();
+		}
+	}
+
+	@Override
+	public void sendGlobalChangeSignal()
+	{
+		final List<Kind> kinds = listAllKinds().toArrayList();
+
+		// Deal with "kind" first, in case anything else relies on it.
+		for (int i = 0; i < kinds.size(); i++)
+		{
+			if (kinds.get(i).kindId().equals(KIND))
+			{
+				sendChangeSignal(kinds.get(i));
+				kinds.remove(i);
+				break;
+			}
+		}
+
+		// Now deal with the rest.
+		kinds.forEach(this::sendChangeSignal);
 	}
 
 }

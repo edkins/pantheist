@@ -60,7 +60,7 @@ final class KindValidationImpl implements KindValidation
 
 	private Map<String, Kind> mapOfKinds()
 	{
-		return kindStore.listAllKinds().toMap(Kind::kindId);
+		return fileKindHandler.listAllKinds().toMap(Kind::kindId);
 	}
 
 	/**
@@ -318,6 +318,6 @@ final class KindValidationImpl implements KindValidation
 
 	private FilterableObjectStream discoverFileEntities(final Kind kind)
 	{
-		return fileKindHandler.discoverFileEntities(kind);
+		return fileKindHandler.discoverFileEntities(kind).toDumbFilterableStream();
 	}
 }
