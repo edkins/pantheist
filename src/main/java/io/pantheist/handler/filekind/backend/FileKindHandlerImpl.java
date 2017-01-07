@@ -2,9 +2,15 @@ package io.pantheist.handler.filekind.backend;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.IOException;
+import java.util.Optional;
+
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.pantheist.common.api.model.CommonApiModelFactory;
@@ -12,12 +18,15 @@ import io.pantheist.common.api.model.KindedMime;
 import io.pantheist.common.api.url.UrlTranslation;
 import io.pantheist.common.util.FailureReason;
 import io.pantheist.common.util.FilterableObjectStream;
+import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
 import io.pantheist.handler.filesystem.backend.FileState;
 import io.pantheist.handler.filesystem.backend.FilesystemSnapshot;
 import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.filesystem.backend.FsPath;
+import io.pantheist.handler.kind.model.Affordance;
+import io.pantheist.handler.kind.model.AffordanceType;
 import io.pantheist.handler.kind.model.Kind;
 
 final class FileKindHandlerImpl implements FileKindHandler
@@ -42,13 +51,18 @@ final class FileKindHandlerImpl implements FileKindHandler
 	}
 
 	@Override
-	public String newInstanceOfKind(final Kind kind)
+	public Possible<String> newInstanceOfKind(final Kind kind)
 	{
 		final FsPath baseDir = baseDir(kind);
 
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
 
-		final String text = "{}";
+		final Optional<String> text = blank(kind);
+
+		if (!text.isPresent())
+		{
+			return FailureReason.KIND_DOES_NOT_SUPPORT.happened();
+		}
 
 		for (int i = 1;; i++)
 		{
@@ -56,10 +70,31 @@ final class FileKindHandlerImpl implements FileKindHandler
 			final FsPath candidate = baseDir.segment(candidateName);
 			if (snapshot.checkFileState(candidate) == FileState.DOES_NOT_EXIST)
 			{
-				snapshot.writeSingleText(candidate, text);
-				return urlTranslation.entityToUrl(kind.kindId(), candidateName);
+				snapshot.writeSingleText(candidate, text.get());
+				return View.ok(urlTranslation.entityToUrl(kind.kindId(), candidateName));
 			}
 		}
+	}
+
+	private Optional<String> blank(final Kind kind)
+	{
+		for (final Affordance affordance : kind.affordances())
+		{
+			if (affordance.type() == AffordanceType.blank
+					&& affordance.name() == null
+					&& affordance.prototypeValue() != null)
+			{
+				try
+				{
+					return Optional.of(objectMapper.writeValueAsString(affordance.prototypeValue()));
+				}
+				catch (final JsonProcessingException e)
+				{
+					throw new FileKindException(e);
+				}
+			}
+		}
+		return Optional.empty();
 	}
 
 	private FsPath baseDir(final Kind kind)
@@ -101,23 +136,101 @@ final class FileKindHandlerImpl implements FileKindHandler
 	@Override
 	public Possible<KindedMime> getEntity(final Kind kind, final String entityId)
 	{
-		final FsPath baseDir = baseDir(kind);
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		return getText(snapshot, kind, entityId).map(text -> {
+			return commonFactory.kindedMime(
+					urlTranslation.kindToUrl(kind.kindId()),
+					"application/json",
+					text);
+		});
+	}
 
-		final FsPath path = baseDir.segment(entityId);
+	private FsPath path(final Kind kind, final String entityId)
+	{
+		return baseDir(kind).segment(entityId);
+	}
+
+	private Possible<String> getText(final FilesystemSnapshot snapshot, final Kind kind, final String entityId)
+	{
+		final FsPath path = path(kind, entityId);
 
 		if (snapshot.isFile(path))
 		{
 			final String text = snapshot.readText(path);
-			return View.ok(commonFactory.kindedMime(
-					urlTranslation.kindToUrl(kind.kindId()),
-					"application/json",
-					text));
+			return View.ok(text);
 		}
 		else
 		{
 			return FailureReason.DOES_NOT_EXIST.happened();
 		}
+	}
+
+	private Optional<Affordance> findAdd(final Kind kind, final String addName)
+	{
+		checkNotNull(kind);
+		OtherPreconditions.checkNotNullOrEmpty(addName);
+		for (final Affordance affordance : kind.affordances())
+		{
+			if (affordance.type() == AffordanceType.add
+					&& addName.equals(affordance.name()))
+			{
+				return Optional.of(affordance);
+			}
+		}
+		return Optional.empty();
+	}
+
+	@Override
+	public Possible<Void> add(final Kind kind, final String entityId, final String addName)
+	{
+		final Optional<Affordance> aff = findAdd(kind, addName);
+
+		if (!aff.isPresent())
+		{
+			return FailureReason.KIND_DOES_NOT_SUPPORT.happened();
+		}
+
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		final FsPath path = path(kind, entityId);
+		return getText(snapshot, kind, entityId).posMap(text -> {
+			final JsonNode node;
+			try
+			{
+				node = objectMapper.readValue(text, JsonNode.class);
+			}
+			catch (final IOException e)
+			{
+				return FailureReason.OPERATING_ON_INVALID_ENTITY.happened();
+			}
+			return performAdd(kind, node, aff.get()).map(x -> {
+				snapshot.writeSingle(path, snapshot.jsonWriter(node));
+				return null;
+			});
+		});
+	}
+
+	private Possible<Void> performAdd(final Kind kind, final JsonNode document, final Affordance aff)
+	{
+		if (aff.location() == null)
+		{
+			return FailureReason.KIND_IS_INVALID.happened();
+		}
+		final JsonNode node = document.at(aff.location().pointer());
+		if (node.isMissingNode())
+		{
+			return FailureReason.OPERATING_ON_INVALID_ENTITY.happened();
+		}
+		if (!node.isArray())
+		{
+			return FailureReason.OPERATING_ON_INVALID_ENTITY.happened();
+		}
+		if (aff.prototypeValue() == null)
+		{
+			return FailureReason.KIND_IS_INVALID.happened();
+		}
+		((ArrayNode) node).add(aff.prototypeValue());
+
+		return View.noContent();
 	}
 
 }

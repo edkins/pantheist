@@ -8,6 +8,10 @@
   "jsonSchema": {"$ref": "http://127.0.0.1:{{PORT}}/json-schema/file-json-with-array"},
   "affordances": [
     {
+      "type": "blank",
+      "prototypeValue": {"stuff":[]}
+    },
+    {
       "type": "add",
       "name": "Add stuff",
       "location": "/stuff",

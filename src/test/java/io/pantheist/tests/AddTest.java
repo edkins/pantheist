@@ -2,6 +2,7 @@ package io.pantheist.tests;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -9,6 +10,8 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import io.pantheist.api.kind.model.ListEntityItem;
 import io.pantheist.testclient.api.ManagementPathEntities;
@@ -64,5 +67,33 @@ public class AddTest
 		final ManagementPathUnknownEntity entity = kind.postNew();
 
 		assertThat(entity.getResponseTypeForContentType(APPLICATION_JSON), is(ResponseType.OK));
+	}
+
+	@Test
+	public void fileBasedKind_blankEntityIsCorrect() throws Exception
+	{
+		final ManagementPathKind kind = mainRule.putKindResourceWithPort("file-json-with-array");
+		mainRule.putJsonSchemaResourceWithPort("file-json-with-array");
+
+		final ManagementPathUnknownEntity entity = kind.postNew();
+
+		final JsonNode stuff = entity.getJsonNode().get("stuff");
+		assertTrue("stuff should be array", stuff.isArray());
+		assertThat(stuff.size(), is(0));
+	}
+
+	@Test
+	public void fileBasedKind_addArrayItem() throws Exception
+	{
+		final ManagementPathKind kind = mainRule.putKindResourceWithPort("file-json-with-array");
+		mainRule.putJsonSchemaResourceWithPort("file-json-with-array");
+
+		final ManagementPathUnknownEntity entity = kind.postNew();
+
+		entity.add("Add stuff");
+
+		final JsonNode stuff = entity.getJsonNode().get("stuff");
+		assertThat(stuff.size(), is(1));
+		assertThat(stuff.get(0).textValue(), is("This is the new item."));
 	}
 }

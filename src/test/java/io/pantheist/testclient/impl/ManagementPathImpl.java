@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableMap;
+
 import io.pantheist.api.flatdir.model.ApiFlatDirFile;
 import io.pantheist.api.flatdir.model.ListFileResponse;
 import io.pantheist.api.flatdir.model.ListFlatDirResponse;
@@ -451,5 +454,25 @@ final class ManagementPathImpl implements
 	public ListClassifierResponse listEntityClassifiers()
 	{
 		return target.withSegment(ENTITY).getJson(ListClassifierResponse.class);
+	}
+
+	@Override
+	public JsonNode getJsonNode()
+	{
+		return target.getJson(JsonNode.class);
+	}
+
+	@Override
+	public void add(final String addName)
+	{
+		final Map<String, Object> map = ImmutableMap.of("addName", addName);
+		target.withSegment("add").postOperationWithJson(map);
+	}
+
+	@Override
+	public ResponseType addResponseType(final String addName)
+	{
+		final Map<String, Object> map = ImmutableMap.of("addName", addName);
+		return target.withSegment("add").postOperationWithJsonResponseType(map);
 	}
 }

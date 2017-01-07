@@ -3,7 +3,9 @@ package io.pantheist.api.entity.resource;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -12,6 +14,8 @@ import javax.ws.rs.core.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import io.pantheist.api.entity.backend.EntityBackend;
+import io.pantheist.api.entity.model.AddRequest;
 import io.pantheist.api.kind.backend.KindBackend;
 import io.pantheist.api.kind.model.ListEntityResponse;
 import io.pantheist.common.annotations.ResourceTag;
@@ -24,12 +28,14 @@ import io.pantheist.common.util.Possible;
 public final class EntityResource implements ResourceTag
 {
 	private static final Logger LOGGER = LogManager.getLogger(EntityResource.class);
-	private final KindBackend backend;
+	private final KindBackend kindBackend;
 	private final Resp resp;
+	private final EntityBackend backend;
 
 	@Inject
-	private EntityResource(final KindBackend backend, final Resp resp)
+	private EntityResource(final KindBackend kindBackend, final EntityBackend backend, final Resp resp)
 	{
+		this.kindBackend = checkNotNull(kindBackend);
 		this.backend = checkNotNull(backend);
 		this.resp = checkNotNull(resp);
 	}
@@ -46,7 +52,7 @@ public final class EntityResource implements ResourceTag
 		LOGGER.info("GET entity/{}", kindId);
 		try
 		{
-			final Possible<ListEntityResponse> result = backend.listEntitiesWithKind(kindId);
+			final Possible<ListEntityResponse> result = kindBackend.listEntitiesWithKind(kindId);
 			return resp.possibleToJson(result);
 		}
 		catch (final RuntimeException ex)
@@ -69,7 +75,7 @@ public final class EntityResource implements ResourceTag
 		LOGGER.info("GET entity/{}/{}", kindId, entityId);
 		try
 		{
-			final Possible<KindedMime> result = backend.getEntity(kindId, entityId);
+			final Possible<KindedMime> result = kindBackend.getEntity(kindId, entityId);
 			return resp.possibleKindedMime(result);
 		}
 		catch (final RuntimeException ex)
@@ -89,8 +95,35 @@ public final class EntityResource implements ResourceTag
 		LOGGER.info("GET entity");
 		try
 		{
-			final ListClassifierResponse result = backend.listEntityClassifiers();
+			final ListClassifierResponse result = kindBackend.listEntityClassifiers();
 			return resp.toJson(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles "add" operation (POST)
+	 *
+	 * Note this currently does not return a url. It's assumed that the thing that's added
+	 * is not encapsulated as a resource with a url, it's just a component of an existing resource.
+	 */
+	@POST
+	@Path("entity/{kindId}/{entityId}/add")
+	@Consumes("application/json")
+	public Response add(
+			@PathParam("kindId") final String kindId,
+			@PathParam("entityId") final String entityId,
+			final String requestJson)
+	{
+		LOGGER.info("POST entity/{}/{}/add", kindId, entityId);
+		try
+		{
+			final Possible<Void> result = resp.request(requestJson, AddRequest.class)
+					.posMap(req -> backend.add(kindId, entityId, req));
+			return resp.possibleEmpty(result);
 		}
 		catch (final RuntimeException ex)
 		{

@@ -1,5 +1,7 @@
 package io.pantheist.common.util;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
@@ -45,7 +47,7 @@ final class PossibleOkImpl<T> implements Possible<T>
 	@Override
 	public <U> Possible<U> posMap(final Function<T, Possible<U>> fn)
 	{
-		return fn.apply(value);
+		return checkNotNull(fn.apply(value));
 	}
 
 	@Override

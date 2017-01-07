@@ -2,28 +2,28 @@ package io.pantheist.handler.kind.model;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import javax.annotation.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-
-import io.pantheist.common.util.OtherPreconditions;
 
 final class AffordanceImpl implements Affordance
 {
 	private final AffordanceType type;
 	private final String name;
-	private final JsonPath location;
+	private final SerializableJsonPointer location;
 	private final JsonNode prototypeValue;
 
 	public AffordanceImpl(
 			@JsonProperty("type") final AffordanceType type,
-			@JsonProperty("name") final String name,
-			@JsonProperty("location") final JsonPath location,
+			@Nullable @JsonProperty("name") final String name,
+			@Nullable @JsonProperty("location") final SerializableJsonPointer location,
 			@JsonProperty("prototypeValue") final JsonNode prototypeValue)
 	{
 		this.type = checkNotNull(type);
-		this.name = OtherPreconditions.checkNotNullOrEmpty(name);
-		this.location = checkNotNull(location);
-		this.prototypeValue = checkNotNull(prototypeValue);
+		this.name = name;
+		this.location = location;
+		this.prototypeValue = prototypeValue;
 	}
 
 	@Override
@@ -39,7 +39,7 @@ final class AffordanceImpl implements Affordance
 	}
 
 	@Override
-	public JsonPath location()
+	public SerializableJsonPointer location()
 	{
 		return location;
 	}

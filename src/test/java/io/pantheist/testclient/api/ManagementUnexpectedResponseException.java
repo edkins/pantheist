@@ -1,7 +1,5 @@
 package io.pantheist.testclient.api;
 
-import java.io.IOException;
-
 /**
  * Indicates an unexpected response from the server, e.g.
  *
@@ -16,7 +14,7 @@ public class ManagementUnexpectedResponseException extends RuntimeException
 		super(message);
 	}
 
-	public ManagementUnexpectedResponseException(final IOException e)
+	public ManagementUnexpectedResponseException(final Exception e)
 	{
 		super(e);
 	}

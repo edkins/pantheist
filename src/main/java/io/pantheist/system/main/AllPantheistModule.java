@@ -2,6 +2,7 @@ package io.pantheist.system.main;
 
 import com.google.inject.AbstractModule;
 
+import io.pantheist.api.entity.backend.ApiEntityBackendModule;
 import io.pantheist.api.entity.resource.ApiEntityResourceModule;
 import io.pantheist.api.flatdir.backend.ApiFlatDirBackendModule;
 import io.pantheist.api.flatdir.model.ApiFlatDirModelModule;
@@ -53,6 +54,7 @@ public class AllPantheistModule extends AbstractModule
 	@Override
 	protected void configure()
 	{
+		install(new ApiEntityBackendModule());
 		install(new ApiEntityResourceModule());
 		install(new ApiFlatDirBackendModule());
 		install(new ApiFlatDirModelModule());

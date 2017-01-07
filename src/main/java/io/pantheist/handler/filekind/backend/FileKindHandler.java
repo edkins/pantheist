@@ -8,11 +8,13 @@ import io.pantheist.handler.kind.model.Kind;
 public interface FileKindHandler
 {
 	/**
-	 * @return a url
+	 * @return a url, or KIND_DOES_NOT_SUPPORT
 	 */
-	String newInstanceOfKind(Kind kind);
+	Possible<String> newInstanceOfKind(Kind kind);
 
 	FilterableObjectStream discoverFileEntities(Kind kind);
 
 	Possible<KindedMime> getEntity(Kind kind, String entityId);
+
+	Possible<Void> add(Kind kind, String entityId, String addName);
 }

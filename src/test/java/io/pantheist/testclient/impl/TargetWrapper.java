@@ -341,4 +341,36 @@ public final class TargetWrapper
 			throw errorResponse(response, "HEAD");
 		}
 	}
+
+	public <T> void postOperationWithJson(final T value)
+	{
+		final String text;
+		try
+		{
+			text = objectMapper.writeValueAsString(value);
+		}
+		catch (final JsonProcessingException e)
+		{
+			throw new ManagementUnexpectedResponseException(e);
+		}
+
+		final Response response = target.request().post(Entity.json(text));
+		expectNoContent(response, "POST");
+	}
+
+	public <T> ResponseType postOperationWithJsonResponseType(final T value)
+	{
+		final String text;
+		try
+		{
+			text = objectMapper.writeValueAsString(value);
+		}
+		catch (final JsonProcessingException e)
+		{
+			throw new ManagementUnexpectedResponseException(e);
+		}
+
+		final Response response = target.request().post(Entity.json(text));
+		return responseType(response);
+	}
 }

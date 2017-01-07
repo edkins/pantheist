@@ -9,4 +9,9 @@ public class FileKindException extends RuntimeException
 		super(message);
 	}
 
+	public FileKindException(final Exception e)
+	{
+		super(e);
+	}
+
 }

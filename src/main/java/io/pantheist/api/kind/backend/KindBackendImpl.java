@@ -150,11 +150,11 @@ final class KindBackendImpl implements KindBackend
 		{
 			if (kind.get().hasParent("file"))
 			{
-				return View.ok(fileKindHandler.newInstanceOfKind(kind.get()));
+				return fileKindHandler.newInstanceOfKind(kind.get());
 			}
 			else
 			{
-				return FailureReason.HANDLER_DOES_NOT_SUPPORT.happened();
+				return FailureReason.KIND_DOES_NOT_SUPPORT.happened();
 			}
 		}
 		else
@@ -175,7 +175,7 @@ final class KindBackendImpl implements KindBackend
 			}
 			else
 			{
-				return FailureReason.HANDLER_DOES_NOT_SUPPORT.happened();
+				return FailureReason.KIND_DOES_NOT_SUPPORT.happened();
 			}
 		}
 		else
