@@ -11,8 +11,10 @@
       "locationInProjectDir": "json-schema"
     }
   },
-  "jsonSchema" : "http://127.0.0.1:3142/entity/json-schema/json-schema",
-  "mimeType": "application/schema+json",
+  "specified": {
+    "jsonSchema" : "http://127.0.0.1:3142/entity/json-schema/json-schema",
+    "mimeType": "application/schema+json"
+  },
   "createAction" : {
     "basicType" : "json",
     "mimeType" : "application/schema+json",

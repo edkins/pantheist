@@ -9,9 +9,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import io.pantheist.common.annotations.IgnoredOnTheWayIn;
 import io.pantheist.common.annotations.NotNullableOnTheWayOut;
 import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.DeleteAction;
@@ -33,12 +33,12 @@ public interface Kind
 	KindSchema schema();
 
 	@Nullable
-	@JsonProperty("jsonSchema")
-	JsonNode jsonSchema();
+	@JsonProperty("specified")
+	KindSpecification specified();
 
-	@Nullable
-	@JsonProperty("mimeType")
-	String mimeType();
+	@IgnoredOnTheWayIn
+	@JsonProperty("computed")
+	KindComputed computed();
 
 	@Nullable
 	@JsonProperty("presentation")
@@ -80,9 +80,6 @@ public interface Kind
 	@JsonIgnore
 	boolean shouldRegisterInSql();
 
-	/**
-	 * The only mutable thing. Only allows you to set from null to something non-null.
-	 */
 	@JsonIgnore
 	void setKindId(String kindId);
 }

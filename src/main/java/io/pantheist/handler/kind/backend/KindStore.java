@@ -30,7 +30,5 @@ public interface KindStore
 	 */
 	AntiIterator<SqlProperty> listSqlPropertiesOfKind(String kindId);
 
-	boolean derivesFrom(Kind kind, String ancestorKindId);
-
-	boolean isEntityKind(Kind kind);
+	void recomputeKinds();
 }

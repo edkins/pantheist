@@ -139,7 +139,7 @@ final class FileKindHandlerImpl implements FileKindHandler
 	{
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
 
-		if (kind.mimeType() == null)
+		if (kind.computed().mimeType() == null)
 		{
 			return FailureReason.KIND_IS_INVALID.happened();
 		}
@@ -147,7 +147,7 @@ final class FileKindHandlerImpl implements FileKindHandler
 		return getText(snapshot, kind, entityId).map(text -> {
 			return commonFactory.kindedMime(
 					urlTranslation.kindToUrl(kind.kindId()),
-					kind.mimeType(),
+					kind.computed().mimeType(),
 					text);
 		});
 	}

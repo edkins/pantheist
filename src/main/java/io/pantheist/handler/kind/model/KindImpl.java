@@ -7,8 +7,10 @@ import java.util.Optional;
 
 import javax.annotation.Nullable;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 
 import io.pantheist.common.api.model.CreateAction;
 import io.pantheist.common.api.model.DeleteAction;
@@ -17,6 +19,7 @@ import io.pantheist.common.util.OtherPreconditions;
 
 final class KindImpl implements Kind
 {
+	private static final Logger LOGGER = LogManager.getLogger(KindImpl.class);
 	private static final String PARENT_KIND = "parentKind";
 	private String kindId;
 	private final boolean partOfSystem;
@@ -25,32 +28,39 @@ final class KindImpl implements Kind
 	private final CreateAction createAction;
 	private final DeleteAction deleteAction;
 	private final boolean listable;
-	private final JsonNode jsonSchema;
 	private final List<Affordance> affordances;
-	private final String mimeType;
+	private final KindSpecification specified;
+	private final KindComputed computed;
 
 	private KindImpl(
 			@Nullable @JsonProperty("kindId") final String kindId,
 			@JsonProperty("partOfSystem") final boolean partOfSystem,
 			@Nullable @JsonProperty("presentation") final KindPresentation presentation,
 			@JsonProperty("schema") final KindSchema schema,
-			@Nullable @JsonProperty("jsonSchema") final JsonNode jsonSchema,
-			@Nullable @JsonProperty("mimeType") final String mimeType,
 			@Nullable @JsonProperty("createAction") final CreateAction createAction,
 			@Nullable @JsonProperty("deleteAction") final DeleteAction deleteAction,
 			@JsonProperty("listable") final boolean listable,
-			@Nullable @JsonProperty("affordances") final List<Affordance> affordances)
+			@Nullable @JsonProperty("affordances") final List<Affordance> affordances,
+			@Nullable @JsonProperty("specified") final KindSpecification specified,
+			@Nullable @JsonProperty("computed") final KindComputed computed)
 	{
 		this.kindId = kindId;
 		this.partOfSystem = partOfSystem;
 		this.schema = checkNotNull(schema);
-		this.jsonSchema = jsonSchema;
-		this.mimeType = mimeType;
 		this.presentation = presentation;
 		this.createAction = createAction;
 		this.deleteAction = deleteAction;
 		this.listable = listable;
 		this.affordances = affordances;
+		this.specified = specified;
+		if (computed == null)
+		{
+			this.computed = KindComputedImpl.arbitrary();
+		}
+		else
+		{
+			this.computed = computed;
+		}
 	}
 
 	@Override
@@ -153,18 +163,12 @@ final class KindImpl implements Kind
 	}
 
 	@Override
-	public JsonNode jsonSchema()
-	{
-		return jsonSchema;
-	}
-
-	@Override
 	public void setKindId(final String kindId)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
-		if (this.kindId != null)
+		if (this.kindId != null && !this.kindId.equals(kindId))
 		{
-			throw new IllegalStateException("setKindId can only be used to set null kindId");
+			LOGGER.warn("Changing kindId from {} to {}", this.kindId, kindId);
 		}
 		this.kindId = kindId;
 	}
@@ -176,8 +180,14 @@ final class KindImpl implements Kind
 	}
 
 	@Override
-	public String mimeType()
+	public KindSpecification specified()
 	{
-		return mimeType;
+		return specified;
+	}
+
+	@Override
+	public KindComputed computed()
+	{
+		return computed;
 	}
 }

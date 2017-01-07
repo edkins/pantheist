@@ -55,6 +55,7 @@ final class InitializerImpl implements Initializer
 			LOGGER.info("Data dir is {}", config.dataDir());
 
 			filesystem.initialize();
+			kindStore.recomputeKinds();
 			nginxService.generateConfIfMissing();
 			anonymizeNginxConf();
 			server.start();
@@ -81,6 +82,7 @@ final class InitializerImpl implements Initializer
 	@Override
 	public void regenerateDb()
 	{
+		kindStore.recomputeKinds();
 		sqlService.deleteAllTables(); // all transient data anyway so we can trash it
 		kindStore.registerKindsInSql();
 		javaStore.registerFilesInSql();

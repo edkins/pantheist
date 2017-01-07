@@ -25,6 +25,7 @@ import io.pantheist.handler.filekind.backend.FileKindHandler;
 import io.pantheist.handler.kind.backend.KindStore;
 import io.pantheist.handler.kind.backend.KindValidation;
 import io.pantheist.handler.kind.model.Kind;
+import io.pantheist.handler.kind.model.KindHandler;
 
 final class EntityBackendImpl implements EntityBackend
 {
@@ -77,7 +78,7 @@ final class EntityBackendImpl implements EntityBackend
 	public ListClassifierResponse listEntityClassifiers()
 	{
 		return kindStore.listAllKinds()
-				.filter(kindStore::isEntityKind)
+				.filter(k -> k.computed().isEntityKind())
 				.map(this::toListClassifierItem)
 				.wrap(commonFactory::listClassifierResponse);
 	}
@@ -119,7 +120,7 @@ final class EntityBackendImpl implements EntityBackend
 		final Optional<Kind> kind = kindStore.getKind(kindId);
 		if (kind.isPresent())
 		{
-			if (kindStore.derivesFrom(kind.get(), "file"))
+			if (kind.get().computed().handler() == KindHandler.file)
 			{
 				return fileKindHandler.getEntity(kind.get(), entityId);
 			}
@@ -146,11 +147,11 @@ final class EntityBackendImpl implements EntityBackend
 		final Optional<Kind> kind = kindStore.getKind(kindId);
 		if (kind.isPresent())
 		{
-			if (!contentType.equals(kind.get().mimeType()))
+			if (!contentType.equals(kind.get().computed().mimeType()))
 			{
 				return FailureReason.UNSUPPORTED_MEDIA_TYPE.happened();
 			}
-			if (kindStore.derivesFrom(kind.get(), "file"))
+			if (kind.get().computed().handler() == KindHandler.file)
 			{
 				return fileKindHandler.putEntity(kind.get(), entityId, text);
 			}
@@ -171,7 +172,7 @@ final class EntityBackendImpl implements EntityBackend
 		final Optional<Kind> kind = kindStore.getKind(kindId);
 		if (kind.isPresent())
 		{
-			if (kindStore.derivesFrom(kind.get(), "file"))
+			if (kind.get().computed().handler() == KindHandler.file)
 			{
 				return fileKindHandler.deleteEntity(kind.get(), entityId);
 			}

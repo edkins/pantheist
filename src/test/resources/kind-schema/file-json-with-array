@@ -5,8 +5,10 @@
       "locationInProjectDir": "json-with-array"
     }
   },
-  "jsonSchema": {"$ref": "http://127.0.0.1:{{PORT}}/json-schema/file-json-with-array"},
-  "mimeType": "application/json",
+  "specified": {
+    "jsonSchema": {"$ref": "http://127.0.0.1:{{PORT}}/json-schema/file-json-with-array"},
+    "mimeType": "application/json"
+  },
   "affordances": [
     {
       "type": "blank",
