@@ -18,8 +18,6 @@ public interface KindStore
 
 	AntiIterator<Kind> listAllKinds();
 
-	AntiIterator<Kind> listChildKinds(String parentId);
-
 	void registerKindsInSql();
 
 	/**

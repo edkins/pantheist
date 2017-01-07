@@ -139,22 +139,6 @@ final class KindStoreImpl implements KindStore
 		});
 	}
 
-	private boolean hasParent(final Kind kind, final String parentId)
-	{
-		if (kind.schema().identification() == null || !kind.schema().identification().has("parentKind"))
-		{
-			return false;
-		}
-		return parentId.equals(kind.schema().identification().get("parentKind").textValue());
-	}
-
-	@Override
-	public AntiIterator<Kind> listChildKinds(final String parentId)
-	{
-		return listAllKinds()
-				.filter(k -> hasParent(k, parentId));
-	}
-
 	@Override
 	public AntiIterator<SqlProperty> listSqlPropertiesOfKind(final String kindId)
 	{
@@ -175,12 +159,24 @@ final class KindStoreImpl implements KindStore
 	 *
 	 * Note that all kinds should end up with a handler, so if a null handler is returned
 	 * it means there was an error with the kind setup.
-	 * @param kinds
+	 *
+	 * Note that the computed properties of kinds will not be used here, to allow us to
+	 * compute the properties of everything at the same time.
+	 *
+	 * @param kind the kind we're interested in
+	 * @param kinds a map of all kinds, including this one, correctly filed under their kindId.
 	 */
 	private void compute(final Kind kind, final Map<String, Kind> kinds)
 	{
 		kind.computed().clear();
 		computeRecursive(kind.computed(), kind, new HashSet<>(), kinds);
+
+		kind.computed().setChildKindIds(
+				kinds.values()
+						.stream()
+						.filter(k -> k.hasParent(kind.kindId()))
+						.map(Kind::kindId)
+						.collect(Collectors.toList()));
 	}
 
 	/**
@@ -196,12 +192,6 @@ final class KindStoreImpl implements KindStore
 			final Map<String, Kind> kinds)
 	{
 		final String kindId = kind.kindId();
-
-		if (kindId.equals("json-schema"))
-		{
-			final int i = 0;
-		}
-
 		final Optional<String> parentId = kind.parent();
 
 		if (alreadyVisited.contains(kindId))

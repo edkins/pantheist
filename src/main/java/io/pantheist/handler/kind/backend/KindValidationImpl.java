@@ -5,8 +5,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -51,8 +51,16 @@ final class KindValidationImpl implements KindValidation
 	public FilterableObjectStream objectsWithKind(final String kindId)
 	{
 		OtherPreconditions.checkNotNullOrEmpty(kindId);
-		return discoverEntitiesWithKindRecursive(kindId, new HashSet<>())
-				.setField("kindId", x -> differentiate(x, kindId)); // may be a subkind of the one specified
+
+		final Map<String, Kind> kinds = mapOfKinds();
+
+		return discoverEntitiesWithKindRecursive(kindId, new HashSet<>(), kinds)
+				.setField("kindId", x -> differentiate(x, kindId, kinds)); // may be a subkind of the one specified
+	}
+
+	private Map<String, Kind> mapOfKinds()
+	{
+		return kindStore.listAllKinds().toMap(Kind::kindId);
 	}
 
 	/**
@@ -62,16 +70,17 @@ final class KindValidationImpl implements KindValidation
 	 * This is recursive, so if it matches one it will go on and try to differentiate it
 	 * further.
 	 */
-	private JsonNode differentiate(final ObjectNode entity, final String kindId)
+	private JsonNode differentiate(final ObjectNode entity, final String kindId, final Map<String, Kind> kinds)
 	{
 		checkNotNull(entity);
-		final List<Kind> kinds = kindStore.listChildKinds(kindId).toList();
 
-		for (final Kind kind : kinds)
+		final Kind parentKind = kinds.get(kindId);
+
+		for (final String childId : parentKind.computed().childKindIds())
 		{
-			if (differentiationStep(entity, kindId, kind))
+			if (differentiationStep(entity, kindId, childId, kinds))
 			{
-				return differentiate(entity, kind.kindId());
+				return differentiate(entity, childId, kinds);
 			}
 		}
 
@@ -91,18 +100,18 @@ final class KindValidationImpl implements KindValidation
 	 * while differentiate looks "down". It's assumed the chain will end with one of the builtin kinds,
 	 * which we have special logic to handle.
 	 */
-	private FilterableObjectStream discoverEntitiesWithKindRecursive(final String kindId,
-			final Set<String> alreadyVisited)
+	private FilterableObjectStream discoverEntitiesWithKindRecursive(
+			final String kindId,
+			final Set<String> alreadyVisited,
+			final Map<String, Kind> kinds)
 	{
-		final Optional<Kind> optKind = kindStore.getKind(kindId);
-
-		if (!optKind.isPresent())
+		final Kind kind = kinds.get(kindId);
+		if (kind == null)
 		{
 			// Kind does not exist
 			return EmptyFilterableObjectStream.empty();
 		}
 
-		final Kind kind = optKind.get();
 		if (kind.hasParent("file"))
 		{
 			return discoverFileEntities(kind);
@@ -127,29 +136,32 @@ final class KindValidationImpl implements KindValidation
 		}
 		alreadyVisited.add(parentId);
 
-		return discoverEntitiesWithKindRecursive(parentId, alreadyVisited)
-				.postFilter(entity -> differentiationStep(entity, parentId, kind));
+		return discoverEntitiesWithKindRecursive(parentId, alreadyVisited, kinds)
+				.postFilter(entity -> differentiationStep(entity, parentId, kindId, kinds));
 	}
 
 	/**
-	 * Return whether the entity can be differentiated from kindId into the specified kind
-	 * (which must be a child kind).
+	 * Return whether the entity can be differentiated from parentKindId into the specified childKindId
 	 */
-	private boolean differentiationStep(final ObjectNode entity, final String kindId, final Kind kind)
+	private boolean differentiationStep(
+			final ObjectNode entity,
+			final String parentKindId,
+			final String childKindId,
+			final Map<String, Kind> kinds)
 	{
-		if (!kind.hasParent(kindId))
+		final Kind childKind = kinds.get(childKindId);
+		if (childKind == null || !childKind.hasParent(parentKindId))
 		{
-			throw new IllegalArgumentException("Should already have checked that kind is a child of entity's kind "
-					+ kindId + "," + kind.kindId());
+			return false;
 		}
 		if (entity.has("canDifferentiate") && !entity.get("canDifferentiate").booleanValue())
 		{
 			return false;
 		}
 
-		if (kind.schema().identification() != null)
+		if (childKind.schema().identification() != null)
 		{
-			final Iterator<Entry<String, JsonNode>> iterator = kind.schema().identification().fields();
+			final Iterator<Entry<String, JsonNode>> iterator = childKind.schema().identification().fields();
 			while (iterator.hasNext())
 			{
 				final Entry<String, JsonNode> entry = iterator.next();

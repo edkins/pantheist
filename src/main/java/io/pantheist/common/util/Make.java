@@ -4,6 +4,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
+import com.google.common.collect.ImmutableList;
+
 /**
  * Operations on immutable objects.
  */
@@ -43,5 +47,15 @@ public class Make
 			}
 		}
 		return true;
+	}
+
+	@Nullable
+	public static <T> ImmutableList<T> copyOfNullable(@Nullable final List<T> list)
+	{
+		if (list == null)
+		{
+			return null;
+		}
+		return ImmutableList.copyOf(list);
 	}
 }

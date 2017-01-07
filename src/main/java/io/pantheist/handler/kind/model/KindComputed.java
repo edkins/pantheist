@@ -1,5 +1,7 @@
 package io.pantheist.handler.kind.model;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -16,6 +18,10 @@ public interface KindComputed
 	@Nullable
 	@JsonProperty("handler")
 	KindHandler handler();
+
+	@Nullable
+	@JsonProperty("childKindIds")
+	List<String> childKindIds();
 
 	/**
 	 * Not sure this concept makes sense.
@@ -39,4 +45,7 @@ public interface KindComputed
 
 	@JsonIgnore
 	void clear();
+
+	@JsonIgnore
+	void setChildKindIds(List<String> childKindIds);
 }
