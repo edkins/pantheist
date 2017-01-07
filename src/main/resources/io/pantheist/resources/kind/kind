@@ -12,7 +12,7 @@
     }
   },
   "specified": {
-    "jsonSchema" : "http://127.0.0.1:3142/entity/json-schema/kind",
+    "jsonSchema" : "http://127.0.0.1:{{PORT}}/entity/json-schema/kind",
     "mimeType": "application/json",
     "hooks": [
       {
@@ -33,9 +33,9 @@
   "createAction" : {
     "basicType" : "json",
     "mimeType" : "application/json",
-    "jsonSchema" : "http://127.0.0.1:3142/entity/json-schema/kind",
-    "urlTemplate" : "http://127.0.0.1:3142/entity/kind/kind/create",
-    "prototypeUrl" : "http://127.0.0.1:3142/project/prototype/kind",
+    "jsonSchema" : "http://127.0.0.1:{{PORT}}/entity/json-schema/kind",
+    "urlTemplate" : "http://127.0.0.1:{{PORT}}/entity/kind/kind/create",
+    "prototypeUrl" : "http://127.0.0.1:{{PORT}}/project/prototype/kind",
     "method" : "post"
   },
   "listable" : false

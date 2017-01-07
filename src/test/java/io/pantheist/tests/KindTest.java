@@ -52,7 +52,6 @@ public class KindTest
 	private static final String KIND_SCHEMA_RES = "/kind-schema/kind-test-example";
 	private static final String KIND_SCHEMA_SYSTEM_RES = "/kind-schema/kind-test-example-system";
 	private static final String KIND_EXAMPLE_CORRECT_ID_RES = "/kind-schema/kind-test-example-correct-id";
-	private static final String KIND_EXAMPLE_GARBAGE_ID_RES = "/kind-schema/kind-test-example-garbage-id";
 
 	@Before
 	public void setup()

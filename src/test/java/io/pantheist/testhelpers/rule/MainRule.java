@@ -31,18 +31,20 @@ public class MainRule implements TestRule
 {
 	private static final Logger LOGGER = LogManager.getLogger(MainRule.class);
 	private final TestSession session;
+	private final boolean fullReload;
 
-	private MainRule(final TestSession session)
+	private MainRule(final TestSession session, final boolean fullReload)
 	{
 		this.session = checkNotNull(session);
+		this.fullReload = fullReload;
 	}
 
 	private RuleChain createRuleChain()
 	{
 		return RuleChain
 				.outerRule(new ErrorLoggingRule())
-				.around(DataDirSetupRule.forTest(session))
-				.around(ReloadRule.forTest(session))
+				.around(DataDirSetupRule.forTest(session, fullReload))
+				.around(ReloadRule.forTest(session, fullReload))
 				.around(navigateToHomeRule())
 				.around(screenshotRule());
 	}
@@ -74,7 +76,7 @@ public class MainRule implements TestRule
 
 	public static MainRule forNewTest(final TestSession session)
 	{
-		return new MainRule(session);
+		return new MainRule(session, true);
 	}
 
 	public ManagementClient actions()

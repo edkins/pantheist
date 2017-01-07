@@ -20,15 +20,17 @@ final class ReloadRule implements TestRule
 {
 	private static final Logger LOGGER = LogManager.getLogger(ReloadRule.class);
 	private final TestSession session;
+	private final boolean fullReload;
 
-	public ReloadRule(final TestSession session)
+	public ReloadRule(final TestSession session, final boolean fullReload)
 	{
 		this.session = checkNotNull(session);
+		this.fullReload = fullReload;
 	}
 
-	public static TestRule forTest(final TestSession session)
+	public static TestRule forTest(final TestSession session, final boolean fullReload)
 	{
-		return new ReloadRule(session);
+		return new ReloadRule(session, fullReload);
 	}
 
 	@Override
@@ -42,7 +44,14 @@ final class ReloadRule implements TestRule
 				if (session.ensureStarted())
 				{
 					waitForServer();
-					session.client().regenerateDb();
+					if (fullReload)
+					{
+						session.client().reload();
+					}
+					else
+					{
+						session.client().regenerateDb();
+					}
 				}
 				else
 				{

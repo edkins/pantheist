@@ -20,4 +20,6 @@ public interface ManagementClient
 	 */
 	void regenerateDb();
 
+	void reload();
+
 }

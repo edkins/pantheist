@@ -29,7 +29,6 @@ import io.pantheist.common.util.OtherPreconditions;
 import io.pantheist.common.util.Possible;
 import io.pantheist.common.util.View;
 import io.pantheist.handler.filesystem.backend.FileState;
-import io.pantheist.handler.filesystem.backend.FilesystemSnapshot;
 import io.pantheist.handler.filesystem.backend.FilesystemStore;
 import io.pantheist.handler.filesystem.backend.FsPath;
 import io.pantheist.handler.kind.model.Affordance;
@@ -74,6 +73,16 @@ final class FileKindHandlerImpl implements FileKindHandler
 				snap -> changeHook(kind, snap),
 				objectMapper,
 				baseDir(kind));
+	}
+
+	private WriteableAlteredSnapshot snapshotWithoutHooks()
+	{
+		return AlteredSnapshotImpl.of(
+				filesystem.snapshot(),
+				x -> {
+				},
+				objectMapper,
+				null);
 	}
 
 	private void changeHook(final Kind kind, final AlteredSnapshot snapshot)
@@ -378,18 +387,37 @@ final class FileKindHandlerImpl implements FileKindHandler
 	@Override
 	public Optional<Kind> getKind(final String kindId)
 	{
-		final FsPath path = filesystem.projectBucket().segment(KIND).segment(kindId);
-		final FilesystemSnapshot snapshot = filesystem.snapshot();
-		if (snapshot.isFile(path))
+		final FsPath path = baseKindDir().segment(kindId);
+		final AlteredSnapshot snapshot = snapshotWithoutHooks();
+		return getKindFromSnapshot(path, snapshot);
+	}
+
+	private FsPath baseKindDir()
+	{
+		return filesystem.projectBucket().segment(KIND);
+	}
+
+	private Optional<Kind> getKindFromSnapshot(final FsPath path, final AlteredSnapshot snapshot)
+	{
+		final String kindId = path.segmentsRelativeTo(baseKindDir()).failIfMultiple().get();
+		if (snapshot.safeIsFile(path))
 		{
 			final String text = snapshot.readText(path);
 			try
 			{
-				return Optional.of(objectMapper.readValue(text, Kind.class));
+				final Kind kind = objectMapper.readValue(text, Kind.class);
+				if (!kindId.equals(kind.kindId()))
+				{
+					// Kinds that specify the wrong kindId will cause problems, so
+					// discard them at this stage.
+					LOGGER.warn("Wrong kindId for kind {}. It said {}", kindId, kind.kindId());
+					return Optional.empty();
+				}
+				return Optional.of(kind);
 			}
 			catch (final IOException e)
 			{
-				LOGGER.warn("Parse problem for kind " + kindId);
+				LOGGER.warn("Parse problem for kind {}", kindId);
 				LOGGER.catching(e);
 				return Optional.empty();
 			}
@@ -407,8 +435,7 @@ final class FileKindHandlerImpl implements FileKindHandler
 			final WriteableAlteredSnapshot snapshot = snapshot(metakind());
 			snapshot
 					.listFilesAndDirectories(snapshot.baseDir())
-					.filter(snapshot::safeIsFile)
-					.map(path -> snapshot.readJson(path, Kind.class))
+					.optMap(path -> getKindFromSnapshot(path, snapshot))
 					.forEach(consumer);
 			snapshot.writeOutEverything();
 		};

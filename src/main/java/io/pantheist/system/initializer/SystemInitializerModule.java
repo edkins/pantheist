@@ -11,6 +11,7 @@ public class SystemInitializerModule extends PrivateModule
 	{
 		expose(Initializer.class);
 		bind(Initializer.class).to(InitializerImpl.class).in(Scopes.SINGLETON);
+		bind(ResourceLoader.class).to(ResourceLoaderImpl.class).in(Scopes.SINGLETON);
 	}
 
 }

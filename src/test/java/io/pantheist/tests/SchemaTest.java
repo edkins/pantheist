@@ -1,5 +1,6 @@
 package io.pantheist.tests;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -11,6 +12,8 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
+
+import com.google.common.collect.Lists;
 
 import io.pantheist.api.entity.model.ListEntityItem;
 import io.pantheist.testclient.api.ManagementPathRoot;
@@ -67,8 +70,9 @@ public class SchemaTest
 
 		final List<ListEntityItem> list = manage.entitiesWithKind("json-schema").listEntities().childResources();
 
-		assertThat(list.size(), is(1));
-		assertThat(list.get(0).url(), is(schema.url()));
+		final List<String> urls = Lists.transform(list, ListEntityItem::url);
+
+		assertThat(urls, hasItem(schema.url()));
 	}
 
 	@Test

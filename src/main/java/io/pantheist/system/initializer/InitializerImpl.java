@@ -8,9 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import io.pantheist.common.util.Cleanup;
-import io.pantheist.handler.filesystem.backend.FilesystemSnapshot;
 import io.pantheist.handler.filesystem.backend.FilesystemStore;
-import io.pantheist.handler.filesystem.backend.FsPath;
 import io.pantheist.handler.java.backend.JavaStore;
 import io.pantheist.handler.kind.backend.KindStore;
 import io.pantheist.handler.kind.plugin.KindPlugin;
@@ -31,6 +29,7 @@ final class InitializerImpl implements Initializer
 	private final KindStore kindStore;
 	private final JavaStore javaStore;
 	private final PluginHandler pluginHandler;
+	private final ResourceLoader resourceLoader;
 
 	@Inject
 	private InitializerImpl(final FilesystemStore filesystem,
@@ -40,7 +39,8 @@ final class InitializerImpl implements Initializer
 			final SqlService sqlService,
 			final KindStore kindStore,
 			final JavaStore javaStore,
-			final PluginHandler pluginHandler)
+			final PluginHandler pluginHandler,
+			final ResourceLoader resourceLoader)
 	{
 		this.filesystem = checkNotNull(filesystem);
 		this.nginxService = checkNotNull(nginxService);
@@ -50,6 +50,7 @@ final class InitializerImpl implements Initializer
 		this.kindStore = checkNotNull(kindStore);
 		this.javaStore = checkNotNull(javaStore);
 		this.pluginHandler = checkNotNull(pluginHandler);
+		this.resourceLoader = checkNotNull(resourceLoader);
 	}
 
 	@Override
@@ -61,7 +62,6 @@ final class InitializerImpl implements Initializer
 
 			filesystem.initialize();
 			nginxService.generateConfIfMissing();
-			anonymizeNginxConf();
 			server.start();
 			sqlService.startOrRestart();
 			nginxService.startOrRestart();
@@ -79,6 +79,8 @@ final class InitializerImpl implements Initializer
 	@Override
 	public void reload()
 	{
+		LOGGER.info("Reload");
+		nginxService.generateConfIfMissing();
 		nginxService.startOrRestart();
 		regenerateDb();
 	}
@@ -86,6 +88,7 @@ final class InitializerImpl implements Initializer
 	@Override
 	public void regenerateDb()
 	{
+		resourceLoader.copyResourceFilesIfMissing();
 		pluginHandler.deregisterAllPlugins();
 		pluginHandler.registerPluginClass("kind", KindPlugin.class);
 		pluginHandler.sendGlobalChangeSignal();
@@ -111,34 +114,6 @@ final class InitializerImpl implements Initializer
 		{
 			return "/" + relativePath;
 		}
-	}
-
-	private void anonymizeNginxConf()
-	{
-		final FilesystemSnapshot snapshot = filesystem.snapshot();
-		final String hiddenText0 = config.dataDir().getAbsolutePath() + slashed(config.relativeSystemPath());
-		final String replacementText0 = "${SYSTEM_DIR}";
-		final String hiddenText1 = config.dataDir().getAbsolutePath() + slashed(config.relativeSrvPath());
-		final String replacementText1 = "${SRV_DIR}";
-		final String hiddenText2 = config.dataDir().getAbsolutePath();
-		final String replacementText2 = "${DATA_DIR}";
-		final String hiddenText3 = "127.0.0.1:" + config.nginxPort();
-		final String replacementText3 = "127.0.0.1:${MAIN_PORT}";
-		final String hiddenText4 = "127.0.0.1:" + config.internalPort();
-		final String replacementText4 = "127.0.0.1:${MANAGEMENT_PORT}";
-		final FsPath nginxConf = filesystem.systemBucket().segment("nginx.conf");
-		final String text = snapshot
-				.readText(nginxConf)
-				.replace(hiddenText0, replacementText0)
-				.replace(hiddenText1, replacementText1)
-				.replace(hiddenText2, replacementText2)
-				.replace(hiddenText2, replacementText2)
-				.replace(hiddenText3, replacementText3)
-				.replace(hiddenText4, replacementText4);
-
-		final FsPath nginxAnonConf = filesystem.systemBucket().segment("nginx-anon.conf");
-		snapshot.isFile(nginxAnonConf);
-		snapshot.writeSingleText(nginxAnonConf, text);
 	}
 
 	@Override

@@ -80,4 +80,15 @@ public class ManagementClientImpl implements ManagementClient
 					"Unexpected status code " + response.getStatus() + " when regenerating db");
 		}
 	}
+
+	@Override
+	public void reload()
+	{
+		final Response response = client.target(mainUri.toString()).path("system/reload").request().post(null);
+		if (response.getStatus() != 204)
+		{
+			throw new ManagementUnexpectedResponseException(
+					"Unexpected status code " + response.getStatus() + " when reloading");
+		}
+	}
 }

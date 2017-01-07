@@ -9,6 +9,9 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import io.pantheist.handler.filesystem.backend.FsPath;
 import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.handler.kind.model.KindComputed;
@@ -20,6 +23,8 @@ import io.pantheist.plugin.interfaces.AlteredSnapshot;
 @PantheistPlugin
 public final class KindPlugin
 {
+	private static final Logger LOGGER = LogManager.getLogger(KindPlugin.class);
+
 	@Inject
 	public KindPlugin()
 	{
@@ -94,6 +99,7 @@ public final class KindPlugin
 		if (alreadyVisited.contains(kindId))
 		{
 			// Kind cycle. Shouldn't happen if you've set them up right.
+			LOGGER.warn("kind cycle: {}", alreadyVisited);
 			return;
 		}
 		alreadyVisited.add(kindId);
@@ -139,8 +145,13 @@ public final class KindPlugin
 
 		// Anything that's still missing, look it up in the parent kind.
 		// We need to go all the way to the top to make sure all the hooks get added
-		if (parentId.isPresent() && kinds.containsKey(parentId.get()))
+		if (parentId.isPresent())
 		{
+			if (!kinds.containsKey(parentId.get()))
+			{
+				LOGGER.warn("Missing parent kind: {} from {}", parentId.get(), kindId);
+				return;
+			}
 			computeRecursive(computed, kinds.get(parentId.get()), alreadyVisited, kinds);
 		}
 	}

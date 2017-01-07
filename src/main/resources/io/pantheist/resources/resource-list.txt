@@ -1,0 +1,5 @@
+json-schema/json-schema
+kind/file
+kind/java-file
+kind/json-schema
+kind/kind

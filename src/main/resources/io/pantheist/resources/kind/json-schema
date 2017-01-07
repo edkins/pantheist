@@ -12,15 +12,15 @@
     }
   },
   "specified": {
-    "jsonSchema" : "http://127.0.0.1:3142/entity/json-schema/json-schema",
+    "jsonSchema" : "http://127.0.0.1:{{PORT}}/entity/json-schema/json-schema",
     "mimeType": "application/schema+json"
   },
   "createAction" : {
     "basicType" : "json",
     "mimeType" : "application/schema+json",
-    "jsonSchema" : "http://127.0.0.1:3142/entity/json-schema/json-schema",
-    "urlTemplate" : "http://127.0.0.1:3142/entity/kind/json-schema/create",
-    "prototypeUrl" : "http://127.0.0.1:3142/project/prototype/json-schema",
+    "jsonSchema" : "http://127.0.0.1:{{PORT}}/entity/json-schema/json-schema",
+    "urlTemplate" : "http://127.0.0.1:{{PORT}}/entity/kind/json-schema/create",
+    "prototypeUrl" : "http://127.0.0.1:{{PORT}}/project/prototype/json-schema",
     "method" : "post"
   }
 }
