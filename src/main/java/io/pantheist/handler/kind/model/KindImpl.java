@@ -27,6 +27,7 @@ final class KindImpl implements Kind
 	private final boolean listable;
 	private final JsonNode jsonSchema;
 	private final List<Affordance> affordances;
+	private final String mimeType;
 
 	private KindImpl(
 			@Nullable @JsonProperty("kindId") final String kindId,
@@ -34,6 +35,7 @@ final class KindImpl implements Kind
 			@Nullable @JsonProperty("presentation") final KindPresentation presentation,
 			@JsonProperty("schema") final KindSchema schema,
 			@Nullable @JsonProperty("jsonSchema") final JsonNode jsonSchema,
+			@Nullable @JsonProperty("mimeType") final String mimeType,
 			@Nullable @JsonProperty("createAction") final CreateAction createAction,
 			@Nullable @JsonProperty("deleteAction") final DeleteAction deleteAction,
 			@JsonProperty("listable") final boolean listable,
@@ -43,6 +45,7 @@ final class KindImpl implements Kind
 		this.partOfSystem = partOfSystem;
 		this.schema = checkNotNull(schema);
 		this.jsonSchema = jsonSchema;
+		this.mimeType = mimeType;
 		this.presentation = presentation;
 		this.createAction = createAction;
 		this.deleteAction = deleteAction;
@@ -170,5 +173,11 @@ final class KindImpl implements Kind
 	public List<Affordance> affordances()
 	{
 		return affordances;
+	}
+
+	@Override
+	public String mimeType()
+	{
+		return mimeType;
 	}
 }

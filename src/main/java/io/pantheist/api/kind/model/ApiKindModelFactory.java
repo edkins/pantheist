@@ -16,11 +16,4 @@ public interface ApiKindModelFactory
 	ListKindResponse listKindResponse(
 			List<ListKindItem> childResources,
 			CreateAction createAction);
-
-	ListEntityItem listEntityItem(
-			@Assisted("url") String url,
-			@Assisted("entityId") String entityId,
-			@Assisted("kindUrl") String kindUrl);
-
-	ListEntityResponse listEntityResponse(List<ListEntityItem> childResources);
 }

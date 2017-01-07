@@ -3,6 +3,7 @@ package io.pantheist.system.main;
 import com.google.inject.AbstractModule;
 
 import io.pantheist.api.entity.backend.ApiEntityBackendModule;
+import io.pantheist.api.entity.model.ApiEntityModelModule;
 import io.pantheist.api.entity.resource.ApiEntityResourceModule;
 import io.pantheist.api.flatdir.backend.ApiFlatDirBackendModule;
 import io.pantheist.api.flatdir.model.ApiFlatDirModelModule;
@@ -17,7 +18,6 @@ import io.pantheist.api.management.backend.ApiManagementBackendModule;
 import io.pantheist.api.management.model.ApiManagementModelModule;
 import io.pantheist.api.management.resource.ApiManagementResourceModule;
 import io.pantheist.api.schema.backend.ApiSchemaBackendModule;
-import io.pantheist.api.schema.model.ApiSchemaModelModule;
 import io.pantheist.api.schema.resource.ApiSchemaResourceModule;
 import io.pantheist.api.sql.backend.ApiSqlBackendModule;
 import io.pantheist.api.sql.model.ApiSqlModelModule;
@@ -55,6 +55,7 @@ public class AllPantheistModule extends AbstractModule
 	protected void configure()
 	{
 		install(new ApiEntityBackendModule());
+		install(new ApiEntityModelModule());
 		install(new ApiEntityResourceModule());
 		install(new ApiFlatDirBackendModule());
 		install(new ApiFlatDirModelModule());
@@ -69,7 +70,6 @@ public class AllPantheistModule extends AbstractModule
 		install(new ApiManagementModelModule());
 		install(new ApiManagementResourceModule());
 		install(new ApiSchemaBackendModule());
-		install(new ApiSchemaModelModule());
 		install(new ApiSchemaResourceModule());
 		install(new ApiSqlBackendModule());
 		install(new ApiSqlModelModule());

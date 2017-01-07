@@ -37,6 +37,10 @@ public interface Kind
 	JsonNode jsonSchema();
 
 	@Nullable
+	@JsonProperty("mimeType")
+	String mimeType();
+
+	@Nullable
 	@JsonProperty("presentation")
 	KindPresentation presentation();
 

@@ -3,7 +3,6 @@ package io.pantheist.testclient.api;
 import io.pantheist.api.flatdir.model.ListFlatDirResponse;
 import io.pantheist.api.java.model.ListJavaPkgResponse;
 import io.pantheist.api.kind.model.ListKindResponse;
-import io.pantheist.api.schema.model.ListSchemaResponse;
 import io.pantheist.api.sql.model.ListSqlTableResponse;
 import io.pantheist.common.api.model.ListClassifierResponse;
 
@@ -51,8 +50,6 @@ public interface ManagementPathRoot
 	ListJavaPkgResponse listJavaPackages();
 
 	ListKindResponse listKinds();
-
-	ListSchemaResponse listJsonSchemas();
 
 	ManagementPathJavaBinding javaBinding();
 

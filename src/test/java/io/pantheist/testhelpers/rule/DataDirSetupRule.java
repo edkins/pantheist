@@ -61,7 +61,11 @@ final class DataDirSetupRule implements TestRule
 				final Kind kind = session.objectMapper().readValue(source, Kind.class);
 				if (kind.partOfSystem())
 				{
-					FileUtils.copyFile(source, target);
+					final String oldText = FileUtils.readFileToString(source, StandardCharsets.UTF_8);
+
+					final String text = oldText.replace("127.0.0.1:3142", "127.0.0.1:" + session.nginxPort());
+
+					FileUtils.writeStringToFile(target, text, StandardCharsets.UTF_8);
 				}
 			}
 		}

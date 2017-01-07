@@ -13,4 +13,10 @@ public interface ManagementPathUnknownEntity
 	void add(String addName);
 
 	ResponseType addResponseType(String addName);
+
+	void putString(String text, String mimeType);
+
+	String getString(String mimeType);
+
+	void delete();
 }

@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.inject.Inject;
 
@@ -137,10 +138,16 @@ final class FileKindHandlerImpl implements FileKindHandler
 	public Possible<KindedMime> getEntity(final Kind kind, final String entityId)
 	{
 		final FilesystemSnapshot snapshot = filesystem.snapshot();
+
+		if (kind.mimeType() == null)
+		{
+			return FailureReason.KIND_IS_INVALID.happened();
+		}
+
 		return getText(snapshot, kind, entityId).map(text -> {
 			return commonFactory.kindedMime(
 					urlTranslation.kindToUrl(kind.kindId()),
-					"application/json",
+					kind.mimeType(),
 					text);
 		});
 	}
@@ -231,6 +238,38 @@ final class FileKindHandlerImpl implements FileKindHandler
 		((ArrayNode) node).add(aff.prototypeValue());
 
 		return View.noContent();
+	}
+
+	@Override
+	public Possible<Void> putEntity(final Kind kind, final String entityId, final String text)
+	{
+		final FsPath path = path(kind, entityId);
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+
+		snapshot.isFile(path);
+		snapshot.writeSingleText(path, text);
+		return View.noContent();
+	}
+
+	@Override
+	public Possible<Void> deleteEntity(final Kind kind, final String entityId)
+	{
+		final FsPath path = path(kind, entityId);
+		final FilesystemSnapshot snapshot = filesystem.snapshot();
+		if (snapshot.isFile(path))
+		{
+			final AtomicBoolean success = new AtomicBoolean(false);
+			snapshot.writeSingle(path, file -> success.set(file.delete()));
+			if (!success.get())
+			{
+				return FailureReason.IO_PROBLEM.happened();
+			}
+			return View.noContent();
+		}
+		else
+		{
+			return FailureReason.DOES_NOT_EXIST.happened();
+		}
 	}
 
 }

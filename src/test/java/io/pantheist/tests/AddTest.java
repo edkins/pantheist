@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import io.pantheist.api.kind.model.ListEntityItem;
+import io.pantheist.api.entity.model.ListEntityItem;
 import io.pantheist.testclient.api.ManagementPathEntities;
 import io.pantheist.testclient.api.ManagementPathKind;
 import io.pantheist.testclient.api.ManagementPathRoot;
@@ -67,6 +67,33 @@ public class AddTest
 		final ManagementPathUnknownEntity entity = kind.postNew();
 
 		assertThat(entity.getResponseTypeForContentType(APPLICATION_JSON), is(ResponseType.OK));
+	}
+
+	@Test
+	public void fileBasedKind_invalidEntityCanBePut() throws Exception
+	{
+		final ManagementPathKind kind = mainRule.putKindResourceWithPort("file-json-with-array");
+		mainRule.putJsonSchemaResourceWithPort("file-json-with-array");
+
+		final ManagementPathUnknownEntity entity = kind.postNew();
+
+		entity.putString("{some invalid json}", APPLICATION_JSON);
+		assertThat(entity.getString(APPLICATION_JSON), is("{some invalid json}"));
+	}
+
+	@Test
+	public void fileBasedKind_entityCanBeDeleted() throws Exception
+	{
+		final ManagementPathKind kind = mainRule.putKindResourceWithPort("file-json-with-array");
+		mainRule.putJsonSchemaResourceWithPort("file-json-with-array");
+
+		final ManagementPathUnknownEntity entity = kind.postNew();
+
+		assertThat(entity.getResponseTypeForContentType(APPLICATION_JSON), is(ResponseType.OK));
+
+		entity.delete();
+
+		assertThat(entity.getResponseTypeForContentType(APPLICATION_JSON), is(ResponseType.NOT_FOUND));
 	}
 
 	@Test

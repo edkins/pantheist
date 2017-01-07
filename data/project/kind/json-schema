@@ -1,10 +1,24 @@
 {
-  "kindId": "json-schema",
-  "partOfSystem": true,
-  "presentation": {
-    "iconUrl": "/resources/images/json-schema.png",
-    "openIconUrl": null
+  "kindId" : "json-schema",
+  "partOfSystem" : true,
+  "presentation" : {
+    "iconUrl" : "/resources/images/json-schema-star.png",
+    "displayName" : "JSON Schema"
   },
   "schema": {
+    "identification": {
+      "parentKind": "file",
+      "locationInProjectDir": "json-schema"
+    }
+  },
+  "jsonSchema" : "http://127.0.0.1:3142/entity/json-schema/json-schema",
+  "mimeType": "application/schema+json",
+  "createAction" : {
+    "basicType" : "json",
+    "mimeType" : "application/schema+json",
+    "jsonSchema" : "http://127.0.0.1:3142/entity/json-schema/json-schema",
+    "urlTemplate" : "http://127.0.0.1:3142/kind/json-schema/create",
+    "prototypeUrl" : "http://127.0.0.1:3142/project/prototype/json-schema",
+    "method" : "post"
   }
 }

@@ -17,4 +17,8 @@ public interface FileKindHandler
 	Possible<KindedMime> getEntity(Kind kind, String entityId);
 
 	Possible<Void> add(Kind kind, String entityId, String addName);
+
+	Possible<Void> putEntity(Kind kind, String entityId, String text);
+
+	Possible<Void> deleteEntity(Kind kind, String entityId);
 }

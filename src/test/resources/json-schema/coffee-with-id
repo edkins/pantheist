@@ -1,6 +1,6 @@
 {
 	"$schema": "http://json-schema.org/draft-04/schema#",
-	"id": "http://127.0.0.1:{{PORT}}/json-schema/coffee-with-id",
+	"id": "http://127.0.0.1:{{PORT}}/entity/json-schema/coffee-with-id",
 	"title": "Coffee",
     "description": "A nice cup of hot steaming coffee, with schema id specified. Note that the port will be filled in by the test before submitting this.",
     "type": "object",

@@ -66,7 +66,7 @@ final class UrlTranslationImpl implements UrlTranslation
 		this.kind = root.segment("kind").var("kindId");
 		this.entities = root.segment("entity").var("kindId");
 		this.entity = root.segment("entity").var("kindId").var("entityId");
-		this.jsonSchema = root.segment("json-schema").var("schemaId");
+		this.jsonSchema = root.segment("entity").segment("json-schema").var("schemaId");
 		this.javaBinding = root.segment("java-binding");
 		this.javaPkg = root.segment("java-pkg").var("pkg");
 		this.javaFile = javaPkg.segment("file").var("file");
@@ -142,7 +142,7 @@ final class UrlTranslationImpl implements UrlTranslation
 	public List<ListClassifierItem> listRootClassifiers()
 	{
 		return classifiers(managementRoot, ImmutableMap.of(), false,
-				"kind", "entity", "java-pkg", "json-schema", "server", "data", "flat-dir", "sql-table");
+				"kind", "entity", "java-pkg", "server", "data", "flat-dir", "sql-table");
 	}
 
 	@Override

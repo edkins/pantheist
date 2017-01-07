@@ -12,7 +12,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
-import io.pantheist.api.schema.model.ListSchemaItem;
+import io.pantheist.api.entity.model.ListEntityItem;
 import io.pantheist.testclient.api.ManagementPathRoot;
 import io.pantheist.testclient.api.ManagementPathSchema;
 import io.pantheist.testclient.api.ResponseType;
@@ -65,7 +65,7 @@ public class SchemaTest
 	{
 		schema.putJsonSchemaResource(JSON_SCHEMA_COFFEE_RES);
 
-		final List<ListSchemaItem> list = manage.listJsonSchemas().childResources();
+		final List<ListEntityItem> list = manage.entitiesWithKind("json-schema").listEntities().childResources();
 
 		assertThat(list.size(), is(1));
 		assertThat(list.get(0).url(), is(schema.url()));
@@ -99,11 +99,11 @@ public class SchemaTest
 	}
 
 	@Test
-	public void invalidSchema_rejected() throws Exception
+	public void invalidSchema_allowed() throws Exception
 	{
 		final ResponseType responseType = schema.putJsonSchemaResourceResponseType("/json-schema/invalid");
 
-		assertEquals(ResponseType.BAD_REQUEST, responseType);
+		assertEquals(ResponseType.NO_CONTENT, responseType);
 	}
 
 	@Test

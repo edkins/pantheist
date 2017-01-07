@@ -9,17 +9,16 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 
+import io.pantheist.api.entity.model.ListEntityResponse;
 import io.pantheist.api.flatdir.model.ApiFlatDirFile;
 import io.pantheist.api.flatdir.model.ListFileResponse;
 import io.pantheist.api.flatdir.model.ListFlatDirResponse;
 import io.pantheist.api.java.model.ApiJavaBinding;
 import io.pantheist.api.java.model.ListJavaFileResponse;
 import io.pantheist.api.java.model.ListJavaPkgResponse;
-import io.pantheist.api.kind.model.ListEntityResponse;
 import io.pantheist.api.kind.model.ListKindResponse;
 import io.pantheist.api.management.model.ListConfigItem;
 import io.pantheist.api.management.model.ListConfigResponse;
-import io.pantheist.api.schema.model.ListSchemaResponse;
 import io.pantheist.api.sql.model.ApiSqlRow;
 import io.pantheist.api.sql.model.ListRowResponse;
 import io.pantheist.api.sql.model.ListSqlTableResponse;
@@ -157,7 +156,7 @@ final class ManagementPathImpl implements
 	@Override
 	public ManagementPathSchema jsonSchema(final String schemaId)
 	{
-		return new ManagementPathImpl(target.withSegment(JSON_SCHEMA).withSegment(schemaId));
+		return new ManagementPathImpl(target.withSegment(ENTITY).withSegment(JSON_SCHEMA).withSegment(schemaId));
 	}
 
 	@Override
@@ -212,12 +211,6 @@ final class ManagementPathImpl implements
 	public ListKindResponse listKinds()
 	{
 		return target.withSegment(KIND).getJson(ListKindResponse.class);
-	}
-
-	@Override
-	public ListSchemaResponse listJsonSchemas()
-	{
-		return target.withSegment(JSON_SCHEMA).getJson(ListSchemaResponse.class);
 	}
 
 	@Override
@@ -474,5 +467,17 @@ final class ManagementPathImpl implements
 	{
 		final Map<String, Object> map = ImmutableMap.of("addName", addName);
 		return target.withSegment("add").postOperationWithJsonResponseType(map);
+	}
+
+	@Override
+	public void putString(final String text, final String mimeType)
+	{
+		target.putString(text, mimeType);
+	}
+
+	@Override
+	public String getString(final String mimeType)
+	{
+		return target.getString(mimeType);
 	}
 }

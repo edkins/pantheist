@@ -4,8 +4,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -16,8 +19,7 @@ import org.apache.logging.log4j.Logger;
 
 import io.pantheist.api.entity.backend.EntityBackend;
 import io.pantheist.api.entity.model.AddRequest;
-import io.pantheist.api.kind.backend.KindBackend;
-import io.pantheist.api.kind.model.ListEntityResponse;
+import io.pantheist.api.entity.model.ListEntityResponse;
 import io.pantheist.common.annotations.ResourceTag;
 import io.pantheist.common.api.model.KindedMime;
 import io.pantheist.common.api.model.ListClassifierResponse;
@@ -28,14 +30,12 @@ import io.pantheist.common.util.Possible;
 public final class EntityResource implements ResourceTag
 {
 	private static final Logger LOGGER = LogManager.getLogger(EntityResource.class);
-	private final KindBackend kindBackend;
 	private final Resp resp;
 	private final EntityBackend backend;
 
 	@Inject
-	private EntityResource(final KindBackend kindBackend, final EntityBackend backend, final Resp resp)
+	private EntityResource(final EntityBackend backend, final Resp resp)
 	{
-		this.kindBackend = checkNotNull(kindBackend);
 		this.backend = checkNotNull(backend);
 		this.resp = checkNotNull(resp);
 	}
@@ -52,7 +52,7 @@ public final class EntityResource implements ResourceTag
 		LOGGER.info("GET entity/{}", kindId);
 		try
 		{
-			final Possible<ListEntityResponse> result = kindBackend.listEntitiesWithKind(kindId);
+			final Possible<ListEntityResponse> result = backend.listEntitiesWithKind(kindId);
 			return resp.possibleToJson(result);
 		}
 		catch (final RuntimeException ex)
@@ -75,8 +75,54 @@ public final class EntityResource implements ResourceTag
 		LOGGER.info("GET entity/{}/{}", kindId, entityId);
 		try
 		{
-			final Possible<KindedMime> result = kindBackend.getEntity(kindId, entityId);
+			final Possible<KindedMime> result = backend.getEntity(kindId, entityId);
 			return resp.possibleKindedMime(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Handles putting a particular entity (PUT)
+	 *
+	 * The mime type is unknown at compile time because it will be different for different kinds.
+	 */
+	@PUT
+	@Path("entity/{kindId}/{entityId}")
+	public Response puttEntity(
+			@PathParam("kindId") final String kindId,
+			@PathParam("entityId") final String entityId,
+			@HeaderParam("Content-Type") final String contentType,
+			final String text)
+	{
+		LOGGER.info("PUT entity/{}/{} {}", kindId, entityId, contentType);
+		try
+		{
+			final Possible<Void> result = backend.putEntity(kindId, entityId, contentType, text, false);
+			return resp.possibleEmpty(result);
+		}
+		catch (final RuntimeException ex)
+		{
+			return resp.unexpectedError(ex);
+		}
+	}
+
+	/**
+	 * Deletes an entity (DELETE)
+	 */
+	@DELETE
+	@Path("entity/{kindId}/{entityId}")
+	public Response puttEntity(
+			@PathParam("kindId") final String kindId,
+			@PathParam("entityId") final String entityId)
+	{
+		LOGGER.info("DELETE entity/{}/{}", kindId, entityId);
+		try
+		{
+			final Possible<Void> result = backend.deleteEntity(kindId, entityId);
+			return resp.possibleEmpty(result);
 		}
 		catch (final RuntimeException ex)
 		{
@@ -95,7 +141,7 @@ public final class EntityResource implements ResourceTag
 		LOGGER.info("GET entity");
 		try
 		{
-			final ListClassifierResponse result = kindBackend.listEntityClassifiers();
+			final ListClassifierResponse result = backend.listEntityClassifiers();
 			return resp.toJson(result);
 		}
 		catch (final RuntimeException ex)

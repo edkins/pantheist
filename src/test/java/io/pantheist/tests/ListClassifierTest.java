@@ -43,7 +43,6 @@ public class ListClassifierTest
 	private static final String JAVA_PKG = "io.pantheist.examples";
 	private static final String JAVA_EMPTY_CLASS_RES = "/java-example/EmptyClass";
 	private static final String JAVA_EMPTY_CLASS_NAME = "EmptyClass";
-	private static final String JSON_SCHEMA_MIME = "application/schema+json";
 
 	@Before
 	public void setup()
@@ -60,7 +59,7 @@ public class ListClassifierTest
 		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
 
 		assertThat(segs,
-				containsInAnyOrder("data", "server", "java-pkg", "json-schema", "kind", "flat-dir", "sql-table",
+				containsInAnyOrder("data", "server", "java-pkg", "kind", "flat-dir", "sql-table",
 						"entity"));
 		assertThat(urls, hasItem(manage.urlOfService("java-pkg")));
 	}
@@ -73,7 +72,7 @@ public class ListClassifierTest
 		final List<String> urls = Lists.transform(list, ListClassifierItem::url);
 		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
 
-		assertThat(segs, containsInAnyOrder("java-file"));
+		assertThat(segs, containsInAnyOrder("java-file", "json-schema"));
 		assertThat(urls, hasItem(manage.entitiesWithKind("java-file").url()));
 	}
 
@@ -85,7 +84,7 @@ public class ListClassifierTest
 
 		final List<? extends ListClassifierItem> list = manage.listEntityClassifiers().childResources();
 		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
-		assertThat(segs, containsInAnyOrder("java-file", "file-json-with-array"));
+		assertThat(segs, containsInAnyOrder("java-file", "json-schema", "file-json-with-array"));
 	}
 
 	@Test
@@ -95,7 +94,7 @@ public class ListClassifierTest
 
 		final List<? extends ListClassifierItem> list = manage.listEntityClassifiers().childResources();
 		final List<String> segs = Lists.transform(list, ListClassifierItem::classifierSegment);
-		assertThat(segs, containsInAnyOrder("java-file", "java-interface-sugar"));
+		assertThat(segs, containsInAnyOrder("java-file", "json-schema", "java-interface-sugar"));
 	}
 
 	@Test
@@ -168,16 +167,6 @@ public class ListClassifierTest
 		final ResponseType response2 = bad.getJavaFileResponseType();
 		assertThat(response1, is(ResponseType.OK));
 		assertThat(response2, is(ResponseType.NOT_FOUND));
-	}
-
-	@Test
-	public void jsonSchema_createAction() throws Exception
-	{
-		final CreateAction createAction = manage.listJsonSchemas().createAction();
-
-		assertThat(createAction.basicType(), is(BasicContentType.json));
-		assertThat(createAction.mimeType(), is(JSON_SCHEMA_MIME));
-		assertThat(createAction.urlTemplate(), containsString("json-schema/{schemaId}"));
 	}
 
 	@Test

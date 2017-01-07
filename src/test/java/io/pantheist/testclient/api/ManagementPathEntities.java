@@ -1,6 +1,6 @@
 package io.pantheist.testclient.api;
 
-import io.pantheist.api.kind.model.ListEntityResponse;
+import io.pantheist.api.entity.model.ListEntityResponse;
 
 public interface ManagementPathEntities
 {

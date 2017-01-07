@@ -13,8 +13,8 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import io.pantheist.api.entity.model.ListEntityItem;
 import io.pantheist.api.java.model.ListJavaFileItem;
-import io.pantheist.api.kind.model.ListEntityItem;
 import io.pantheist.api.kind.model.ListKindItem;
 import io.pantheist.handler.kind.model.Kind;
 import io.pantheist.testclient.api.ManagementPathJavaFile;
