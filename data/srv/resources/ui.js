@@ -60,13 +60,6 @@ ui.isKindListable = function(kindUrl)
 	return false;
 };
 
-Object.defineProperty(ui, 'rootKindUrl', {
-	get: function()
-	{
-		return http.home + '/kind/pantheist-root';
-	}
-});
-
 ui._setupAce = function()
 {
     editor = ace.edit("editor");
@@ -83,7 +76,7 @@ ui._fetchKind = function(url)
 };
 
 ui.refreshCache = function() {
-	return http.getJson(http.home + '/kind').then(
+	return http.getJson(http.home + '/entity/kind').then(
 		list => {
 			var promises = [];
 			for (var child of list.childResources)
@@ -352,6 +345,13 @@ ui.visit = function(url, kindUrl, elementToFlash, flashOnSuccess)
 	{
 		schemaUrl = kind.createAction.jsonSchema;
 		mimeType = kind.createAction.mimeType;
+	}
+	if (kind.computed != undefined)
+	{
+		if (kind.computed.mimeType != undefined)
+		{
+			mimeType = kind.computed.mimeType;
+		}
 	}
 	
 	if (mimeType == undefined)

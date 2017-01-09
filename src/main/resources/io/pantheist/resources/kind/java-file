@@ -5,6 +5,9 @@
     "iconUrl" : "/resources/images/file.png",
     "displayName" : "Java File"
   },
+  "specified": {
+    "mimeType": "text/plain"
+  },
   "schema": {
     "properties": {
       "qualifiedName": {

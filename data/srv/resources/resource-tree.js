@@ -142,7 +142,7 @@ resourceTree.initialize = function()
 	resourceTree._info = {};
 	
 	var rootUrl = http.home;
-	var rootKind = http.home + '/kind/pantheist-root';
+	var rootKind = http.home + '/entity/kind/pantheist-root';
 	
 	rootElement.append(resourceTree._createTreeItem(rootKind, false, rootUrl, 'root'));
 	
